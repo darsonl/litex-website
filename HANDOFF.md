@@ -7,16 +7,33 @@
 
 ## ▶ Do this first in the new session
 
-1. **Read the spec:** `docs/superpowers/specs/2026-08-10-litex-website-redesign-design.md`
-   — it holds every decision made so far. This file is only the pointer and the state.
-2. **Get user approval on the spec** (the brainstorming skill's user-review gate). Section 7,
-   the content gaps register, has been written but not yet walked through with the user.
-   The spec self-review is already done — see the findings table below; don't redo it.
-3. **Then run `/impeccable init`** — deliberately sequenced *after* the spec so its PRODUCT.md
-   consumes decisions already made instead of re-running a discovery interview. See "Why after"
-   below.
-4. **Then invoke `superpowers:writing-plans`** to turn the approved spec into an implementation
-   plan. That is the terminal step of brainstorming — do not jump straight to building.
+**Design is finished. The next session builds.** Do not re-run brainstorming, the spec self-review,
+`/impeccable init`, or `writing-plans` for Plan 1 — all four are complete and committed.
+
+1. **Read `PRODUCT.md`** (product truth) and
+   **`docs/superpowers/plans/2026-08-10-litex-foundation-content-layer.md`** (what to build).
+   The full spec at `docs/superpowers/specs/2026-08-10-litex-website-redesign-design.md` is the
+   reference for anything the plan doesn't answer — you should not need to read it end to end.
+2. **Execute Plan 1** with `superpowers:subagent-driven-development` (fresh subagent per task,
+   review between) **or** `superpowers:executing-plans` (inline, batched checkpoints).
+   **Cost note:** subagent-driven spawns a cold agent per task and is the more expensive of the
+   two. Inline reuses session context. The user was token-constrained when this was written, so
+   confirm the choice with them before starting.
+3. **Plans 2–5 are not written yet.** Write each one immediately before executing it, so it can
+   absorb what the previous plan taught. Their scope is listed at the bottom of Plan 1.
+
+### Resume state as of 2026-08-10
+
+- **Nothing has been built.** No `package.json`, no `src/`, no `node_modules/`. The repo holds the
+  archive, the spec, PRODUCT.md, and Plan 1. Plan 1 Task 1 starts from an empty project.
+- Working tree clean at `a3bac59`.
+- **Two live questions the user has not answered**, both worth raising before building:
+  1. **Is North America really the priority market?** It's recorded as confirmed, but contradicts
+     every piece of evidence in the archive (Frankfurt, Düsseldorf, Tokyo). It drove two spec
+     changes, so a reversal is cheap now and expensive later.
+  2. **Gap 17 — North American certifications.** The credibility bar is built on REACH/RoHS/SGS,
+     which are EU instruments. NA buyers ask for UL, FCC, CPSIA, Prop 65. FCC matters directly:
+     LiTex sells EMI shielding. LiTex documents none of them.
 
 ---
 
