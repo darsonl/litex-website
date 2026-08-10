@@ -60,7 +60,7 @@ credibility converts to RFQs. One engine, three outputs.
 | Decision | Choice | Rationale |
 |---|---|---|
 | Platform | **New static site + own domain** | Total design freedom, edge performance for EU/JP/US buyers, near-zero hosting cost |
-| Content sourcing | **Only what exists on the current site today** (pages, images, and the 6 PDF catalogs) | User constraint. Everything missing goes on the gaps register in §7 rather than being invented. |
+| Content sourcing | **Only what LiTex has itself published** — the current site (pages, images, 6 PDF catalogs) **and its own Alibaba storefront** | User constraint, widened 2026-08-10. The rule's purpose is *never invent content*, not *never leave the domain*. The storefront at `litex.en.alibaba.com` is LiTex's own self-authored commercial copy, linked from the About page. Every fact taken from it carries a `sourceNote` naming the source and retrieval date, and must still be confirmed by LiTex before launch. Everything missing goes on the gaps register in §7 rather than being invented. |
 | IA | **Dual-entry** — products ↔ applications, cross-linked | Serves the engineer who knows the part *and* the buyer who only knows the problem |
 | Scope | **Full expansion** | New application pages, technology pages, a real conversion flow |
 | Maintenance | **Git-backed CMS** (Sveltia) at `/admin` | Staff get a login and WYSIWYG; output is a commit |
@@ -367,6 +367,37 @@ nobody else can weave*, a stock UI face quietly contradicts the message.
 Coverings are tinned copper. Coating options: PU, FEP (Teflon). Copper-nickel (CuNi) noted as
 "coming soon" as of 2018 — **status must be confirmed**.
 
+### RFID Wired Woven Tape — recovered 2026-08-10
+*Source: `2018-rfid-textile-tape.pdf` via `pdftotext -layout`. This is the entire content basis for
+`/products/rfid-textile-tape/`, a page that has never existed.*
+
+Narrow textile tape with conductive wires woven in, providing RFID tag antenna reception. RFID chip
+can be fixed to the tape with epoxy. Integration by hot-melt adhesive or sewing. Selvage edge
+prevents fraying. All specifications customisable; OEM and ODM offered.
+
+| Tape | Value |
+|---|---|
+| Width | 20 mm |
+| Material | Polyester |
+| Elasticity | 0% |
+| Weave geometry | wavelength 1.8 cm · 2 × amplitude 1.5 cm · width 2 cm |
+
+| Conductive core | Wire type 1 | Wire type 2 |
+|---|---|---|
+| Material | Copper | Stainless 316L |
+| Max resistance @20° | 326.2 Ω/km | 1400 Ω/km |
+| Max current | 0.2 A | — |
+| Filaments | — | 275 × 2 |
+| Orientation | S | — |
+| Outer diameter | 0.631–0.633 mm | 0.95 mm |
+| Covering | TPU, black | TPU, black |
+
+> ⚠️ **Verify before publishing.** `pdftotext -layout` misaligned this table's label and value
+> columns by one row; the pairings above are reconstructed by reading the offset, not read directly.
+> They must be confirmed against the PDF by eye (or vision model) before going into `specTable`
+> YAML. A mis-paired spec table is worse than no page — it is exactly the failure §0 item 2 is
+> meant to end.
+
 ### Claims recoverable from the PDFs (not currently on the website)
 
 REACH compliant · RoHS compliant · SGS test certified toughness · patented technology ·
@@ -419,14 +450,15 @@ Ordered by blocking severity. Items marked **BLOCKER** prevent a credible launch
 
 | # | Needed | Why | Severity |
 |---|---|---|---|
-| 1 | **A real email address** | None exists anywhere on the current site. Cannot ship a B2B site without one. | **BLOCKER** |
-| 2 | **Confirm/remove the placeholder US address** ("10 Street Road, City, 10100, USA", `mail@example.com`, "(555) 555 1234") | Is this a real second office or theme boilerplate? Almost certainly boilerplate. | **BLOCKER** |
+| 1 | **A real email address** | Verified 2026-08-10: the only address on the site is `mail@example.com`, appearing 4× on `/contact/`. Every email inquiry sent through this site has gone nowhere. LiTex's *one* working inbound channel today is Alibaba messaging — which is also a reason `/contact/` should link the storefront rather than pretend it doesn't exist. | **BLOCKER** |
+| 2 | ~~Confirm/remove the placeholder US address~~ — **resolved by evidence, courtesy check only** | Verified 2026-08-10: `archive/pages/contact.html` carries the fake US block ("10 Street Road, City, 10100, USA" ×3, `(555) 555 1234` ×3, `mail@example.com` ×4) **simultaneously with** the real Bangka Blvd address and `2308-4712`. A genuine second office is not called "10 Street Road". This is theme boilerplate: delete it, and mention it to LiTex rather than wait on them. | ~~BLOCKER~~ → Low |
 | 3 | **Domain ownership** — does LiTex own `litex.com.tw` or equivalent? | Gates the entire migration | **BLOCKER** |
 | 4 | **WordPress.com admin access** + budget for the paid Site Redirect upgrade | Without it the migration forfeits existing search ranking | **BLOCKER** |
 | 5 | **Certification documents** — SGS test reports, REACH/RoHS declarations, with dates and scope | Currently a claim on page 1 of a PDF. European/Japanese procurement uses these as a hard filter. | High |
 | 6 | **Patent status re-confirmation** — the full list is now recovered (see `archive/extracted-from-images.md` §2), but "pending" applications date from 2010–2011 and have since been granted or abandoned | Publishing a 15-year-old "pending" status is worse than publishing nothing | High |
 | 7 | **Product line confirmation** — is everything still manufactured? Is CuNi (2018 "coming soon") now shipping? | Prevents publishing a catalog of products that no longer exist | High |
-| 8 | **RFID Textile Tape specs** | Only the PDF exists; the new page needs real data | High |
+| 8 | ~~RFID Textile Tape specs~~ — **largely recovered**; needs eye-verification, then LiTex confirmation | Full spec set extracted from the catalog on 2026-08-10 (see §6). Enough to build the page. Two caveats: the extracted table's columns were misaligned and must be checked against the PDF, and the data is 8 years old, so it folds into item 7's product-line confirmation. | ~~High~~ → Medium |
+| 8b | **Manual capture of the Alibaba storefront** (`litex.en.alibaba.com`, supplier ID 234468551) | Approved as a source (§2). It plausibly answers items 5, 10, 11 and 13 in one pass — Alibaba profiles publish MOQ, lead time, sample policy, headcount, factory size, main markets and certifications as standard fields. **Cannot be fetched automatically:** curl, WebFetch and headless Chrome all hit Alibaba's captcha interception (verified 2026-08-10). Needs a human browser session — either LiTex's own login or a manual page save into `archive/`. | High |
 | 9 | **Supporting detail for 5 under-evidenced applications** — Automotive interiors and Healthcare (in the build set), plus Architecture, Agriculture and Loudspeaker coil-cords (held) | All five rest on a single icon in `applications.jpg` / `cmy-applications.jpg`. That is enough to justify a route but not to fill it: a page asserting an end-use LiTex cannot substantiate fails exactly the diligence a serious buyer applies. Automotive and Healthcare are **blocking their own pages** — the routes are in §3 but cannot ship empty. Loudspeaker coil-cords is the most commercially interesting of the held three; ask about it first. | High |
 | 10 | **MOQ, lead times, sample policy** | The questions every RFQ opens with | High |
 | 11 | **Hi-res photography** — macro fabric shots, product shots, loom/factory floor | The dark direction relies on strong macro imagery; there is currently none usable | High |
