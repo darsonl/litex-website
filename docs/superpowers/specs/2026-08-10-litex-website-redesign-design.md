@@ -66,7 +66,8 @@ credibility converts to RFQs. One engine, three outputs.
 | Maintenance | **Git-backed CMS** (Sveltia) at `/admin` | Staff get a login and WYSIWYG; output is a commit |
 | Visual direction | **"Technical Instrument"** — dark, precise, data-forward | Chosen from 3 options. Carries credibility signals (REACH/RoHS/SGS/patents/since-1999) as first-class furniture so it serves buyers as well as engineers. |
 | Typography | **Archivo + IBM Plex Mono** | Replaces Inter after the impeccable detector flagged it as an overused, undifferentiated default |
-| Languages | **English only**, i18n-ready routing and content layer retained as insurance | Revised 2026-08-10: with North America confirmed as the priority market (PRODUCT.md), English-only is the terminal answer, not a first phase. No translation is planned; the routing stays i18n-shaped only because it costs nothing to keep. |
+| Languages | **English at launch**, i18n-ready routing and content layer | EU is the priority market and English is the working language of European industrial procurement, so it is correct at launch rather than a compromise. German is the most plausible later addition; the routing stays i18n-shaped because that costs nothing. |
+| Priority market | **Europe (EU)** | Confirmed 2026-08-10. Agrees with all documented evidence — Techtextil Frankfurt, Düsseldorf Wire Show, and the REACH/RoHS/SGS claims already made. Japan secondary. |
 | Primary user | **The design engineer**, when engineer and sourcing manager conflict | Confirmed 2026-08-10. The engineer creates the requirement the buyer later sources, and the "specs are data" architecture exists to serve them. Credibility signals stay present but subordinate. |
 | Client channel | **Informal and slow** | Confirmed 2026-08-10. Answers from LiTex arrive partially or not at all, so no page may depend on a reply. Designing around an open gap is the default, not the fallback. |
 
@@ -503,8 +504,8 @@ Ordered by blocking severity. Items marked **BLOCKER** prevent a credible launch
 | 13 | **Company facts** — factory location(s), headcount, capacity, ISO certifications if any | `/company/about/` is currently three sentences | Medium |
 | 14 | **News since 2022** | Feed is 4 years stale; the CMS only helps if someone posts | Medium |
 | 15 | **Updated catalogs** — current set is 2018 | Downloads page is offering 8-year-old documents | Medium |
-| 16 | **Traditional Chinese copy** | Downgraded 2026-08-10: with North America confirmed as the priority market, English-only is the correct terminal state rather than a launch compromise. i18n-ready routing stays as cheap insurance; no translation is planned. | ~~Low~~ → None planned |
-| 17 | **North American certification status — UL, FCC, CPSIA, California Prop 65** | **New, raised by the market decision.** The entire compliance story (REACH, RoHS, SGS) is built for European procurement. North American industrial buyers ask for a different set, and **FCC is directly material** — LiTex sells EMI shielding products into a market that regulates exactly that. LiTex documents none of these anywhere. If the answer is "none held", the credibility bar in §5 must be rebuilt around what LiTex actually has, not around EU instruments a US buyer does not use as a filter. | High |
+| 16 | **Second-language copy** | With EU confirmed as the priority market, English is correct at launch — it is the working language of European industrial procurement. German is the most plausible addition if one is ever made; Traditional Chinese is domestic-only and not planned. Routing stays i18n-ready. | Low |
+| 17 | ~~North American certification status — UL, FCC, CPSIA, Prop 65~~ — **withdrawn 2026-08-10** | Raised while North America was the target market. **EU is now the priority**, so REACH, RoHS and SGS are the correct regulatory regime and LiTex already claims all three. No new certification class is needed. The remaining certification work is item 5 — getting the actual documents — not acquiring new approvals. | Withdrawn |
 
 ---
 

@@ -158,17 +158,17 @@ make its most valuable content inaccessible.
 
 ## Target Markets
 
-**North America — confirmed by the user as the priority market.**
+**Europe (EU) — confirmed by the user as the priority market, 2026-08-10.** This agrees with every
+piece of documented evidence: Techtextil Frankfurt, the Düsseldorf Wire Show, and the REACH / RoHS
+/ SGS compliance claims LiTex already makes. Japan is a real but secondary presence (Tokyo Wearable
+Expo 2022). North America was considered and set aside.
 
-> ⚠️ **This conflicts with every piece of documented evidence and should be re-confirmed with LiTex
-> when the slow channel allows.** All recorded market activity is European and Japanese (Techtextil
-> Frankfurt, Düsseldorf Wire Show, Tokyo Wearable Expo 2022), and the only US artefact on the site
-> is a fake theme address. Two consequences follow if North America is genuinely the target:
->
-> 1. **English-only is the correct terminal state**, not a staging compromise. Traditional Chinese
->    and Japanese both drop to "only on request"; i18n-ready routing stays cheap insurance rather
->    than a planned phase.
-> 2. **The certification story is aimed at the wrong regime.** REACH and RoHS are EU instruments.
->    North American industrial buyers ask for UL, FCC (directly relevant to EMI shielding
->    products), CPSIA and California Prop 65 — **none of which LiTex documents anywhere.** Whether
->    LiTex holds any North American certification is an open question and a new gap-register item.
+Two consequences:
+
+1. **The existing compliance story is the correct one.** REACH and RoHS are EU instruments and
+   LiTex already claims both, plus SGS testing. Build credibility on what LiTex holds today rather
+   than pursuing a certification class it does not have. The open work is obtaining the actual
+   documents — dates, scope, certificate numbers — not acquiring new certifications.
+2. **English at launch is correct, not a compromise.** English is the working language of European
+   industrial procurement. German is the most plausible second language if one is ever added;
+   Traditional Chinese is domestic-only and not planned. i18n-ready routing stays cheap insurance.

@@ -27,13 +27,14 @@
 - **Nothing has been built.** No `package.json`, no `src/`, no `node_modules/`. The repo holds the
   archive, the spec, PRODUCT.md, and Plan 1. Plan 1 Task 1 starts from an empty project.
 - Working tree clean at `a3bac59`.
-- **Two live questions the user has not answered**, both worth raising before building:
-  1. **Is North America really the priority market?** It's recorded as confirmed, but contradicts
-     every piece of evidence in the archive (Frankfurt, Düsseldorf, Tokyo). It drove two spec
-     changes, so a reversal is cheap now and expensive later.
-  2. **Gap 17 — North American certifications.** The credibility bar is built on REACH/RoHS/SGS,
-     which are EU instruments. NA buyers ask for UL, FCC, CPSIA, Prop 65. FCC matters directly:
-     LiTex sells EMI shielding. LiTex documents none of them.
+- **Market and credibility questions are settled (2026-08-10). Nothing is outstanding.**
+  **EU is the priority market**, which agrees with all archive evidence (Techtextil Frankfurt,
+  Düsseldorf Wire Show) and with the REACH/RoHS/SGS claims LiTex already makes. Japan secondary.
+  The credibility bar in spec §5 stays exactly as designed — **REACH · RoHS · SGS TESTED ·
+  PATENTED TW 1M545145 · MANUFACTURING SINCE 1999** — built on what LiTex holds today. Gap 17
+  (North American certifications) is **withdrawn**; no new certification class is being pursued.
+  The remaining certification work is gap 5: obtaining the actual SGS/REACH documents with dates
+  and scope. English at launch is correct, not a compromise.
 
 ---
 
