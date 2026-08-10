@@ -62,34 +62,23 @@ describe('built products index', () => {
   let doc: ReturnType<typeof docFor>;
   beforeAll(() => { doc = docFor('products/index.html'); });
 
-  it('lists both seeded products by name', () => {
-    const text = doc.body.textContent ?? '';
-    expect(text).toContain('Conductive Metal Yarn');
-    expect(text).toContain('RFID Wired Woven Tape');
+  it('renders one card per product, each linking to its detail page', () => {
+    const links = [...doc.querySelectorAll('.card a[href^="/products/"]')]
+      .map((a) => a.getAttribute('href'));
+    expect(links).toContain('/products/conductive-metal-yarn/');
+    expect(links).toContain('/products/rfid-textile-tape/');
   });
 
-  it('resolves application references into readable names', () => {
-    expect(doc.body.textContent).toContain('Heated apparel & wearables');
+  it('states availability in words, not by colour alone', () => {
+    expect(doc.body.textContent).toContain('IN PRODUCTION');
   });
 
-  it('shows provenance for every product carrying spec data', () => {
-    const notes = [...doc.querySelectorAll('[data-source-note]')];
-    expect(notes.length).toBeGreaterThanOrEqual(2);
-    for (const note of notes) {
-      expect(note.textContent?.trim()).not.toBe('');
-    }
-  });
-
-  it('claims verification honestly — a caveat appears only where the flag is set', () => {
-    // Both seeded spec tables were verified against their rendered source PDFs on
-    // 2026-08-11, so no caveat should render. The flag's behaviour is covered by
-    // tests/schemas.test.ts; this asserts we are not showing a stale warning.
-    expect(doc.querySelector('[data-needs-verification]')).toBeNull();
-  });
-
-  it('renders measured values in the monospace class', () => {
-    const values = [...doc.querySelectorAll('.value')].map((n) => n.textContent);
-    expect(values.join(' ')).toContain('326.2');
+  it('lists active products before legacy ones', () => {
+    const statuses = [...doc.querySelectorAll('[data-status]')]
+      .map((n) => n.getAttribute('data-status'));
+    const firstLegacy = statuses.indexOf('legacy');
+    const lastActive = statuses.lastIndexOf('active');
+    if (firstLegacy !== -1) expect(firstLegacy).toBeGreaterThan(lastActive);
   });
 
   it('never leaks placeholder contact details into visible copy', () => {
@@ -103,5 +92,161 @@ describe('built products index', () => {
     // the legacy wordpress.com URLs carry one, keeping the 301 map a 1:1 mapping.
     expect(doc.querySelector('link[rel="canonical"]')?.getAttribute('href'))
       .toBe('https://litex.com.tw/products/');
+  });
+});
+
+describe('built product detail page', () => {
+  let doc: ReturnType<typeof docFor>;
+  beforeAll(() => { doc = docFor('products/conductive-metal-yarn/index.html'); });
+
+  it('has exactly one h1 naming the product', () => {
+    expect(doc.querySelectorAll('h1')).toHaveLength(1);
+    expect(doc.querySelector('h1')?.textContent).toContain('Conductive Metal Yarn');
+  });
+
+  it('points its canonical at its own URL', () => {
+    expect(doc.querySelector('link[rel="canonical"]')?.getAttribute('href'))
+      .toBe('https://litex.com.tw/products/conductive-metal-yarn/');
+  });
+
+  it('renders the spec table with scoped column headers', () => {
+    const headers = [...doc.querySelectorAll('th[scope="col"]')].map((th) => th.textContent);
+    expect(headers.join(' ')).toContain('Resistance (Ω/M)');
+  });
+
+  it('shows provenance for the spec data', () => {
+    const note = doc.querySelector('[data-source-note]');
+    expect(note?.textContent).toContain('2018-non-carbon-electrical-heating-textile.pdf');
+  });
+
+  it('offers Copy as CSV with the serialized table attached', () => {
+    const button = doc.querySelector('[data-copy-csv]');
+    expect(button, 'no copy-as-CSV control found').toBeTruthy();
+    const csv = button?.getAttribute('data-csv') ?? '';
+    expect(csv.split('\r\n')[0]).toContain('Resistance (Ω/M)');
+    expect(csv).toContain("010/N(K)30'*3/1S");
+  });
+
+  it('hides the copy control until script enables it, so no-JS sees no dead button', () => {
+    expect(doc.querySelector('[data-copy-csv]')?.hasAttribute('hidden')).toBe(true);
+  });
+
+  it('emits valid Product JSON-LD naming LiTex as manufacturer', () => {
+    const raw = doc.querySelector('script[type="application/ld+json"]')?.textContent ?? '';
+    const ld = JSON.parse(raw);
+    expect(ld['@type']).toBe('Product');
+    expect(ld.name).toBe('Conductive Metal Yarn');
+    expect(ld.manufacturer.name).toContain('LiTex');
+    expect(ld.url).toBe('https://litex.com.tw/products/conductive-metal-yarn/');
+  });
+
+  it('never advertises a price, because pricing is quote-based', () => {
+    const raw = doc.querySelector('script[type="application/ld+json"]')?.textContent ?? '';
+    expect(raw).not.toContain('price');
+  });
+
+  it('links every application it references', () => {
+    const links = [...doc.querySelectorAll('a[href^="/applications/"]')];
+    expect(links.length).toBeGreaterThan(0);
+  });
+});
+
+describe('built legacy product detail page', () => {
+  it('states legacy availability in words, not colour alone', () => {
+    const doc = docFor('products/silica-gel-switch-controller/index.html');
+    expect(doc.body.textContent).toContain('LEGACY');
+    expect(doc.body.textContent).toContain('SAMPLING ONLY');
+  });
+
+  it('renders the HT001 specification table with its provenance', () => {
+    const doc = docFor('products/silica-gel-switch-controller/index.html');
+    expect(doc.body.textContent).toContain('#HT001 Silicon switch');
+    expect(doc.querySelector('[data-source-note]')?.textContent)
+      .toContain('extracted-from-images.md');
+  });
+});
+
+describe('all seeded products', () => {
+  const slugs = [
+    'conductive-metal-yarn',
+    'rfid-textile-tape',
+    'electrical-heating-textile',
+    'emi-shielding-woven-tube',
+    'braided-self-curling-tube',
+    'wired-conductive-tape',
+    'silica-gel-switch-controller',
+  ];
+
+  it('each generates a detail page with a single h1 and a canonical', () => {
+    for (const slug of slugs) {
+      const doc = docFor(`products/${slug}/index.html`);
+      expect(doc.querySelectorAll('h1'), `${slug} h1 count`).toHaveLength(1);
+      expect(
+        doc.querySelector('link[rel="canonical"]')?.getAttribute('href'),
+        `${slug} canonical`,
+      ).toBe(`https://litex.com.tw/products/${slug}/`);
+    }
+  });
+
+  it('never claims a certification LiTex has not made', () => {
+    for (const slug of slugs) {
+      const doc = docFor(`products/${slug}/index.html`);
+      // "Wire is UL approved" is a third-party wire approval and stays in prose;
+      // it must never appear in the certifications line.
+      const certLine = doc.querySelector('.certs')?.textContent ?? '';
+      expect(certLine, `${slug} certifications`).not.toContain('UL');
+    }
+  });
+
+  it('every spec table carries a source note', () => {
+    for (const slug of slugs) {
+      const doc = docFor(`products/${slug}/index.html`);
+      if (doc.querySelector('table')) {
+        expect(
+          doc.querySelector('[data-source-note]')?.textContent?.trim(),
+          `${slug} is missing provenance for its spec table`,
+        ).toBeTruthy();
+      }
+    }
+  });
+});
+
+describe('built applications', () => {
+  it('generates an index listing all six applications', () => {
+    const doc = docFor('applications/index.html');
+    const links = [...doc.querySelectorAll('a[href^="/applications/"]')]
+      .map((a) => a.getAttribute('href'));
+    expect(links).toHaveLength(6);
+  });
+
+  it('closes the dual-entry loop — the application lists the products claiming it', () => {
+    const doc = docFor('applications/heated-apparel-wearables/index.html');
+    const links = [...doc.querySelectorAll('a[href^="/products/"]')]
+      .map((a) => a.getAttribute('href'));
+    expect(links).toContain('/products/conductive-metal-yarn/');
+    expect(links).toContain('/products/electrical-heating-textile/');
+  });
+
+  it('names the evidence for every application, so no end-use is unsupported', () => {
+    for (const slug of [
+      'heated-apparel-wearables', 'smart-textiles-rfid', 'automotive-interiors',
+      'healthcare-therapeutic-heating', 'cable-protection-emi-shielding', 'industrial-woven-metal',
+    ]) {
+      const doc = docFor(`applications/${slug}/index.html`);
+      expect(
+        doc.querySelector('[data-evidence]')?.textContent?.trim(),
+        `${slug} publishes no evidence`,
+      ).toBeTruthy();
+    }
+  });
+
+  it('every product-page application link resolves to a real page', () => {
+    const product = docFor('products/conductive-metal-yarn/index.html');
+    const targets = [...product.querySelectorAll('a[href^="/applications/"]')]
+      .map((a) => a.getAttribute('href') ?? '');
+    for (const href of targets) {
+      // Throws ENOENT if the route was never generated.
+      expect(() => docFor(`${href.replace(/^\//, '')}index.html`)).not.toThrow();
+    }
   });
 });

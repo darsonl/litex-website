@@ -1,0 +1,71 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { productsClaiming } from '../../lib/crossLinks';
+
+export async function getStaticPaths() {
+  const applications = await getCollection('applications');
+  const products = await getCollection('products');
+  return applications.map((application) => ({
+    params: { slug: application.id },
+    props: { application, products: productsClaiming(products, application.id) },
+  }));
+}
+
+const { application, products } = Astro.props;
+const { Content } = await render(application);
+---
+<BaseLayout
+  title={`${application.data.name} — LiTex Textile & Technology`}
+  description={application.data.summary}
+>
+  <p class="breadcrumb"><a href="/applications/">← All applications</a></p>
+
+  <h1>{application.data.name}</h1>
+  <p class="summary">{application.data.summary}</p>
+
+  <div class="prose"><Content /></div>
+
+  <section>
+    <h2>Products for this application</h2>
+    {products.length > 0 ? (
+      <div class="grid">
+        {products.map((product) => (
+          <ProductCard
+            href={`/products/${product.id}/`}
+            name={product.data.name}
+            summary={product.data.summary}
+            status={product.data.status}
+            certifications={product.data.certifications}
+          />
+        ))}
+      </div>
+    ) : (
+      <p class="empty">No product currently lists this application.</p>
+    )}
+  </section>
+
+  <p class="provenance" data-evidence>
+    <small>Evidence for this application: {application.data.evidence}</small>
+  </p>
+
+  {application.data.needsDetail && (
+    <p class="provenance" data-needs-detail>
+      <small>LiTex has claimed this application but has not yet supplied supporting detail.</small>
+    </p>
+  )}
+</BaseLayout>
+
+<style>
+  .breadcrumb { font-size: var(--t-14); }
+  .summary { color: var(--c-text-2); font-size: var(--t-20); max-width: 60ch; }
+  .prose { max-width: 70ch; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+    gap: var(--s-4);
+  }
+  .empty { color: var(--c-text-2); }
+  .provenance { color: var(--c-text-2); margin-top: var(--s-6); }
+</style>

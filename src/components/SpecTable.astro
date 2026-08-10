@@ -1,0 +1,107 @@
+---
+import { specTableToCsv, columnHeader, type CsvColumn, type CsvRow } from '../lib/csv';
+
+interface Props {
+  table: { columns: CsvColumn[]; rows: CsvRow[] };
+  caption: string;
+  sourceNote?: string;
+  needsVerification?: boolean;
+}
+
+const { table, caption, sourceNote, needsVerification = false } = Astro.props;
+const csv = specTableToCsv(table);
+---
+<figure class="spec">
+  <figcaption class="caption">{caption}</figcaption>
+
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr>
+          {table.columns.map((col) => <th scope="col">{columnHeader(col)}</th>)}
+        </tr>
+      </thead>
+      <tbody>
+        {table.rows.map((row) => (
+          <tr>
+            {table.columns.map((col) => <td class="value">{row[col.key] ?? '—'}</td>)}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <button type="button" class="copy" data-copy-csv data-csv={csv} aria-live="polite" hidden>
+    Copy as CSV
+  </button>
+
+  {sourceNote && (
+    <p class="note" data-source-note><small>Source: {sourceNote}</small></p>
+  )}
+
+  {needsVerification && (
+    <p class="note warn" data-needs-verification>
+      <small>These figures are awaiting verification against the source catalog.</small>
+    </p>
+  )}
+</figure>
+
+<script>
+  document.querySelectorAll('[data-copy-csv]').forEach((node) => {
+    const button = node as HTMLButtonElement;
+    button.hidden = false;
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.csv ?? '');
+        button.textContent = 'Copied';
+      } catch {
+        button.textContent = 'Copy failed — select the table instead';
+      }
+      window.setTimeout(() => { button.textContent = 'Copy as CSV'; }, 2000);
+    });
+  });
+</script>
+
+<style>
+  .spec { margin: var(--s-8) 0; }
+  .caption {
+    font-family: var(--font-mono);
+    font-size: var(--t-12);
+    letter-spacing: 0.08em;
+    color: var(--c-copper);
+    margin-bottom: var(--s-3);
+  }
+  /* Wide spec tables scroll inside their own box; the page never scrolls sideways. */
+  .scroll { overflow-x: auto; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    background: var(--c-raised);
+  }
+  th, td {
+    border: 1px solid var(--c-line);
+    padding: var(--s-2) var(--s-3);
+    text-align: left;
+    font-size: var(--t-14);
+    white-space: nowrap;
+  }
+  th {
+    font-family: var(--font-mono);
+    font-size: var(--t-12);
+    color: var(--c-text-2);
+    font-weight: 500;
+  }
+  .copy {
+    margin-top: var(--s-3);
+    font-family: var(--font-mono);
+    font-size: var(--t-12);
+    color: var(--c-copper);
+    background: transparent;
+    border: 1px solid var(--c-line);
+    padding: var(--s-2) var(--s-3);
+    cursor: pointer;
+  }
+  .copy:hover { color: var(--c-copper-lift); border-color: var(--c-copper); }
+  .note { margin: var(--s-2) 0 0; color: var(--c-text-2); }
+  .warn { color: var(--c-legacy); }
+</style>

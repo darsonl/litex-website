@@ -1,0 +1,24 @@
+---
+interface Props {
+  status: 'active' | 'legacy';
+}
+
+const { status } = Astro.props;
+
+const label = status === 'active' ? 'IN PRODUCTION' : 'LEGACY · SAMPLING ONLY';
+const glyph = status === 'active' ? '●' : '○';
+---
+<span class:list={['status', status]} data-status={status}>
+  <span aria-hidden="true">{glyph}</span> {label}
+</span>
+
+<style>
+  .status {
+    font-family: var(--font-mono);
+    font-size: var(--t-12);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .active { color: var(--c-in-production); }
+  .legacy { color: var(--c-legacy); }
+</style>

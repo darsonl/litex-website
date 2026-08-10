@@ -1,75 +1,41 @@
 ---
-import { getCollection, getEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { mustResolve } from '../../lib/references';
+import ProductCard from '../../components/ProductCard.astro';
 
-const products = await getCollection('products');
-
-// getEntry() returns undefined for a missing entry and Astro does NOT fail the
-// build on it — mustResolve turns that silence into an error. See src/lib/references.ts.
-const withApplications = await Promise.all(
-  products.map(async (product) => ({
-    product,
-    applications: await Promise.all(
-      product.data.applications.map(async (ref) =>
-        mustResolve(await getEntry(ref), ref, product.id),
-      ),
-    ),
-  })),
-);
+const products = (await getCollection('products')).sort((a, b) => {
+  if (a.data.status !== b.data.status) return a.data.status === 'active' ? -1 : 1;
+  return a.data.name.localeCompare(b.data.name);
+});
 ---
 <BaseLayout
   title="Products — LiTex Textile & Technology"
   description="Conductive metal yarn, heating textile, EMI shielding tube and RFID tape, with published specifications."
 >
   <h1>Products</h1>
+  <p class="intro">
+    Every specification below is published as data, with the source document named.
+  </p>
 
-  {withApplications.map(({ product, applications }) => (
-    <article>
-      <h2>{product.data.name}</h2>
-      <p>{product.data.summary}</p>
-
-      <p>
-        Status:
-        <span class="value">
-          {product.data.status === 'active' ? '● IN PRODUCTION' : '○ LEGACY · SAMPLING ONLY'}
-        </span>
-      </p>
-
-      {applications.length > 0 && (
-        <p>Applications: {applications.map((a) => a.data.name).join(', ')}</p>
-      )}
-
-      {product.data.specTable && (
-        <table>
-          <thead>
-            <tr>
-              {product.data.specTable.columns.map((col) => (
-                <th scope="col">{col.label}{col.unit ? ` (${col.unit})` : ''}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {product.data.specTable.rows.map((row) => (
-              <tr>
-                {product.data.specTable!.columns.map((col) => (
-                  <td class="value">{row[col.key] ?? '—'}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      {product.data.sourceNote && (
-        <p data-source-note><small>Source: {product.data.sourceNote}</small></p>
-      )}
-
-      {product.data.needsVerification && (
-        <p data-needs-verification>
-          <small>These figures are awaiting verification against the source catalog.</small>
-        </p>
-      )}
-    </article>
-  ))}
+  <div class="grid">
+    {products.map((product) => (
+      <ProductCard
+        href={`/products/${product.id}/`}
+        name={product.data.name}
+        summary={product.data.summary}
+        status={product.data.status}
+        certifications={product.data.certifications}
+      />
+    ))}
+  </div>
 </BaseLayout>
+
+<style>
+  .intro { color: var(--c-text-2); max-width: 60ch; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+    gap: var(--s-4);
+    margin-top: var(--s-8);
+  }
+</style>

@@ -1,0 +1,49 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { productsClaiming } from '../../lib/crossLinks';
+
+const applications = (await getCollection('applications'))
+  .sort((a, b) => a.data.name.localeCompare(b.data.name));
+const products = await getCollection('products');
+
+const rows = applications.map((application) => ({
+  application,
+  count: productsClaiming(products, application.id).length,
+}));
+---
+<BaseLayout
+  title="Applications — LiTex Textile & Technology"
+  description="End uses LiTex publishes for its conductive metal yarn, heating textile, shielding tube and woven tape."
+>
+  <h1>Applications</h1>
+  <p class="intro">
+    Every application listed here is one LiTex has itself published. Each names its evidence.
+  </p>
+
+  <ul class="list">
+    {rows.map(({ application, count }) => (
+      <li>
+        <a href={`/applications/${application.id}/`}>{application.data.name}</a>
+        <span class="count value">{count} product{count === 1 ? '' : 's'}</span>
+        <p class="summary">{application.data.summary}</p>
+      </li>
+    ))}
+  </ul>
+</BaseLayout>
+
+<style>
+  .intro { color: var(--c-text-2); max-width: 60ch; }
+  .list { list-style: none; padding: 0; margin-top: var(--s-8); }
+  .list li {
+    border-top: 1px solid var(--c-line);
+    padding: var(--s-4) 0;
+  }
+  .list a { font-size: var(--t-20); }
+  .count {
+    font-size: var(--t-12);
+    color: var(--c-text-2);
+    margin-left: var(--s-3);
+  }
+  .summary { color: var(--c-text-2); font-size: var(--t-14); margin: var(--s-2) 0 0; }
+</style>
