@@ -1,0 +1,88 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SpecTable from '../../components/SpecTable.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import { mustResolve } from '../../lib/references';
+import { productJsonLd } from '../../lib/jsonld';
+
+export async function getStaticPaths() {
+  const products = await getCollection('products');
+  return products.map((product) => ({
+    params: { slug: product.id },
+    props: { product },
+  }));
+}
+
+const { product } = Astro.props;
+const { Content } = await render(product);
+
+// getEntry() returns undefined for a missing entry and Astro does NOT fail the build
+// on it — mustResolve turns that silence into an error. See src/lib/references.ts.
+const applications = await Promise.all(
+  product.data.applications.map(async (ref) =>
+    mustResolve(await getEntry(ref), ref, product.id),
+  ),
+);
+
+// Astro.site is the configured SITE_URL. Do NOT import astro.config.mjs into a page —
+// that pulls `defineConfig` from astro/config into the page bundle.
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+
+const jsonLd = productJsonLd({
+  name: product.data.name,
+  description: product.data.summary,
+  url: canonical,
+  status: product.data.status,
+  certifications: product.data.certifications,
+});
+---
+<BaseLayout
+  title={`${product.data.name} — LiTex Textile & Technology`}
+  description={product.data.summary}
+>
+  <p class="breadcrumb"><a href="/products/">← All products</a></p>
+
+  <h1>{product.data.name}</h1>
+  <StatusBadge status={product.data.status} />
+  <p class="summary">{product.data.summary}</p>
+
+  {product.data.certifications.length > 0 && (
+    <p class="certs value">{product.data.certifications.join(' · ')}</p>
+  )}
+
+  <div class="prose"><Content /></div>
+
+  {product.data.specTable && (
+    <SpecTable
+      table={product.data.specTable}
+      caption={`${product.data.name} — specifications`}
+      sourceNote={product.data.sourceNote}
+      needsVerification={product.data.needsVerification}
+    />
+  )}
+
+  {applications.length > 0 && (
+    <section>
+      <h2>Applications</h2>
+      <ul>
+        {applications.map((app) => (
+          <li><a href={`/applications/${app.id}/`}>{app.data.name}</a></li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {product.data.catalogPdf && (
+    <p class="value">Catalog: {product.data.catalogPdf}</p>
+  )}
+
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)}></script>
+</BaseLayout>
+
+<style>
+  .breadcrumb { font-size: var(--t-14); }
+  .summary { color: var(--c-text-2); font-size: var(--t-20); max-width: 60ch; }
+  .certs { color: var(--c-copper); font-size: var(--t-12); letter-spacing: 0.04em; }
+  .prose { max-width: 70ch; }
+</style>
