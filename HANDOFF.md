@@ -11,6 +11,7 @@
    — it holds every decision made so far. This file is only the pointer and the state.
 2. **Get user approval on the spec** (the brainstorming skill's user-review gate). Section 7,
    the content gaps register, has been written but not yet walked through with the user.
+   The spec self-review is already done — see the findings table below; don't redo it.
 3. **Then run `/impeccable init`** — deliberately sequenced *after* the spec so its PRODUCT.md
    consumes decisions already made instead of re-running a discovery interview. See "Why after"
    below.
@@ -22,7 +23,8 @@
 ## Where we are
 
 Working through `superpowers:brainstorming`. Design sections 1–3 presented and **approved**.
-Spec document written. Not yet approved by user, and not yet committed (no git repo exists).
+Spec written, committed, and self-reviewed. **Awaiting user approval of the spec** — that is the
+gate before implementation planning.
 
 ### Brainstorming checklist state
 
@@ -33,10 +35,26 @@ Spec document written. Not yet approved by user, and not yet committed (no git r
 | 3 | Offer visual companion | ✅ done — accepted, used for 4 screens |
 | 4 | Propose approaches | ✅ done |
 | 5 | Present design sections | ✅ IA, technical architecture and design system approved in conversation (spec §3, §4, §5). Gaps register (spec §7) written, not walked through. |
-| 6 | Write design doc | ✅ written · ⬜ **not committed — no git repo yet** |
-| 7 | Spec self-review | ⬜ pending |
+| 6 | Write design doc | ✅ written and committed (`d77837e`) |
+| 7 | Spec self-review | ✅ done — 9 defects found and fixed |
 | 8 | User reviews spec | ⬜ **pending — next action** |
 | 9 | Invoke `writing-plans` | ⬜ pending |
+
+### Spec self-review findings (all fixed in place)
+
+The review was not a formality — it caught one user-facing bug and two factual errors:
+
+1. **`legacy` colour token failed WCAG AA** (4.19:1 on base, 4.02:1 on the `raised` surface it
+   actually renders against). It carries the small `○ LEGACY · SAMPLING ONLY` label. Raised to
+   `#7E858A` (5.03:1 on raised). Ratios are now computed, stated for both surfaces, and asserted in CI.
+2. **IA tree still listed 4 application pages** after the shortlist was revised to 6 — the revision
+   note was added but the tree beneath it was never updated. Automotive and Healthcare routes added.
+3. **Legacy URL count was 24 in three places; it is 23**, verified against `archive/README.md`.
+4. `copper` and `text-1` contrast figures were both overstated. Corrected.
+5. Blog-post arithmetic was wrong (10 posts, not 7 or 5). Page count restated as 27 routes + 7 news.
+6. Catalog extraction status was vague and inaccurate — now a table; **RFID text extraction is the
+   priority**, since it is the only source for a route that has no content behind it.
+7. One cross-reference pointed at §6 instead of §7.
 
 ---
 
@@ -109,8 +127,8 @@ new RFID product page**.
 
 ## Environment notes
 
-- **Not a git repo.** `git init` + `.gitignore` recommended before implementation. `.gitignore`
-  has been created already; the repo has not.
+- **Git repo exists.** Initialised with `.gitignore` + `.gitattributes`; spec and full archive
+  committed as `d77837e`.
 - **Visual companion** was running on `http://localhost:51079` — it dies with the session restart.
   Mockups persist at `.superpowers/brainstorm/1097-1786371119/content/`:
   `visual-direction.html`, `information-architecture.html`, `design-system.html`, `typography.html`.

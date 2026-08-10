@@ -3,9 +3,16 @@
 **Date:** 2026-08-10
 **Status:** User has approved the information architecture (§3), technical architecture (§4)
 and design system (§5), each in conversation. The content gaps register (§7) is written but has
-not yet been walked through. The document as a whole has **not** been approved and is **not**
-committed — no git repo exists yet.
-**Source site:** https://litextextile.wordpress.com/ (24 URLs, WordPress.com free tier)
+not yet been walked through. Committed to git (`d77837e`). Spec self-review complete — see the
+revision note below. The document as a whole is **awaiting user approval**, which is the gate
+before implementation planning begins.
+
+**Self-review revisions, 2026-08-10** — nine defects found and fixed in place: the `legacy` colour
+token failed WCAG AA and was corrected (§5); the IA tree still listed 4 application pages after the
+shortlist was revised to 6 (§3); the legacy-URL count was 24 in three places and is 23 (§0, §3, §4);
+the blog-post arithmetic was wrong (§3, §4); the catalog extraction status was inaccurate (§6); and
+one cross-reference pointed at the wrong section (§2).
+**Source site:** https://litextextile.wordpress.com/ (23 URLs, WordPress.com free tier)
 
 ---
 
@@ -53,7 +60,7 @@ credibility converts to RFQs. One engine, three outputs.
 | Decision | Choice | Rationale |
 |---|---|---|
 | Platform | **New static site + own domain** | Total design freedom, edge performance for EU/JP/US buyers, near-zero hosting cost |
-| Content sourcing | **Only what exists on the current site today** (pages, images, and the 6 PDF catalogs) | User constraint. Everything missing goes on the gaps register in §6 rather than being invented. |
+| Content sourcing | **Only what exists on the current site today** (pages, images, and the 6 PDF catalogs) | User constraint. Everything missing goes on the gaps register in §7 rather than being invented. |
 | IA | **Dual-entry** — products ↔ applications, cross-linked | Serves the engineer who knows the part *and* the buyer who only knows the problem |
 | Scope | **Full expansion** | New application pages, technology pages, a real conversion flow |
 | Maintenance | **Git-backed CMS** (Sveltia) at `/admin` | Staff get a login and WYSIWYG; output is a commit |
@@ -77,24 +84,34 @@ credibility converts to RFQs. One engine, three outputs.
   /products/silica-gel-switch-controller/         legacy / sampling only
 /applications/                             Index
   /applications/heated-apparel-wearables/
+  /applications/automotive-interiors/
+  /applications/healthcare-therapeutic-heating/
   /applications/cable-protection-emi-shielding/
   /applications/smart-textiles-rfid/
   /applications/industrial-woven-metal/
 /technology/                               How CMY works — 1S / 1Z / 2S2Z structure explained
   /technology/heating-element-comparison/         CMY vs carbon fibre vs heating film vs steel fibre
 /downloads/                                All 6 catalogs with real descriptions
-/company/
+/company/                                  Hub page — links the three below, carries the
+                                           credibility bar. Not a bare path segment.
   /company/about/
   /company/patents-and-awards/
   /company/certifications/                        needs LiTex input
-/news/                                     Retained, justified by the CMS
+/news/                                     Index. Retained, justified by the CMS
+  /news/<slug>/  × 7                              the 7 posts kept from the old blog
 /contact/                                  Real details + map + working form
 /request-a-sample/                         Dedicated conversion page
 /legal/privacy/
 ```
 
-**28 pages, up from 24 URLs.** Composition changes completely: 7 dead blog posts become
-4 application pages, 2 technology pages, and a real conversion flow.
+**27 fixed routes + 7 news posts = 34 pages, up from 23 legacy URLs.**
+
+The old site had **10 blog posts**, and the composition change is where the value is: 7 are kept
+as real news entries, `new-electrical-heating-alternatives` is promoted to
+`/technology/heating-element-comparison/` (it was always a technology page misfiled as a post),
+`catalog-download` collapses into `/downloads/`, and `test-post-blah` is killed. The genuinely new
+surface is 6 application pages, 2 technology pages, an RFID product page, a certifications page,
+and a conversion flow — none of which exist today.
 
 ### Application shortlist — revised 2026-08-10 after image extraction
 
@@ -133,7 +150,10 @@ is not enough to write a page a buyer would trust:
 An application page asserting an end-use the company cannot support is worse than no page, because
 it fails under exactly the diligence a serious buyer applies.
 
-### Redirect map — all 24 legacy URLs
+### Redirect map — all 23 legacy URLs
+
+*Verified against `archive/README.md`: the 23 rows below are exactly the 23 pages captured in
+`archive/pages/`. Earlier drafts of this spec said 24; that figure was wrong.*
 
 | Old URL | New URL | Type |
 |---|---|---|
@@ -223,7 +243,7 @@ Four consequences fall out for free:
 - **No site search** — 28 pages; navigation is faster and search is pure maintenance burden.
 - **No quote calculator** — pricing is quote-based; a calculator would be theatre.
 - **No React/Vue** — only interactive elements are a nav toggle, a spec-table filter, and the form.
-- **No blog categories/tags/archives** — five posts; flat reverse-chronological is correct.
+- **No blog categories/tags/archives** — seven posts; flat reverse-chronological is correct.
 
 ### Contact form — failure modes
 
@@ -242,7 +262,8 @@ delivery as retryable.
 ### Verification
 
 - **Build fails on:** schema violation, broken internal link, broken `reference()`.
-- **CI asserts:** all 24 legacy URLs resolve against the redirect map.
+- **CI asserts:** all 23 legacy URLs resolve against the redirect map, and every colour token
+  used for text clears 4.5:1 against `raised` (see §5).
 - **Budgets:** Lighthouse performance / a11y / SEO ≥ 95.
 - **Accessibility:** axe checks on one representative page per template type.
 - **Design:** impeccable detector runs on UI file writes (hook) plus a deep pass on stop.
@@ -253,18 +274,33 @@ delivery as retryable.
 
 ### Colour tokens
 
-| Token | Value | Contrast on base | Use |
-|---|---|---|---|
-| `base` | `#0A0C0D` | — | Page background |
-| `raised` | `#0F1213` | — | Cards, table rows |
-| `line` | `#1E2325` | — | Borders, rules |
-| `text-1` | `#F2F1EF` | 17.6:1 | Primary text |
-| `text-2` | `#9AA0A5` | 7.4:1 | Secondary text |
-| `copper` | `#C87941` | 6.6:1 | Accent, labels, large text — **never body copy at small sizes** |
-| `copper-lift` | `#E09B62` | — | Hover |
-| `in-production` | `#4FB286` | — | Active product status |
-| `legacy` | `#6E757A` | — | Legacy product status |
-| `paper` | `#FFFFFF` | — | Print / light stylesheet |
+| Token | Value | On `base` | On `raised` | Use |
+|---|---|---|---|---|
+| `base` | `#0A0C0D` | — | — | Page background |
+| `raised` | `#0F1213` | — | — | Cards, table rows |
+| `line` | `#1E2325` | 1.23:1 | 1.18:1 | Borders, rules — **decorative only**, never the sole carrier of meaning |
+| `text-1` | `#F2F1EF` | 17.37:1 | 16.67:1 | Primary text |
+| `text-2` | `#9AA0A5` | 7.42:1 | 7.12:1 | Secondary text |
+| `copper` | `#C87941` | 5.85:1 | 5.61:1 | Accent, labels, headings — passes AA at all sizes; reserved for accent by choice, not by limit |
+| `copper-lift` | `#E09B62` | 8.43:1 | 8.09:1 | Hover |
+| `in-production` | `#4FB286` | 7.51:1 | 7.21:1 | Active product status |
+| `legacy` | `#7E858A` | 5.24:1 | 5.03:1 | Legacy product status |
+| `paper` | `#FFFFFF` | — | — | Print / light stylesheet |
+
+**Every ratio above is computed, not estimated**, and both columns are given because the signature
+component — the spec table — renders on `raised`, which is lighter than `base` and therefore the
+worse case. Any token used for text must clear 4.5:1 **in the `raised` column**, not just `base`.
+
+> **Two corrections from the spec self-review.** `legacy` was `#6E757A`, which measures 4.19:1 on
+> `base` and 4.02:1 on `raised` — a WCAG AA failure, in the exact category §5 warns against. It
+> carries the `○ LEGACY · SAMPLING ONLY` label, which is small text, so the failure was real and
+> user-facing. Raised to `#7E858A`. Separately, `copper` was stated as 6.6:1 and `text-1` as
+> 17.6:1; both were wrong (5.85 and 17.37). Copper still passes AA for normal text, so the
+> restriction on it is a design choice rather than a contrast limit — stated as such above.
+
+**Implementation requirement:** these ratios are asserted in CI against the token file, so a future
+palette edit that breaks AA fails the build instead of shipping. This is the mechanism that keeps
+the numbers above from drifting back into decoration.
 
 Copper is the accent because **tinned copper is literally the material in CMY**. Accent colours
 drawn from the product survive scrutiny better than colours picked from a palette generator.
@@ -359,7 +395,21 @@ varieties available · ODM/OEM welcome · sturdy connector manufacturing service
 | Silicon Switch with Temperature Sensor | `201611e68ea7e588b6e599a8final.pdf` — marked out of production, available for sampling |
 | RFID Textile Tape | `2018-rfid-textile-tape.pdf` — **no corresponding web page exists** |
 
-Only remaining catalogs still need extraction; the heating-textile one is done (above).
+**Extraction status — verified against `archive/catalogs/` on 2026-08-10:**
+
+| Catalog | Text layer | Folded into `extracted-from-images.md`? |
+|---|---|---|
+| `2018-non-carbon-electrical-heating-textile.pdf` | ✅ 4.5 KB | ✅ done — §7, §8 above |
+| `201611e68ea7e588b6e599a8final.pdf` (silicon switch) | ✅ 4.4 KB | ⬜ **not yet** |
+| `2018-emi-shielding-wire-tube.pdf` | ✅ 2.5 KB | ⬜ **not yet** |
+| `2018-rfid-textile-tape.pdf` | ✅ 2.5 KB | ⬜ **not yet — highest priority** |
+| `2018-company-introduction.pdf` | ❌ image-only | needs OCR or vision reading |
+| `2018-wired-conductive-tape.pdf` | ❌ image-only | needs OCR or vision reading |
+
+RFID is the priority because `2018-rfid-textile-tape.pdf` is the **only** source for
+`/products/rfid-textile-tape/`, a page that has never existed. Without folding it in, that route
+in §3 has no content behind it. Three extractions are a mechanical step (the text already exists);
+the two image-only catalogs are the genuinely unresolved ones.
 
 ---
 
@@ -377,7 +427,7 @@ Ordered by blocking severity. Items marked **BLOCKER** prevent a credible launch
 | 6 | **Patent status re-confirmation** — the full list is now recovered (see `archive/extracted-from-images.md` §2), but "pending" applications date from 2010–2011 and have since been granted or abandoned | Publishing a 15-year-old "pending" status is worse than publishing nothing | High |
 | 7 | **Product line confirmation** — is everything still manufactured? Is CuNi (2018 "coming soon") now shipping? | Prevents publishing a catalog of products that no longer exist | High |
 | 8 | **RFID Textile Tape specs** | Only the PDF exists; the new page needs real data | High |
-| 9 | **Detail for Architecture, Agriculture and Loudspeaker coil-cord applications** | LiTex claims all three in `applications.jpg` / `cmy-applications.jpg` but with only an icon each — not enough to write a credible page. Loudspeaker coil-cords is the most commercially interesting; ask about it first. | High |
+| 9 | **Supporting detail for 5 under-evidenced applications** — Automotive interiors and Healthcare (in the build set), plus Architecture, Agriculture and Loudspeaker coil-cords (held) | All five rest on a single icon in `applications.jpg` / `cmy-applications.jpg`. That is enough to justify a route but not to fill it: a page asserting an end-use LiTex cannot substantiate fails exactly the diligence a serious buyer applies. Automotive and Healthcare are **blocking their own pages** — the routes are in §3 but cannot ship empty. Loudspeaker coil-cords is the most commercially interesting of the held three; ask about it first. | High |
 | 10 | **MOQ, lead times, sample policy** | The questions every RFQ opens with | High |
 | 11 | **Hi-res photography** — macro fabric shots, product shots, loom/factory floor | The dark direction relies on strong macro imagery; there is currently none usable | High |
 | 12 | **Vector logo (SVG)** | Current mark is a raster from the WordPress theme | Medium |
@@ -392,6 +442,11 @@ Ordered by blocking severity. Items marked **BLOCKER** prevent a credible launch
 
 - Whether to run `/impeccable init` before or after implementation planning — **decided: after this
   spec is approved**, so its PRODUCT.md consumes decisions already made rather than re-interviewing.
-- Git repository not yet initialised (`litex-website` was an empty directory). Recommend `git init`
-  plus a `.gitignore` covering `.superpowers/`, `node_modules/`, `dist/`, `.astro/` before
-  implementation begins.
+- ~~Git repository not yet initialised.~~ **Resolved** — repo initialised, `.gitignore` and
+  `.gitattributes` in place, spec and archive committed as `d77837e`.
+- **Applications: 6 pages, 3 held.** Automotive interiors and Healthcare are now in the build set
+  on the strength of LiTex's own graphics alone (`applications.jpg`). That is enough to justify the
+  route, but each page still needs real supporting detail from LiTex before it ships — an
+  application page backed by one icon fails the same diligence test §3 warns about. Tracked as gaps
+  register item 9, which should be widened to cover all five under-evidenced applications, not just
+  the three held.
