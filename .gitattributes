@@ -1,0 +1,14 @@
+# Normalize line endings for project source.
+* text=auto
+
+# The archive is a byte-for-byte capture of the original litextextile.wordpress.com
+# site. Git must NOT normalize line endings in it — doing so would rewrite the
+# captured HTML and destroy its fidelity as a source-of-truth record.
+archive/** -text
+
+# Binary source material — never diff or normalize.
+*.pdf binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.gif binary

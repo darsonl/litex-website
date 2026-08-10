@@ -1,0 +1,66 @@
+RFID Wired Woven Tape
+
+Product Description
+
+  Narrow textile tape with conductive wires integrated inside through our weaving process for radio-
+  frequency identification (RFID).
+  Provides RFID tag antenna reception function.
+  We can fix RFID chip on tape with epoxy.
+
+                                                                                   RFID chip
+
+Features
+
+  All specifications customizable. We offer OEM and ODM services.
+  Selvage edge prevents yarn fraying.
+
+Integration methods                                                                           Wavelength:1.8cm
+
+               Hot melt adhesive.  sewing.                                                                      2 x Amphtude:1.5cm
+
+Ask us about costs!                                                                                             Width:2cm
+
+                                   Labelled RFID tape
+          RFID Wired Woven Tape
+
+Product Sample Specifications                     Amount          Units
+                                                      20          mm
+   TAPE
+   Tape Width                                     Polyester
+   Tape Material                                     0%
+   Elasticity
+
+WIRE TYPE 1                                       Amount          Units
+
+             Material                             Copper          /km
+                                                                     A
+                              Orientation           S
+                                                  326.2            mm
+Conductive Core
+
+                              Max resistance(20)
+
+             Max current                          0.2
+
+             Outer diameter                       0.631-0.633
+
+Covering     Material                             TPU
+
+             Color                                Black
+
+WIRE TYPE 2                                       Amount          Units
+
+             Material                             Stainless 316L  /km
+                                                                   mm
+                              Max resistance(20)   1400
+                                                  275 x 2
+Conductive Core
+
+                              Filaments
+
+             Outer diameter                       0.95
+
+Covering     Material                             TPU
+
+             Color                                Black
+

@@ -1,0 +1,90 @@
+Sewable Silica Gel Switch Controller With
+        Thermostat For Heating Textile
+
+Components                             Input & Output volts : 3.3V-12V
+                                       LED sign : RGB LED 3 sets
+#HT001 Silicon switch
+                            B+/B- Battery input port  T1/T2 NTC temperature sensor
+Size(WxLxH) : 38x38x8 (mm)
+Current : MAX 5A
+
+P+/P- Heating textile port
+
+Product Instruction
+
+This switch is designed for the LiTex heating textile. It is an IC chip sealed within a silica gel shield protection
+with a wide range input (B+/B-, 3.3V-12V/Max5A), thermal sensor (T1/T2), and an output part (P+/P-, for
+connection with heating textile). By detection and on/off mechanisms, the controller can meintain textile at
+target temperature. This module contains a safety switch that prevents heating textile from any sort of
+overheating that would harm the product and user.
+
+Product Advantage                      50 C  Self-adjusting                          Easily recognizable
+
+               3 modes of temperature  40 C  temperature                LED temperatures
+               control
+
+ 3 Modes
+
+Safety switch prevents                       Waterproof                 3.3V-12V  High range power
+over heating                                 (washable)                 MAX 5A    input compatibility
+
+Silica gel switch designed
+with sewable edges
+
+                            Designed for use on LiTex heating textile
+
+www.litex.com.tw  sales@litex.com.tw                  TEL : +886 2 2308-4712 FAX : +886 2 2308-4714
+                                                      No. 188, Bangka Blvd., Taipei City 10860, Taiwan
+LiTex Textile & Technology Co., Ltd.
+Operation mode condition
+
+Temperature switch mode
+
+Turn on /off : long press 1.5 sec.
+Switch mode : short press to switch between temperature modes ( 1 > 2 > 3 > 1 > 2 > 3)
+
+Condition                                                    #1                   #2         #3
+
+LED color                                            RED         PURPLE                      BLUE
+
+LED movement                                                     Stable lighting
+
+Temperature ( 2°C/ 4°F)                              60°C/140°F  50°C/122°F           40°C/104°F
+
+Remark : It will automatically shuts down when temperature exceeds 80°C/176°F.
+
+How the module detecting and maintain the target temperature?
+
+Activation                          1                            Heat to target temperature
+
+Textile is heated to                                             T1/T2 sensor detects that the temperature is over
+                                                                 the target range.
+target temperature on
+
+full power.                         Heating Textile              Heating Textile
+
+                                                                                                         2
+
+                                                                                      T1/T2
+
+                                                     Sensor      Sensor
+
+             Controller                                                                      Controller
+             Controller                                                                      Controller
+
+                                                     Sensor                        Sensor
+
+                             T1/T2                                                     Deactivate
+
+4                                                                                                      Switch control(#HT001)
+
+Cool down                                                                   3 cools the unit down by
+                                                                                                       shutting off the input
+T1/T2 sensor detects that the temperature has                                                          power.
+cooled down, so #HT001 reactivates the power
+for heating again.                                               TEL : +886 2 2308-4712 FAX : +886 2 2308-4714
+                                                                 No. 188, Bangka Blvd., Taipei City 10860, Taiwan
+www.litex.com.tw                    sales@litex.com.tw
+
+LiTex Textile & Technology Co., Ltd.
+

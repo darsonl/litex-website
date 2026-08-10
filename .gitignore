@@ -1,0 +1,29 @@
+# NOTE: archive/ is deliberately NOT ignored.
+# It is the complete captured copy of the original litextextile.wordpress.com site
+# (23 pages, 6 PDF catalogs, 46 images — ~42 MB) and is the source material the new
+# site is built from. Versioning it is intentional: it makes every spec figure
+# traceable and survives the original site being changed or taken down.
+# Do not add it here. See archive/README.md.
+
+# Brainstorming companion session data (mockups kept locally, not versioned)
+.superpowers/
+
+# Node / Astro
+node_modules/
+dist/
+.astro/
+.output/
+.vercel/
+.wrangler/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Impeccable local state
+.impeccable/config.local.json
