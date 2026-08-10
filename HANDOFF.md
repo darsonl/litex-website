@@ -7,29 +7,54 @@
 
 ## ▶ Do this first in the new session
 
-**Plans 1 and 2 are executed. The next session writes and executes Plan 3.**
+**Plans 1 and 2 are built and merged. Plan 3 is WRITTEN BUT NOT EXECUTED.**
 Do not re-run brainstorming, the spec self-review, `/impeccable init`, or `writing-plans` for
-Plans 1–2 — all are complete and built.
+Plans 1–3 — all are complete.
 
-1. **Read `PRODUCT.md`** (product truth) and the spec at
-   `docs/superpowers/specs/2026-08-10-litex-website-redesign-design.md`.
-   Plan 2's "Deliberately out of scope" section lists exactly what remains.
-2. **Write Plan 3 with `superpowers:writing-plans`, then execute it.** Plans 3–5 are still
-   unwritten by design — each absorbs what the previous one taught. Plan 2 proved the value:
-   it corrected two Plan-1 assumptions before they shipped.
-3. **Plan 3 scope** is what Plan 2 deferred: `/technology/` and the heating-element comparison,
-   `/company/` + about + patents + certifications, `/downloads/`, `/news/` and the 7 posts.
-   Plan 4 is the contact + sample-request flow (Pages Function, Turnstile, KV). Plan 5 is
-   redirects, sitemap, analytics, Sveltia CMS, print stylesheet, and the Lighthouse/axe budgets.
-4. **Execution mode:** both plans ran inline via `superpowers:executing-plans`. This session is
-   configured not to spawn subagents, and inline reuses context cheaply. Do the same unless asked.
+### → Start here: execute Plan 3
 
-### Resume state as of 2026-08-11
+```
+docs/superpowers/plans/2026-08-11-litex-product-photography.md
+```
 
-- **Plan 1 merged to `main`** via PR #1. **Plan 2 built on branch `plan-2-product-layer`.**
+Invoke `superpowers:executing-plans` and work Tasks 1–6 in order. **The plan is self-contained** —
+it carries every source path, xref, image dimension and the full alt text for all seven products.
+You do not need to re-survey the PDFs; that was done and verified on 2026-08-11.
+
+**Execution mode:** Plans 1 and 2 both ran inline via `superpowers:executing-plans`. This session
+is configured not to spawn subagents, and inline reuses context cheaply. Do the same unless asked.
+Working pattern that has held for 15 tasks: branch → task → test → commit per task → PR → merge →
+delete branch. Branch name for this one: `plan-3-product-photography`.
+
+### Plan roadmap — renumbered to 6 total
+
+Splitting imagery into its own plan changed the count from 5 to 6.
+
+| Plan | Scope | State |
+|---|---|---|
+| 1 | Foundation & content layer | ✅ merged (PR #1) |
+| 2 | Product layer & spec table | ✅ merged (PR #2) |
+| 3 | **Product photography & image pipeline** | 📝 written, **not executed** |
+| 4 | Content pages: `/technology/`, `/company/` + 3 children, `/downloads/`, `/news/` + 7 posts | not written |
+| 5 | Contact + sample-request flow: Pages Function, Turnstile, KV, store-before-send | not written |
+| 6 | Launch: `_redirects` (23 URLs), sitemap, analytics, Sveltia CMS, print stylesheet, Lighthouse/axe budgets, broken-link check | not written |
+
+Write each of 4–6 with `superpowers:writing-plans` immediately before executing it.
+
+### Resume state as of 2026-08-11 (end of session 3)
+
+- **`main` is at `aebf5e1`, clean, pushed. Nothing is in flight — no open branch, no open PR.**
+- Plans 1 and 2 merged via PR #1 and PR #2; both branches deleted.
 - Repo is public at **https://github.com/darsonl/litex-website**.
 - `npm run build` exits 0, emitting **7 product routes, 6 application routes**, the two indexes
   and the home page. `npm test` = **97 tests across 9 files, all passing**.
+- **Blockers: 1 of 4 remain.** Only the WordPress.com Site Redirect, and the user has said they
+  are not using WordPress — so legacy `litextextile.wordpress.com` URLs will not 301 and that
+  ranking is not recoverable. Business decision, already taken. Nothing blocks building.
+- **Domain and email are settled:** `litex.com.tw` and `sales@litex.com.tw`, declared once in
+  `astro.config.mjs` as `SITE_URL` / `CONTACT_EMAIL`. Both corroborated by LiTex's own 2018
+  catalog footer, which also gives `+886 2 2308-4712` and
+  `No. 188, Bangka Blvd., Taipei City 10860, Taiwan` for the Plan 5 contact page.
 - Every Definition-of-Done item in both plans was verified **empirically** — each guard
   deliberately broken, observed to fail, restored. Never assumed from reading the code.
 - Verified toolchain, all latest at install: `astro@7.2.0` · `vitest@4.1.10` · `linkedom@0.18.13`
