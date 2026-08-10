@@ -1045,7 +1045,7 @@ Also still not implemented, and not to be assumed present:
 
 ## Open questions for LiTex — do not guess these
 
-1. **Usage rights on the catalog photography.** These are LiTex's own catalogs and site images, so use on LiTex's own site is the expected case — but confirm the catalog photographs were shot for LiTex rather than supplied by a customer, particularly the trade-show and personnel frames held for Plan 4.
+1. ~~Usage rights on the catalog photography.~~ **RESOLVED 2026-08-11 — LiTex has granted usage rights on the catalog photography.** No rights question remains for any image in this plan, nor for the company-catalog assets held for Plan 4 (patent certificate, TAITRONICS award, SGS report, factory, looms, trade-show and personnel frames). Proceed without further confirmation.
 2. **Two products have only low-resolution photography.** `wired-conductive-tape` (600×341) and `silica-gel-switch-controller` (670×431) are the largest that exist anywhere in the archive. They are used unscaled, but both would benefit from a re-shoot — the wired tape especially, since it is the product carrying patent TW 1M545145.
 3. **No photograph exists for CuNi (copper-nickel) CMY**, which was "coming soon" in 2018 and whose status is still unconfirmed.
 4. **The thermograph images** (heating textile under thermal imaging) are strong evidence for the "even and stable heating" claim, held for `/technology/` in Plan 4. Confirm the test conditions before publishing them as evidence of anything measurable.

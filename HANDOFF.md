@@ -51,6 +51,13 @@ Write each of 4–6 with `superpowers:writing-plans` immediately before executin
 - **Blockers: 1 of 4 remain.** Only the WordPress.com Site Redirect, and the user has said they
   are not using WordPress — so legacy `litextextile.wordpress.com` URLs will not 301 and that
   ranking is not recoverable. Business decision, already taken. Nothing blocks building.
+- **Image usage rights are granted (2026-08-11).** LiTex has confirmed usage rights on the catalog
+  photography. This closes Plan 3's open question 1 and clears the company-catalog assets held for
+  Plan 4 — the patent certificate, TAITRONICS award, SGS report, factory, loom, trade-show and
+  personnel photographs. **No rights confirmation is outstanding for any image in `archive/`.**
+- **The public repo is deliberate (2026-08-11).** The archived catalogs and product images are
+  material LiTex publishes for the public, so there is nothing to protect. Do not raise it again
+  or suggest making the repo private.
 - **Domain and email are settled:** `litex.com.tw` and `sales@litex.com.tw`, declared once in
   `astro.config.mjs` as `SITE_URL` / `CONTACT_EMAIL`. Both corroborated by LiTex's own 2018
   catalog footer, which also gives `+886 2 2308-4712` and
