@@ -325,6 +325,41 @@ Inter was the original choice and was **rejected** after the impeccable detector
 (`overused-font`, 7 instances). Correct critique: for a company whose pitch is *we make something
 nobody else can weave*, a stock UI face quietly contradicts the message.
 
+### Imagery policy
+
+LiTex has **no usable photography** — the current homepage runs a Pexels stock photo. The direction
+must therefore work at full quality with zero photographs, using AI-generated imagery where it is
+safe and diagrams where it is better. Three tiers, with a hard boundary between them.
+
+**Tier 1 — SVG technical diagrams. The primary visual language.**
+Yarn structure (1S / 1Z / 2S2Z / 3S3Z covering counts), weave geometry, tape cross-sections, EMI
+tube construction, integration methods. Drawn from the spec data in §6, so they are accurate by
+construction. They theme, scale, print, stay legible at any size, and cost kilobytes. For a product
+whose selling point is a structure nobody else can weave, **a correct diagram outperforms any
+photograph** — it shows the thing the photograph would obscure.
+
+**Tier 2 — AI-generated imagery. Permitted, bounded, declared.**
+Allowed for: abstract texture and background fields, atmospheric application-context scenes
+(a heated garment in use, a cable run, a workshop mood), editorial headers, and section dividers.
+Every such asset carries `aiGenerated: true` in its content entry, and the CMS surfaces the flag so
+staff cannot lose track of which images are synthetic.
+
+**Tier 3 — Real photography only. AI is forbidden here.**
+Any image that depicts, or lets a viewer infer, **LiTex's actual product, material close-ups,
+factory, machinery, personnel, or certification documents**. Two reasons, both hard:
+
+1. **Credibility.** The site's foundational problem (§0 item 1) is that it reads as untrustworthy.
+   A sourcing manager who identifies a synthetic "macro shot of our CMY yarn" destroys exactly the
+   trust this project exists to rebuild — and destroys it worse than the placeholder address did,
+   because it looks deliberate rather than neglectful.
+2. **Accuracy.** Image models cannot render helical covering structure correctly. The covering count
+   and S/Z handedness *are* the product specification. A generated close-up would show plausible
+   yarn with wrong geometry, and the engineer this site is written for will notice.
+
+**Enforced, not just stated:** the image schema carries `aiGenerated: boolean`, and the build fails
+if an asset with `aiGenerated: true` is used as a product-page hero, inside a spec table, or on
+`/company/` or `/technology/`. The policy is a build rule, not a good intention.
+
 ### Key components
 
 1. **Spec table** — the signature component. Generated from YAML. Carries a provenance note
@@ -461,7 +496,7 @@ Ordered by blocking severity. Items marked **BLOCKER** prevent a credible launch
 | 8b | **Manual capture of the Alibaba storefront** (`litex.en.alibaba.com`, supplier ID 234468551) | Approved as a source (§2). It plausibly answers items 5, 10, 11 and 13 in one pass — Alibaba profiles publish MOQ, lead time, sample policy, headcount, factory size, main markets and certifications as standard fields. **Cannot be fetched automatically:** curl, WebFetch and headless Chrome all hit Alibaba's captcha interception (verified 2026-08-10). Needs a human browser session — either LiTex's own login or a manual page save into `archive/`. | High |
 | 9 | **Supporting detail for 5 under-evidenced applications** — Automotive interiors and Healthcare (in the build set), plus Architecture, Agriculture and Loudspeaker coil-cords (held) | All five rest on a single icon in `applications.jpg` / `cmy-applications.jpg`. That is enough to justify a route but not to fill it: a page asserting an end-use LiTex cannot substantiate fails exactly the diligence a serious buyer applies. Automotive and Healthcare are **blocking their own pages** — the routes are in §3 but cannot ship empty. Loudspeaker coil-cords is the most commercially interesting of the held three; ask about it first. | High |
 | 10 | **MOQ, lead times, sample policy** | The questions every RFQ opens with | High |
-| 11 | **Hi-res photography** — macro fabric shots, product shots, loom/factory floor | The dark direction relies on strong macro imagery; there is currently none usable | High |
+| 11 | **Hi-res photography** — macro fabric shots, product shots, loom/factory floor | **No longer blocks the build.** The imagery policy in §5 makes SVG diagrams the primary visual language and permits AI-generated atmosphere, so the site reaches full quality with zero photographs. Real photography is still wanted, because Tier 3 (product close-ups, factory, machinery, personnel) is reserved for it and cannot be filled any other way — those slots stay empty until LiTex supplies images. | ~~High~~ → Medium |
 | 12 | **Vector logo (SVG)** | Current mark is a raster from the WordPress theme | Medium |
 | 13 | **Company facts** — factory location(s), headcount, capacity, ISO certifications if any | `/company/about/` is currently three sentences | Medium |
 | 14 | **News since 2022** | Feed is 4 years stale; the CMS only helps if someone posts | Medium |
