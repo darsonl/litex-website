@@ -1,0 +1,48 @@
+@import './tokens.css';
+@import './fonts.css';
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--c-base);
+  color: var(--c-text-1);
+  font-family: var(--font-display);
+  font-size: var(--t-16);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Monospace is reserved for values that have units. */
+.value, code, kbd, samp {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+a { color: var(--c-copper); }
+a:hover { color: var(--c-copper-lift); }
+
+:focus-visible {
+  outline: 2px solid var(--c-copper-lift);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--s-2);
+  top: -4rem;
+  z-index: 100;
+  padding: var(--s-2) var(--s-4);
+  background: var(--c-raised);
+  color: var(--c-text-1);
+  border: 1px solid var(--c-line);
+  transition: top 120ms ease;
+}
+.skip-link:focus { top: var(--s-2); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

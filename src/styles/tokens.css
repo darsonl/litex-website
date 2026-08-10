@@ -1,0 +1,45 @@
+/* LiTex design tokens — "Technical Instrument".
+   Contrast ratios are asserted in tests/tokens.test.ts against BOTH surfaces.
+   Do not edit a colour without running `npm test`. */
+
+:root {
+  /* Surfaces */
+  --c-base: #0A0C0D;
+  --c-raised: #0F1213;
+  --c-line: #1E2325;
+
+  /* Text and accent */
+  --c-text-1: #F2F1EF;
+  --c-text-2: #9AA0A5;
+  --c-copper: #C87941;
+  --c-copper-lift: #E09B62;
+
+  /* Product status */
+  --c-in-production: #4FB286;
+  --c-legacy: #7E858A;
+
+  /* Print */
+  --c-paper: #FFFFFF;
+
+  /* Type scale — spec §5 */
+  --t-10: 0.625rem;
+  --t-12: 0.75rem;
+  --t-14: 0.875rem;
+  --t-16: 1rem;
+  --t-20: 1.25rem;
+  --t-26: 1.625rem;
+  --t-34: 2.125rem;
+  --t-40: 2.5rem;
+  --t-56: 3.5rem;
+
+  /* Spacing — 4px base */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-6: 1.5rem;
+  --s-8: 2rem;
+  --s-12: 3rem;
+  --s-16: 4rem;
+  --s-24: 6rem;
+}
