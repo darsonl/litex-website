@@ -7,29 +7,60 @@
 
 ## ▶ Do this first in the new session
 
-**Plan 1 is executed and committed. The next session writes and executes Plan 2.**
+**Plans 1 and 2 are executed. The next session writes and executes Plan 3.**
 Do not re-run brainstorming, the spec self-review, `/impeccable init`, or `writing-plans` for
-Plan 1 — all four are complete, and Plan 1 itself is now built.
+Plans 1–2 — all are complete and built.
 
 1. **Read `PRODUCT.md`** (product truth) and the spec at
-   `docs/superpowers/specs/2026-08-10-litex-website-redesign-design.md` for the Plan 2 scope.
-   Plan 1's "Deliberately out of scope" section lists what remains.
-2. **Write Plan 2 with `superpowers:writing-plans`, then execute it.** Plans 2–5 are still
-   unwritten by design — each absorbs what the previous one taught.
-3. **Execution mode:** Plan 1 ran inline via `superpowers:executing-plans`. That session was
-   configured not to spawn subagents, and inline reused context cheaply. Do the same unless the
-   user asks for `subagent-driven-development`.
+   `docs/superpowers/specs/2026-08-10-litex-website-redesign-design.md`.
+   Plan 2's "Deliberately out of scope" section lists exactly what remains.
+2. **Write Plan 3 with `superpowers:writing-plans`, then execute it.** Plans 3–5 are still
+   unwritten by design — each absorbs what the previous one taught. Plan 2 proved the value:
+   it corrected two Plan-1 assumptions before they shipped.
+3. **Plan 3 scope** is what Plan 2 deferred: `/technology/` and the heating-element comparison,
+   `/company/` + about + patents + certifications, `/downloads/`, `/news/` and the 7 posts.
+   Plan 4 is the contact + sample-request flow (Pages Function, Turnstile, KV). Plan 5 is
+   redirects, sitemap, analytics, Sveltia CMS, print stylesheet, and the Lighthouse/axe budgets.
+4. **Execution mode:** both plans ran inline via `superpowers:executing-plans`. This session is
+   configured not to spawn subagents, and inline reuses context cheaply. Do the same unless asked.
 
 ### Resume state as of 2026-08-11
 
-- **Plan 1 is fully built and verified.** Branch **`plan-1-foundation`**, six commits
-  `8398286..697c45c`, branched off `main` at `2b0f138`. **Not yet merged to `main`.**
-- `npm run build` exits 0 emitting `dist/index.html` + `dist/products/index.html`;
-  `npm test` = **52 tests across 6 files, all passing**.
-- All 8 of Plan 1's Definition-of-Done items were verified **empirically**, not assumed — each
-  guard was deliberately broken, observed to fail, and restored.
+- **Plan 1 merged to `main`** via PR #1. **Plan 2 built on branch `plan-2-product-layer`.**
+- Repo is public at **https://github.com/darsonl/litex-website**.
+- `npm run build` exits 0, emitting **7 product routes, 6 application routes**, the two indexes
+  and the home page. `npm test` = **97 tests across 9 files, all passing**.
+- Every Definition-of-Done item in both plans was verified **empirically** — each guard
+  deliberately broken, observed to fail, restored. Never assumed from reading the code.
 - Verified toolchain, all latest at install: `astro@7.2.0` · `vitest@4.1.10` · `linkedom@0.18.13`
   · `@fontsource-variable/archivo@5.3.0` · `@fontsource/ibm-plex-mono@5.3.0`. All pinned exactly.
+- **Verified `astro:content` exports:** `getCollection`, `getEntry`, `getEntries`, `render`
+  (alias of `renderEntry`), `reference`, `z`. `getEntryBySlug`/`getDataEntryById` are deprecated.
+
+### Reusable modules Plans 3–5 should not rebuild
+
+| Module | Purpose |
+|---|---|
+| `src/lib/references.ts` | `mustResolve()` — **always** wrap `getEntry()` in it |
+| `src/lib/crossLinks.ts` | `productsClaiming()` — reverse lookup for dual-entry |
+| `src/lib/csv.ts` | RFC 4180 serialization |
+| `src/lib/jsonld.ts` | schema.org `Product` builder |
+| `src/lib/contrast.ts` | WCAG maths behind the token guard |
+| `src/components/` | `SpecTable`, `ProductCard`, `StatusBadge` |
+
+### Verifying spec data from a PDF — the method that works here
+
+`pdftoppm` is **not** installed, so the Read tool cannot render PDFs. `pymupdf` **is**:
+
+```python
+import fitz
+doc = fitz.open('archive/catalogs/<name>.pdf')
+doc[page].get_pixmap(dpi=170).save('out.png')   # then read the PNG
+```
+
+This is how the RFID and EMI tables were verified on 2026-08-11. **`pdftotext -layout` silently
+scrambles these catalogs' tables** — it dropped an entire row from the RFID table and mangled a
+header. Do not trust it for anything going into a `specTable`.
 
 ### ⚠ Plan 1 finding that changes later plans
 
@@ -57,12 +88,27 @@ reference integrity does not.
 
 ## Where we are
 
-Brainstorming, spec, `/impeccable init`, Plan 1 authoring and **Plan 1 execution** are all
-complete. The site now has a real foundation: design tokens with an enforced WCAG guard,
-self-hosted typography with a banned-font guard, an accessible base layout, typed content
-schemas enforcing provenance and imagery policy, and two products seeded from real archive data.
+Brainstorming, spec, `/impeccable init`, and **Plans 1 and 2** are all complete.
 
-Next gate: **merge `plan-1-foundation` into `main`**, then write Plan 2.
+Plan 1 built the foundation: design tokens with an enforced WCAG guard, self-hosted typography
+with a banned-font guard, an accessible base layout, and typed content schemas enforcing
+provenance and imagery policy.
+
+Plan 2 built the product layer: **all seven products and all six applications**, cross-linked in
+both directions, with the spec-table component (build-time CSV serialization, progressive-
+enhancement copy control, provenance line) and schema.org `Product` JSON-LD emitted from the same
+data that renders the page.
+
+**Two corrections Plan 2 made to earlier assumptions, both caught by verifying rather than
+trusting:**
+
+1. `pdftotext -layout` had **dropped a row** (`Orientation: S`) from the RFID spec table and
+   mangled a header. Found by rendering the PDF page and reading it. Both previously-ambiguous
+   tables are now verified against source artwork and no product carries `needsVerification`.
+2. The EMI catalog has a fifth column headed `(c)` whose meaning appears nowhere in the document.
+   **Omitted rather than published with a guessed meaning** — logged in Plan 2's open questions.
+
+Next gate: **merge `plan-2-product-layer` into `main`**, then write Plan 3.
 
 ### Brainstorming checklist state
 
