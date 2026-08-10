@@ -72,6 +72,8 @@ The review was not a formality — it caught one user-facing bug and two factual
 | Typography | **Archivo + IBM Plex Mono** (Inter rejected — see below) |
 | Applications | 4 evidenced ones only; automotive + medical excluded pending confirmation |
 | Language | English at launch, i18n-ready |
+| Content sourcing | Widened 2026-08-10 — LiTex's **Alibaba storefront** counts as a source alongside the site. Rule is *never invent*, not *never leave the domain*. Facts carry `sourceNote` + retrieval date. |
+| Imagery | Three tiers: SVG technical diagrams are the primary visual language · AI-generated permitted for abstract/atmosphere (flagged `aiGenerated`) · **real photography only** for product, factory, machinery, personnel, certifications — enforced by build rule |
 | Stack | Astro · Cloudflare Pages · Pages Function forms + Turnstile + KV · Cloudflare Web Analytics |
 
 ---
@@ -144,9 +146,19 @@ new RFID product page**.
 
 ## Immediate risks to keep visible
 
-1. **No real email address exists anywhere on the current LiTex site.** Cannot ship without one.
-2. **Contact page carries theme placeholder data** — a fake US address, `mail@example.com`,
-   `(555) 555 1234`. Needs confirming as boilerplate and removing.
-3. **301s from `litextextile.wordpress.com` need WordPress.com's paid Site Redirect upgrade.**
-   Free plan cannot do it. Without it the migration forfeits all existing search ranking.
-   This is outside anything buildable here and must be arranged at cutover.
+Gaps register §7 was walked through with the user on 2026-08-10. **BLOCKERs went 4 → 3.**
+
+1. **No real email address.** Verified: `mail@example.com` appears 4× on `/contact/` and is the
+   site's *only* address. LiTex's one working inbound channel today is **Alibaba messaging** —
+   `/contact/` should link the storefront rather than pretend it doesn't exist.
+2. **Domain ownership** — unconfirmed. Gates the migration.
+3. **301s need WordPress.com's paid Site Redirect upgrade.** Free plan cannot do it; without it the
+   migration forfeits all existing search ranking. Must be arranged at cutover.
+
+**No longer blockers:** the placeholder US address is confirmed theme boilerplate (it sits on the
+same page as the real Taipei address — just delete it), and the RFID specs have been recovered from
+the catalog into spec §6.
+
+**Needs a human:** capturing `litex.en.alibaba.com` (supplier ID 234468551). It likely answers gap
+items 5, 10, 11 and 13 in one pass. curl, WebFetch **and** headless Chrome all hit Alibaba's captcha
+interception — verified, don't retry them. Needs a real browser session or a manual page save.
