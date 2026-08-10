@@ -80,8 +80,11 @@ describe('built products index', () => {
     }
   });
 
-  it('flags data that still needs verification against its source', () => {
-    expect(doc.querySelector('[data-needs-verification]')).toBeTruthy();
+  it('claims verification honestly — a caveat appears only where the flag is set', () => {
+    // Both seeded spec tables were verified against their rendered source PDFs on
+    // 2026-08-11, so no caveat should render. The flag's behaviour is covered by
+    // tests/schemas.test.ts; this asserts we are not showing a stale warning.
+    expect(doc.querySelector('[data-needs-verification]')).toBeNull();
   });
 
   it('renders measured values in the monospace class', () => {

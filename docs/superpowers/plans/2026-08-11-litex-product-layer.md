@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship the seven product pages and the site's signature component — a spec table generated from YAML that carries its own provenance and copies itself to the clipboard as CSV.
+**Goal:** Ship the seven product pages, the six application pages that cross-link back to them, and the site's signature component — a spec table generated from YAML that carries its own provenance and copies itself to the clipboard as CSV.
 
 **Architecture:** Product detail pages are generated from the `products` collection via `getStaticPaths`. All logic that can be pure is pure: CSV serialization and JSON-LD construction live in plain modules under `src/lib/` with unit tests, because Vitest cannot import `.astro` files. Components consume those functions and render markup only. The CSV is serialized **at build time** into a `data-csv` attribute, so the client-side script is ~15 lines and the serialization itself is fully testable.
 
@@ -41,6 +41,9 @@ Every task's requirements implicitly include this section. These carry over from
 | `src/pages/products/index.astro` | **Rewritten** — card grid replacing Plan 1's raw dump |
 | `src/content/applications/*.md` | Four new entries so product references resolve |
 | `src/content/products/*.md` | Five new products seeded from the archive |
+| `src/lib/crossLinks.ts` | Reverse lookup: which products claim a given application. Pure. |
+| `src/pages/applications/index.astro` | Application index |
+| `src/pages/applications/[slug].astro` | Application detail, listing the products that claim it |
 | `tests/csv.test.ts` | Unit tests for CSV escaping and serialization |
 | `tests/jsonld.test.ts` | Unit tests for the JSON-LD builder |
 | `tests/build.test.ts` | **Extended** — detail-page, card, and JSON-LD assertions against `dist/` |
@@ -714,7 +717,7 @@ const jsonLd = productJsonLd({
 </style>
 ```
 
-> **Note on the application links:** `/applications/<id>/` routes do not exist until Plan 3. They are written now because the reference data is real and the URL shape is fixed by spec §3. Plan 5's broken-internal-link checker is what will catch them if Plan 3 ever changes the shape — do not add a link checker here.
+> **Note on the application links:** `/applications/<id>/` routes are built in Task 8 of this plan, so these links resolve by the end of it. They do not resolve *during* Tasks 5–7 — that is expected and is why Task 8 exists.
 
 - [ ] **Step 2: Build and inspect the generated routes**
 
@@ -905,7 +908,9 @@ git commit -m "feat: rebuild products index as a card grid with build assertions
 
 ### Task 7: Seed the five remaining products and the applications they reference
 
-Every value below comes from `archive/` or spec §6. **Nothing is invented.** Two tables are flagged `needsVerification: true` because their `pdftotext` extraction is genuinely ambiguous — that flag is the honest answer, not a guess.
+Every value below comes from `archive/` or spec §6. **Nothing is invented.**
+
+**Both previously-ambiguous spec tables were verified on 2026-08-11** by rendering the source PDF pages with pymupdf and reading the artwork directly, so no product ships with `needsVerification: true`. `pdftoppm` is not installed on this machine; `pymupdf` (`import fitz`) is, and `page.get_pixmap(dpi=170).save(path)` produces a legible page image. Use that method for the two image-only catalogs when their turn comes.
 
 The four new application entries exist so product references resolve. Their **pages** are Plan 3; only the content entries are created here.
 
@@ -1069,7 +1074,7 @@ Published features: patented technology · REACH and RoHS compliant · SGS test 
 
 - [ ] **Step 5: Create the EMI shielding woven tube product**
 
-`needsVerification: true`: the source table's four numeric columns do not map cleanly onto its four headers — `KPTS-3` reads `3 | 12 6 | 3` in the extraction, so the largest-diameter and width-when-taut pairing is reconstructed, not read.
+**This table was verified against the rendered PDF page on 2026-08-11**, so `needsVerification: false` is correct. Two things the verification settled: the diameter headers read **`(ø)`**, not `mm`, so the unit is transcribed as printed; and the source has a fifth column headed **`(c)`** whose value is `3` for all three sizes and whose meaning is defined nowhere in the catalog. **It is omitted deliberately** — an unexplained column on a spec page is exactly the kind of thing that costs trust. It is logged in the open questions below.
 
 ```markdown
 ---
@@ -1080,13 +1085,13 @@ applications:
   - cable-protection-emi-shielding
 certifications: ["RoHS"]
 catalogPdf: "2018-emi-shielding-wire-tube.pdf"
-sourceNote: "2018-emi-shielding-wire-tube.pdf, extracted via pdftotext -layout — diameter columns were ambiguous and reconstructed"
-needsVerification: true
+sourceNote: "2018-emi-shielding-wire-tube.pdf p.2, verified against the rendered PDF page on 2026-08-11"
+needsVerification: false
 specTable:
   columns:
     - { key: "product", label: "Product" }
-    - { key: "smallest", label: "Smallest diameter", unit: "mm" }
-    - { key: "largest", label: "Largest diameter", unit: "mm" }
+    - { key: "smallest", label: "Smallest diameter", unit: "ø" }
+    - { key: "largest", label: "Largest diameter", unit: "ø" }
     - { key: "taut", label: "Width when taut", unit: "mm" }
   rows:
     - { product: "KPTS-3",  smallest: "3",  largest: "12", taut: "6" }
@@ -1097,6 +1102,8 @@ specTable:
 A composite of aramid (fibre glass) core covered with copper plating, braided into a tube. Compressing the length increases the diameter 1.5 to 4 times its taut state, so one size accommodates a range of cable thicknesses.
 
 Covering is tin-plated copper over an aramid core. Heat resistant to 600 °C. The mesh formed by braiding reduces moisture and vapour buildup inside. Standard put-up is 100 m per roll, four rolls per carton. RoHS certified. OEM and ODM available.
+
+The catalog publishes a measured EMI shielding efficiency curve: attenuation stays between roughly 55 dB and 75 dB across 30 MHz to 1 GHz, with the strongest attenuation below 200 MHz. Read from the chart on page 2 of the catalog — the underlying figures are not published as a table.
 ```
 
 - [ ] **Step 6: Create the braided self-curling tube product**
@@ -1199,6 +1206,288 @@ git commit -m "feat: seed five remaining products and four application entries"
 
 ---
 
+### Task 8: Application pages and the reverse cross-link
+
+Spec §2 settles the IA as **dual-entry — products ↔ applications, cross-linked**. Task 5 builds one direction. Without this task the other direction does not exist and every product page ends in seven dead links, which is worse than not linking at all.
+
+The reverse lookup is a pure function so it can be unit-tested without a build.
+
+**Files:**
+- Create: `src/lib/crossLinks.ts`, `src/pages/applications/index.astro`, `src/pages/applications/[slug].astro`
+- Test: `tests/crossLinks.test.ts`, `tests/build.test.ts` (extended)
+
+**Interfaces:**
+- Consumes: `refToId` from `src/lib/references.ts` (Plan 1), `ProductCard.astro` (Task 3), `BaseLayout.astro`.
+- Produces:
+  - `productsClaiming<T extends { data: { applications: EntryRef[] } }>(products: T[], applicationId: string): T[]`
+  - `dist/applications/index.html` and `dist/applications/<slug>/index.html` for all six applications.
+
+- [ ] **Step 1: Write the failing test for the reverse lookup**
+
+Create `tests/crossLinks.test.ts`. The reference values are whatever `reference()` parsed them into, which is why this goes through `refToId` rather than comparing raw.
+
+```ts
+import { describe, it, expect } from 'vitest';
+import { productsClaiming } from '../src/lib/crossLinks';
+
+const products = [
+  { id: 'cmy', data: { applications: ['heated-apparel-wearables'] } },
+  { id: 'heating', data: { applications: ['heated-apparel-wearables', 'automotive-interiors'] } },
+  { id: 'switch', data: { applications: [] } },
+  { id: 'emi', data: { applications: [{ collection: 'applications', id: 'cable-protection-emi-shielding' }] } },
+];
+
+describe('productsClaiming', () => {
+  it('finds every product that references the application', () => {
+    expect(productsClaiming(products, 'heated-apparel-wearables').map((p) => p.id))
+      .toEqual(['cmy', 'heating']);
+  });
+
+  it('accepts a parsed reference object as well as a bare string id', () => {
+    expect(productsClaiming(products, 'cable-protection-emi-shielding').map((p) => p.id))
+      .toEqual(['emi']);
+  });
+
+  it('returns an empty array when no product claims it, rather than throwing', () => {
+    expect(productsClaiming(products, 'architecture')).toEqual([]);
+  });
+
+  it('ignores products with no applications at all', () => {
+    expect(productsClaiming(products, 'heated-apparel-wearables').map((p) => p.id))
+      .not.toContain('switch');
+  });
+
+  it('preserves the input order, so callers control sorting', () => {
+    expect(productsClaiming(products, 'heated-apparel-wearables')[0].id).toBe('cmy');
+  });
+});
+```
+
+- [ ] **Step 2: Run it to make sure it fails**
+
+Run: `npx vitest run tests/crossLinks.test.ts`
+Expected: FAIL — cannot resolve `../src/lib/crossLinks`.
+
+- [ ] **Step 3: Implement `src/lib/crossLinks.ts`**
+
+```ts
+import { refToId, type EntryRef } from './references';
+
+/**
+ * The reverse half of the dual-entry IA (spec §2): products declare their
+ * applications, so "which products claim this application" is a lookup rather
+ * than a second hand-maintained list that can drift out of sync.
+ */
+export function productsClaiming<T extends { data: { applications: EntryRef[] } }>(
+  products: T[],
+  applicationId: string,
+): T[] {
+  return products.filter((product) =>
+    product.data.applications.some((ref) => refToId(ref) === applicationId),
+  );
+}
+```
+
+- [ ] **Step 4: Run the test to verify it passes**
+
+Run: `npx vitest run tests/crossLinks.test.ts`
+Expected: PASS, 5 tests.
+
+- [ ] **Step 5: Create `src/pages/applications/[slug].astro`**
+
+```astro
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { productsClaiming } from '../../lib/crossLinks';
+
+export async function getStaticPaths() {
+  const applications = await getCollection('applications');
+  const products = await getCollection('products');
+  return applications.map((application) => ({
+    params: { slug: application.id },
+    props: { application, products: productsClaiming(products, application.id) },
+  }));
+}
+
+const { application, products } = Astro.props;
+const { Content } = await render(application);
+---
+<BaseLayout
+  title={`${application.data.name} — LiTex Textile & Technology`}
+  description={application.data.summary}
+>
+  <p class="breadcrumb"><a href="/applications/">← All applications</a></p>
+
+  <h1>{application.data.name}</h1>
+  <p class="summary">{application.data.summary}</p>
+
+  <div class="prose"><Content /></div>
+
+  <section>
+    <h2>Products for this application</h2>
+    {products.length > 0 ? (
+      <div class="grid">
+        {products.map((product) => (
+          <ProductCard
+            href={`/products/${product.id}/`}
+            name={product.data.name}
+            summary={product.data.summary}
+            status={product.data.status}
+            certifications={product.data.certifications}
+          />
+        ))}
+      </div>
+    ) : (
+      <p class="empty">No product currently lists this application.</p>
+    )}
+  </section>
+
+  <p class="provenance" data-evidence>
+    <small>Evidence for this application: {application.data.evidence}</small>
+  </p>
+
+  {application.data.needsDetail && (
+    <p class="provenance" data-needs-detail>
+      <small>LiTex has claimed this application but has not yet supplied supporting detail.</small>
+    </p>
+  )}
+</BaseLayout>
+
+<style>
+  .breadcrumb { font-size: var(--t-14); }
+  .summary { color: var(--c-text-2); font-size: var(--t-20); max-width: 60ch; }
+  .prose { max-width: 70ch; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+    gap: var(--s-4);
+  }
+  .empty { color: var(--c-text-2); }
+  .provenance { color: var(--c-text-2); margin-top: var(--s-6); }
+</style>
+```
+
+- [ ] **Step 6: Create `src/pages/applications/index.astro`**
+
+```astro
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { productsClaiming } from '../../lib/crossLinks';
+
+const applications = (await getCollection('applications'))
+  .sort((a, b) => a.data.name.localeCompare(b.data.name));
+const products = await getCollection('products');
+
+const rows = applications.map((application) => ({
+  application,
+  count: productsClaiming(products, application.id).length,
+}));
+---
+<BaseLayout
+  title="Applications — LiTex Textile & Technology"
+  description="End uses LiTex publishes for its conductive metal yarn, heating textile, shielding tube and woven tape."
+>
+  <h1>Applications</h1>
+  <p class="intro">
+    Every application listed here is one LiTex has itself published. Each names its evidence.
+  </p>
+
+  <ul class="list">
+    {rows.map(({ application, count }) => (
+      <li>
+        <a href={`/applications/${application.id}/`}>{application.data.name}</a>
+        <span class="count value">{count} product{count === 1 ? '' : 's'}</span>
+        <p class="summary">{application.data.summary}</p>
+      </li>
+    ))}
+  </ul>
+</BaseLayout>
+
+<style>
+  .intro { color: var(--c-text-2); max-width: 60ch; }
+  .list { list-style: none; padding: 0; margin-top: var(--s-8); }
+  .list li {
+    border-top: 1px solid var(--c-line);
+    padding: var(--s-4) 0;
+  }
+  .list a { font-size: var(--t-20); }
+  .count {
+    font-size: var(--t-12);
+    color: var(--c-text-2);
+    margin-left: var(--s-3);
+  }
+  .summary { color: var(--c-text-2); font-size: var(--t-14); margin: var(--s-2) 0 0; }
+</style>
+```
+
+- [ ] **Step 7: Add the build assertions**
+
+Append to `tests/build.test.ts`:
+
+```ts
+describe('built applications', () => {
+  it('generates an index listing all six applications', () => {
+    const doc = docFor('applications/index.html');
+    const links = [...doc.querySelectorAll('a[href^="/applications/"]')]
+      .map((a) => a.getAttribute('href'));
+    expect(links).toHaveLength(6);
+  });
+
+  it('closes the dual-entry loop — the application lists the products claiming it', () => {
+    const doc = docFor('applications/heated-apparel-wearables/index.html');
+    const links = [...doc.querySelectorAll('a[href^="/products/"]')]
+      .map((a) => a.getAttribute('href'));
+    expect(links).toContain('/products/conductive-metal-yarn/');
+    expect(links).toContain('/products/electrical-heating-textile/');
+  });
+
+  it('names the evidence for every application, so no end-use is unsupported', () => {
+    for (const slug of [
+      'heated-apparel-wearables', 'smart-textiles-rfid', 'automotive-interiors',
+      'healthcare-therapeutic-heating', 'cable-protection-emi-shielding', 'industrial-woven-metal',
+    ]) {
+      const doc = docFor(`applications/${slug}/index.html`);
+      expect(
+        doc.querySelector('[data-evidence]')?.textContent?.trim(),
+        `${slug} publishes no evidence`,
+      ).toBeTruthy();
+    }
+  });
+
+  it('every product-page application link resolves to a real page', () => {
+    const product = docFor('products/conductive-metal-yarn/index.html');
+    const targets = [...product.querySelectorAll('a[href^="/applications/"]')]
+      .map((a) => a.getAttribute('href') ?? '');
+    for (const href of targets) {
+      // Throws ENOENT if the route was never generated.
+      expect(() => docFor(`${href.replace(/^\//, '')}index.html`)).not.toThrow();
+    }
+  });
+});
+```
+
+- [ ] **Step 8: Build and run the full suite**
+
+Run: `npm run build && npm test`
+Expected: build exits 0, generating six application routes plus the index. All tests pass.
+
+- [ ] **Step 9: Run the design detector**
+
+Run: `node .claude/skills/impeccable/scripts/detect.mjs --json src/pages src/components`
+Expected: `[]`.
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add src/lib/crossLinks.ts src/pages/applications tests/crossLinks.test.ts tests/build.test.ts
+git commit -m "feat: add application pages closing the dual-entry cross-link"
+```
+
+---
+
 ## Definition of done
 
 Verify each by running it, not by reading the code.
@@ -1206,7 +1495,7 @@ Verify each by running it, not by reading the code.
 - [ ] `npm run build` exits 0 and emits seven `dist/products/<slug>/index.html` routes
 - [ ] `npm test` passes every suite: contrast, tokens, fonts, schemas, references, csv, jsonld, build
 - [ ] Every product with a `specTable` renders a `data-source-note`
-- [ ] Both `needsVerification` products render a visible caveat
+- [ ] No product renders a `data-needs-verification` caveat — both formerly-ambiguous tables are now verified against their source PDFs
 - [ ] The Copy-as-CSV button ships `hidden` and carries a `data-csv` whose header row includes units
 - [ ] Every product detail page emits `Product` JSON-LD with no `price` anywhere in it
 - [ ] The legacy product states `LEGACY` and `SAMPLING ONLY` in text, not colour alone
@@ -1215,7 +1504,7 @@ Verify each by running it, not by reading the code.
 
 ## Deliberately out of scope
 
-Deferred to later plans: application pages, technology pages, `/company/` and its three children, `/downloads/`, news index and the 7 posts, the contact and sample-request flow with its Pages Function + Turnstile + KV, the print/light stylesheet for spec tables, the credibility bar, the cross-product comparison table on `/products/`, `_redirects` and the 23-URL redirect map, sitemap, Cloudflare Web Analytics, the Sveltia CMS at `/admin`, and the Lighthouse/axe CI budgets.
+Deferred to later plans: technology pages, `/company/` and its three children, `/downloads/`, news index and the 7 posts, the contact and sample-request flow with its Pages Function + Turnstile + KV, the print/light stylesheet for spec tables, the credibility bar, the cross-product comparison table on `/products/`, `_redirects` and the 23-URL redirect map, sitemap, Cloudflare Web Analytics, the Sveltia CMS at `/admin`, and the Lighthouse/axe CI budgets.
 
 **Spec §5 names three affordances on the spec table; this plan builds one.** Copy-as-CSV ships here because it is self-contained. The other two are deliberately held back because each depends on work that does not exist yet:
 
@@ -1224,7 +1513,7 @@ Deferred to later plans: application pages, technology pages, `/company/` and it
 
 Two verification gates remain **not implemented** and must not be assumed present:
 
-- **Broken internal link detection.** Task 5 links `/applications/<id>/`, which does not exist until Plan 3. Nothing catches that yet — it needs a link checker over `dist/`. Plan 5.
+- **Broken internal link detection.** Task 8 asserts that the *product → application* links resolve, but that is a hand-written check against one page, not a link checker. A general checker over `dist/` is Plan 5.
 - **Lighthouse and axe budgets.** Plan 5.
 
 ## Open questions for LiTex — do not guess these
@@ -1233,5 +1522,11 @@ Two verification gates remain **not implemented** and must not be assumed presen
 2. **Braided self-curling tube — the five specifications.** Named on the page, published only in a brochure with no text layer.
 3. **Copper-nickel (CuNi) CMY** was "coming soon" as of 2018 (spec §6). Status unconfirmed; no page claims it.
 4. **Patent statuses.** `extracted-from-images.md` §2 lists applications pending since 2010–2011 that have almost certainly since been granted or abandoned. Needed before `/company/patents-and-awards/` in a later plan.
-5. **EMI tube column pairing** — confirm the KPTS diameter figures against the PDF by eye, then clear `needsVerification`.
-6. **RFID tape column pairing** — same, carried over from Plan 1.
+5. **What is the EMI tube's `(c)` column?** The catalog's standard-item table has a fifth column headed `(c)`, value `3` for all three sizes. The facing diagram labels a callout `C` pointing at the braid mesh, so it is plausibly a strand or thickness parameter — but the catalog never says, so the column is omitted rather than published with a guessed meaning.
+6. **EMI diameter units.** Headers read `(ø)` rather than `mm`. The product codes (KPTS-3/6/15) match the smallest-diameter figures, which makes mm near-certain, but it is transcribed as printed rather than assumed.
+
+7. **Real product photography exists after all.** Spec §5 states "LiTex has **no usable photography** — the current homepage runs a Pexels stock photo." Rendering `2018-rfid-textile-tape.pdf` shows that is **not true of the catalogs**: page 1 carries genuine photographs of the tape, including a ruler shot establishing scale and a close-up of a mounted RFID chip. Tier 3 of the imagery policy (real photography only for product shots) is therefore satisfiable for at least this product without asking LiTex for anything. Confirm usage rights, extract the embedded images, and revisit the "no photography" premise before any plan commits to diagram-only product pages.
+
+**Resolved 2026-08-11 — no longer open:**
+
+- ~~RFID tape column pairing~~ and ~~EMI tube column pairing~~ are both **verified against the rendered PDF pages**. Plan 1's RFID reconstruction was correct in every pairing; the verification added an `Orientation: S` row that the text extraction had dropped, corrected the header to `Max resistance (20 °C)`, and split covering material and colour into separate rows as the source has them. `src/content/products/rfid-textile-tape.md` was corrected on `main` before this plan runs.

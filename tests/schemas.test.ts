@@ -81,6 +81,16 @@ describe('productSchema', () => {
     expect(r.success).toBe(true);
   });
 
+  it('defaults needsVerification to false but accepts an explicit flag', () => {
+    const off = product.safeParse(validProduct);
+    expect(off.success).toBe(true);
+    if (off.success) expect(off.data.needsVerification).toBe(false);
+
+    const on = product.safeParse({ ...validProduct, needsVerification: true });
+    expect(on.success).toBe(true);
+    if (on.success) expect(on.data.needsVerification).toBe(true);
+  });
+
   it('defaults certifications to an empty array', () => {
     const { certifications: _omitted, ...withoutCerts } = validProduct;
     const r = product.safeParse(withoutCerts);
