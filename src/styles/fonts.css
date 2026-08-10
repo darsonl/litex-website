@@ -1,0 +1,11 @@
+/* Self-hosted. No third-party request, no CDN dependency.
+   Archivo: display and UI. IBM Plex Mono: anything with a measured value. */
+
+@import '@fontsource-variable/archivo/index.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+
+:root {
+  --font-display: 'Archivo Variable', 'Archivo', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
