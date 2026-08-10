@@ -7,26 +7,43 @@
 
 ## ▶ Do this first in the new session
 
-**Design is finished. The next session builds.** Do not re-run brainstorming, the spec self-review,
-`/impeccable init`, or `writing-plans` for Plan 1 — all four are complete and committed.
+**Plan 1 is executed and committed. The next session writes and executes Plan 2.**
+Do not re-run brainstorming, the spec self-review, `/impeccable init`, or `writing-plans` for
+Plan 1 — all four are complete, and Plan 1 itself is now built.
 
-1. **Read `PRODUCT.md`** (product truth) and
-   **`docs/superpowers/plans/2026-08-10-litex-foundation-content-layer.md`** (what to build).
-   The full spec at `docs/superpowers/specs/2026-08-10-litex-website-redesign-design.md` is the
-   reference for anything the plan doesn't answer — you should not need to read it end to end.
-2. **Execute Plan 1** with `superpowers:subagent-driven-development` (fresh subagent per task,
-   review between) **or** `superpowers:executing-plans` (inline, batched checkpoints).
-   **Cost note:** subagent-driven spawns a cold agent per task and is the more expensive of the
-   two. Inline reuses session context. The user was token-constrained when this was written, so
-   confirm the choice with them before starting.
-3. **Plans 2–5 are not written yet.** Write each one immediately before executing it, so it can
-   absorb what the previous plan taught. Their scope is listed at the bottom of Plan 1.
+1. **Read `PRODUCT.md`** (product truth) and the spec at
+   `docs/superpowers/specs/2026-08-10-litex-website-redesign-design.md` for the Plan 2 scope.
+   Plan 1's "Deliberately out of scope" section lists what remains.
+2. **Write Plan 2 with `superpowers:writing-plans`, then execute it.** Plans 2–5 are still
+   unwritten by design — each absorbs what the previous one taught.
+3. **Execution mode:** Plan 1 ran inline via `superpowers:executing-plans`. That session was
+   configured not to spawn subagents, and inline reused context cheaply. Do the same unless the
+   user asks for `subagent-driven-development`.
 
-### Resume state as of 2026-08-10
+### Resume state as of 2026-08-11
 
-- **Nothing has been built.** No `package.json`, no `src/`, no `node_modules/`. The repo holds the
-  archive, the spec, PRODUCT.md, and Plan 1. Plan 1 Task 1 starts from an empty project.
-- Working tree clean at `a3bac59`.
+- **Plan 1 is fully built and verified.** Branch **`plan-1-foundation`**, six commits
+  `8398286..697c45c`, branched off `main` at `2b0f138`. **Not yet merged to `main`.**
+- `npm run build` exits 0 emitting `dist/index.html` + `dist/products/index.html`;
+  `npm test` = **52 tests across 6 files, all passing**.
+- All 8 of Plan 1's Definition-of-Done items were verified **empirically**, not assumed — each
+  guard was deliberately broken, observed to fail, and restored.
+- Verified toolchain, all latest at install: `astro@7.2.0` · `vitest@4.1.10` · `linkedom@0.18.13`
+  · `@fontsource-variable/archivo@5.3.0` · `@fontsource/ibm-plex-mono@5.3.0`. All pinned exactly.
+
+### ⚠ Plan 1 finding that changes later plans
+
+**Astro 7.2.0 does NOT fail the build on a broken `reference()`.** It logs
+`Entry <collection> → <id> was not found.`, **exits 0**, and renders the reference as blank —
+silent data loss. Plan 1's Definition of Done asserted the opposite; that assertion was false.
+
+Fixed by `src/lib/references.ts` → `mustResolve()`, which every page must use when resolving a
+reference. **Plans 2–5: do not call `getEntry()` bare.** Wrap it, or the missing entry ships as
+an empty string. Unit tests in `tests/references.test.ts`.
+
+The general lesson: this stack's "the build will catch it" assumptions need to be *tested*, not
+trusted. Schema-level guards (`superRefine`) genuinely do fail the build (verified, exit 127);
+reference integrity does not.
 - **Market and credibility questions are settled (2026-08-10). Nothing is outstanding.**
   **EU is the priority market**, which agrees with all archive evidence (Techtextil Frankfurt,
   Düsseldorf Wire Show) and with the REACH/RoHS/SGS claims LiTex already makes. Japan secondary.
@@ -40,9 +57,12 @@
 
 ## Where we are
 
-Working through `superpowers:brainstorming`. Design sections 1–3 presented and **approved**.
-Spec written, committed, and self-reviewed. **Awaiting user approval of the spec** — that is the
-gate before implementation planning.
+Brainstorming, spec, `/impeccable init`, Plan 1 authoring and **Plan 1 execution** are all
+complete. The site now has a real foundation: design tokens with an enforced WCAG guard,
+self-hosted typography with a banned-font guard, an accessible base layout, typed content
+schemas enforcing provenance and imagery policy, and two products seeded from real archive data.
+
+Next gate: **merge `plan-1-foundation` into `main`**, then write Plan 2.
 
 ### Brainstorming checklist state
 
