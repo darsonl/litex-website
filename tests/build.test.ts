@@ -53,3 +53,35 @@ describe('built home page', () => {
     expect(external).toEqual([]);
   });
 });
+
+describe('built products index', () => {
+  let doc: ReturnType<typeof docFor>;
+  beforeAll(() => { doc = docFor('products/index.html'); });
+
+  it('lists both seeded products by name', () => {
+    const text = doc.body.textContent ?? '';
+    expect(text).toContain('Conductive Metal Yarn');
+    expect(text).toContain('RFID Wired Woven Tape');
+  });
+
+  it('resolves application references into readable names', () => {
+    expect(doc.body.textContent).toContain('Heated apparel & wearables');
+  });
+
+  it('shows provenance for every product carrying spec data', () => {
+    const notes = [...doc.querySelectorAll('[data-source-note]')];
+    expect(notes.length).toBeGreaterThanOrEqual(2);
+    for (const note of notes) {
+      expect(note.textContent?.trim()).not.toBe('');
+    }
+  });
+
+  it('flags data that still needs verification against its source', () => {
+    expect(doc.querySelector('[data-needs-verification]')).toBeTruthy();
+  });
+
+  it('renders measured values in the monospace class', () => {
+    const values = [...doc.querySelectorAll('.value')].map((n) => n.textContent);
+    expect(values.join(' ')).toContain('326.2');
+  });
+});
