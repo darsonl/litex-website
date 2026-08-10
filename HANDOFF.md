@@ -193,14 +193,22 @@ new RFID product page**.
 
 ## Immediate risks to keep visible
 
-Gaps register §7 was walked through with the user on 2026-08-10. **BLOCKERs went 4 → 3.**
+Gaps register §7 was walked through with the user on 2026-08-10. **BLOCKERs went 4 → 3 → 1.**
 
-1. **No real email address.** Verified: `mail@example.com` appears 4× on `/contact/` and is the
-   site's *only* address. LiTex's one working inbound channel today is **Alibaba messaging** —
-   `/contact/` should link the storefront rather than pretend it doesn't exist.
-2. **Domain ownership** — unconfirmed. Gates the migration.
-3. **301s need WordPress.com's paid Site Redirect upgrade.** Free plan cannot do it; without it the
+**Only one blocker remains (2026-08-11):**
+
+1. **301s need WordPress.com's paid Site Redirect upgrade.** Free plan cannot do it; without it the
    migration forfeits all existing search ranking. Must be arranged at cutover.
+
+**Closed 2026-08-11 — do not reopen:**
+
+- ~~No real email address.~~ **`sales@litex.com.tw` is the real inbound address.** Declared as
+  `CONTACT_EMAIL` in `astro.config.mjs`; Plan 2's contact page must read it from there.
+  `mail@example.com` is WordPress theme boilerplate and appears 4× on the archived contact page —
+  a build test now asserts no page renders any `example.com` string.
+- ~~Domain ownership unconfirmed.~~ **LiTex owns `litex.com.tw`.** `SITE_URL` is no longer a
+  placeholder; canonicals resolve to `https://litex.com.tw/` (trailing slash, from
+  `build.format: 'directory'` — which keeps the legacy-URL 301 map 1:1).
 
 **No longer blockers:** the placeholder US address is confirmed theme boilerplate (it sits on the
 same page as the real Taipei address — just delete it), and the RFID specs have been recovered from

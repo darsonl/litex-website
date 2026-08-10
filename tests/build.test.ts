@@ -42,8 +42,12 @@ describe('built home page', () => {
     expect(main?.getAttribute('id')).toBe('main');
   });
 
-  it('never leaks the placeholder domain into visible copy', () => {
-    expect(doc.body.textContent).not.toContain('litex.example');
+  it('never leaks placeholder contact details into visible copy', () => {
+    // mail@example.com is the WordPress theme placeholder and appears 4x on the
+    // archived contact page — the real address is CONTACT_EMAIL in astro.config.mjs.
+    const text = doc.body.textContent ?? '';
+    expect(text).not.toContain('litex.example');
+    expect(text).not.toContain('example.com');
   });
 
   it('ships no render-blocking third-party requests', () => {
@@ -83,5 +87,18 @@ describe('built products index', () => {
   it('renders measured values in the monospace class', () => {
     const values = [...doc.querySelectorAll('.value')].map((n) => n.textContent);
     expect(values.join(' ')).toContain('326.2');
+  });
+
+  it('never leaks placeholder contact details into visible copy', () => {
+    const text = doc.body.textContent ?? '';
+    expect(text).not.toContain('litex.example');
+    expect(text).not.toContain('example.com');
+  });
+
+  it('points canonical URLs at the confirmed domain, trailing slash included', () => {
+    // build.format: 'directory' emits /products/ — the trailing slash matters because
+    // the legacy wordpress.com URLs carry one, keeping the 301 map a 1:1 mapping.
+    expect(doc.querySelector('link[rel="canonical"]')?.getAttribute('href'))
+      .toBe('https://litex.com.tw/products/');
   });
 });
