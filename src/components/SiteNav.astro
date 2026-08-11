@@ -1,0 +1,90 @@
+---
+import { NAV } from '../lib/nav';
+
+const here = Astro.url.pathname;
+// A section is current when you are on its index or anywhere beneath it, so a
+// product detail page still shows Products as the active section.
+const isCurrent = (href: string) => here === href || here.startsWith(href);
+---
+<header class="masthead" data-masthead>
+  <div class="inner">
+    <a class="wordmark" href="/">
+      <span class="name">LiTex</span>
+      <span class="sub">Textile &amp; Technology</span>
+    </a>
+
+    <nav aria-label="Primary">
+      <ul>
+        {NAV.map((item) => (
+          <li>
+            <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .masthead {
+    border-bottom: 1px solid var(--c-line);
+    background: var(--c-base);
+  }
+  .inner {
+    max-width: 76rem;
+    margin: 0 auto;
+    padding: var(--s-4) var(--s-6);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-4) var(--s-8);
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .wordmark {
+    color: var(--c-text-1);
+    text-decoration: none;
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-3);
+  }
+  .name {
+    font-size: var(--t-20);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .sub {
+    font-family: var(--font-mono);
+    font-size: var(--t-10);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--c-text-2);
+  }
+  .wordmark:hover .name { color: var(--c-copper-lift); }
+
+  nav ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-6);
+    margin: 0;
+    padding: 0;
+  }
+  nav a {
+    font-family: var(--font-mono);
+    font-size: var(--t-12);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--c-text-2);
+    text-decoration: none;
+    padding-bottom: var(--s-1);
+    border-bottom: 1px solid transparent;
+  }
+  nav a:hover { color: var(--c-text-1); }
+  /* The active section is marked by colour *and* a rule, never colour alone. */
+  nav a[aria-current='page'] {
+    color: var(--c-copper);
+    border-bottom-color: var(--c-copper);
+  }
+</style>

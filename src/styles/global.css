@@ -40,6 +40,22 @@ a:hover { color: var(--c-copper-lift); }
 }
 .skip-link:focus { top: var(--s-2); }
 
+/* Every page's content column. Pages had no width constraint before Plan 4 —
+   long paragraphs ran the full viewport. */
+.page {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: var(--s-12) var(--s-6) var(--s-24);
+}
+
+h1, h2, h3 {
+  line-height: 1.15;
+  text-wrap: balance;
+}
+h1 { font-size: var(--t-40); margin: 0 0 var(--s-4); }
+h2 { font-size: var(--t-26); margin: var(--s-12) 0 var(--s-4); }
+h3 { font-size: var(--t-20); margin: var(--s-8) 0 var(--s-3); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

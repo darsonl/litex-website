@@ -322,7 +322,8 @@ describe('product thumbnails', () => {
 describe('built applications', () => {
   it('generates an index listing all six applications', () => {
     const doc = docFor('applications/index.html');
-    const links = [...doc.querySelectorAll('a[href^="/applications/"]')]
+    // Scoped to main: the masthead and footer also link /applications/ site-wide.
+    const links = [...doc.querySelectorAll('main a[href^="/applications/"]')]
       .map((a) => a.getAttribute('href'));
     expect(links).toHaveLength(6);
   });
