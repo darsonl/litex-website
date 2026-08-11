@@ -1,4 +1,5 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { parseHTML } from 'linkedom';
@@ -7,6 +8,21 @@ function docFor(relativePath: string) {
   return parseHTML(
     readFileSync(fileURLToPath(new URL(`../dist/${relativePath}`, import.meta.url)), 'utf8'),
   ).document;
+}
+
+const DIST = fileURLToPath(new URL('../dist', import.meta.url));
+
+function walk(dir: string): string[] {
+  return readdirSync(dir).flatMap((entry) => {
+    const full = join(dir, entry);
+    return statSync(full).isDirectory() ? walk(full) : [full];
+  });
+}
+
+/** Maps an internal href to the file Astro's build.format:'directory' emits for it. */
+function routeFile(href: string): string {
+  const clean = href.replace(/^\//, '').replace(/\/$/, '');
+  return clean === '' ? 'index.html' : `${clean}/index.html`;
 }
 
 describe('company — about', () => {
@@ -230,5 +246,71 @@ describe('company — certifications', () => {
     expect(note).toBeTruthy();
     expect(note?.textContent).toContain('LiTex\'s own');
     expect(note?.textContent).toContain('2018 or earlier');
+  });
+});
+
+describe('company — hub', () => {
+  it('generates the route with a single h1 and its canonical', () => {
+    const doc = docFor('company/index.html');
+    expect(doc.querySelectorAll('h1')).toHaveLength(1);
+    expect(doc.querySelector('link[rel="canonical"]')?.getAttribute('href'))
+      .toBe('https://litex.com.tw/company/');
+  });
+
+  it('links all three company pages', () => {
+    const hrefs = [...docFor('company/index.html').querySelectorAll('main a')]
+      .map((a) => a.getAttribute('href'));
+    for (const href of [
+      '/company/about/', '/company/patents-and-awards/', '/company/certifications/',
+    ]) {
+      expect(hrefs, `hub does not link ${href}`).toContain(href);
+    }
+  });
+
+  // The hub's job: every claim the footer makes site-wide becomes a link to the page
+  // that substantiates it.
+  it('turns each credibility claim into a link to its evidence', async () => {
+    const { CREDIBILITY, CREDIBILITY_EVIDENCE } = await import('../src/lib/company');
+    const doc = docFor('company/index.html');
+    const links = [...doc.querySelectorAll('[data-credibility-evidence] a')];
+    expect(links).toHaveLength(CREDIBILITY.length);
+    for (const claim of CREDIBILITY) {
+      const link = links.find((a) => (a.textContent ?? '').includes(claim));
+      expect(link, `no evidence link for "${claim}"`).toBeTruthy();
+      expect(link?.getAttribute('href')).toBe(CREDIBILITY_EVIDENCE[claim]);
+    }
+  });
+
+  it('never lets a credibility claim exist without an evidence route', async () => {
+    const { CREDIBILITY, CREDIBILITY_EVIDENCE } = await import('../src/lib/company');
+    expect(Object.keys(CREDIBILITY_EVIDENCE).sort()).toEqual([...CREDIBILITY].sort());
+  });
+
+  it('is reachable from the primary navigation', () => {
+    const hrefs = [...docFor('index.html').querySelectorAll('nav[aria-label="Primary"] a')]
+      .map((a) => a.getAttribute('href'));
+    expect(hrefs).toContain('/company/');
+  });
+
+  it('gives every company page a way back up', () => {
+    for (const slug of ['about', 'patents-and-awards', 'certifications']) {
+      const crumb = docFor(`company/${slug}/index.html`).querySelector('.breadcrumb a');
+      expect(crumb?.getAttribute('href'), `${slug} has no breadcrumb`).toBe('/company/');
+    }
+  });
+
+  // Plan 8 adds a whole-site link checker. Until then this covers the section that
+  // just gained the most internal cross-linking in one commit.
+  it('links nothing from a /company/ page that the build did not generate', () => {
+    const broken: string[] = [];
+    for (const file of walk(join(DIST, 'company')).filter((f) => f.endsWith('.html'))) {
+      const doc = parseHTML(readFileSync(file, 'utf8')).document;
+      for (const a of [...doc.querySelectorAll('a')]) {
+        const href = a.getAttribute('href') ?? '';
+        if (!href.startsWith('/')) continue;
+        if (!existsSync(join(DIST, routeFile(href)))) broken.push(`${file} → ${href}`);
+      }
+    }
+    expect(broken, `broken links:\n${broken.join('\n')}`).toEqual([]);
   });
 });

@@ -1,5 +1,6 @@
 ---
 import { COMPANY, CREDIBILITY } from '../lib/company';
+import { NAV } from '../lib/nav';
 
 const year = new Date().getFullYear();
 ---
@@ -21,8 +22,7 @@ const year = new Date().getFullYear();
 
       <nav class="secondary" aria-label="Footer">
         <span class="label">Browse</span>
-        <a href="/products/">Products</a>
-        <a href="/applications/">Applications</a>
+        {NAV.map((item) => <a href={item.href}>{item.label}</a>)}
       </nav>
     </div>
 

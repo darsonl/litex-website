@@ -55,3 +55,19 @@ export const CREDIBILITY: readonly string[] = [
   'TW UTILITY MODEL M545145',
   'MANUFACTURING SINCE 1999',
 ];
+
+/**
+ * Where each credibility claim is substantiated. The /company/ hub renders the bar
+ * as links through this map, so a claim the site cannot back up has nowhere to point.
+ * tests/company.test.ts fails if the keys drift from CREDIBILITY.
+ *
+ * The footer keeps rendering CREDIBILITY as plain text: five links in the footer of
+ * every page is noise, and the hub is where a buyer goes to check.
+ */
+export const CREDIBILITY_EVIDENCE: Readonly<Record<string, string>> = {
+  REACH: '/company/certifications/',
+  RoHS: '/company/certifications/',
+  'SGS TESTED': '/company/certifications/',
+  'TW UTILITY MODEL M545145': '/company/patents-and-awards/',
+  'MANUFACTURING SINCE 1999': '/company/about/',
+};

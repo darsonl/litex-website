@@ -1,0 +1,89 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContactBlock from '../../components/ContactBlock.astro';
+import { COMPANY, CREDIBILITY, CREDIBILITY_EVIDENCE } from '../../lib/company';
+
+const SECTIONS = [
+  {
+    href: '/company/about/',
+    title: 'About',
+    blurb: 'A 1999 spinoff of a narrow-fabrics manufacturer, with the premises, plant and people photographed.',
+  },
+  {
+    href: '/company/patents-and-awards/',
+    title: 'Patents and awards',
+    blurb: 'One registered utility model and the 2014 TAITRONICS Quality Award, with every status checked against the register.',
+  },
+  {
+    href: '/company/certifications/',
+    title: 'Certifications',
+    blurb: 'REACH, RoHS and SGS — what we claim, where we claim it, and which document exists behind each one.',
+  },
+];
+---
+<BaseLayout
+  title="Company — LiTex Textile & Technology"
+  description="LiTex Textile & Technology Co., Ltd., Taipei. Manufacturing since 1999. Company background, patents and awards, and compliance documentation."
+>
+  <h1>Company</h1>
+
+  <p class="lede">
+    Manufacturing in Taipei since {COMPANY.foundedYear}. Every claim we make about ourselves has a
+    page behind it.
+  </p>
+
+  <ul class="evidence value" data-credibility-evidence>
+    {CREDIBILITY.map((claim) => (
+      <li><a href={CREDIBILITY_EVIDENCE[claim]}>{claim}</a></li>
+    ))}
+  </ul>
+
+  <div class="grid">
+    {SECTIONS.map((section) => (
+      <a class="card" href={section.href}>
+        <h2>{section.title}</h2>
+        <p>{section.blurb}</p>
+      </a>
+    ))}
+  </div>
+
+  <h2>Contact of record</h2>
+
+  <ContactBlock showLegalNameZh />
+</BaseLayout>
+
+<style>
+  .lede { font-size: var(--t-20); color: var(--c-text-2); max-width: 58ch; }
+  .evidence {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-4);
+    margin: var(--s-8) 0;
+    padding: 0;
+    font-size: var(--t-10);
+    letter-spacing: 0.12em;
+  }
+  .evidence li + li::before {
+    content: '·';
+    margin-right: var(--s-4);
+    color: var(--c-line);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: var(--s-4);
+    margin: var(--s-8) 0;
+  }
+  .card {
+    display: block;
+    padding: var(--s-6);
+    background: var(--c-raised);
+    border: 1px solid var(--c-line);
+    text-decoration: none;
+    color: var(--c-text-1);
+  }
+  .card:hover { border-color: var(--c-copper); }
+  .card h2 { margin: 0 0 var(--s-2); font-size: var(--t-20); color: var(--c-copper); }
+  .card p { margin: 0; color: var(--c-text-2); font-size: var(--t-14); }
+</style>
