@@ -132,7 +132,7 @@ const SOURCES = [
     from: 'archive/catalogs/2018-company-introduction.pdf',
     page: 2, xref: 5,
     crop: { w: 297, h: 442, x: 366, y: 0 },
-    note: 'Catalog p.2, centre panel: the 2014 TAITRONICS Technology Innovation Awards certificate, 優選獎 / The Quality Award, naming 富鉅紡織科技股份有限公司 and 非碳纖維電子發熱紡織品, dated 2014.9.29',
+    note: 'Catalog p.2, centre panel: the 2014 TAITRONICS Technology Innovation Awards certificate, 優選獎 / The Quality Award, naming 富鉅紡織科技股份有限公司 and 非碳纖維電子發熱紡織品, dated September 2014 (the day is illegible at this resolution)',
   },
   {
     group: 'company',

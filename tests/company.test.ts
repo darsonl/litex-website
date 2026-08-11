@@ -74,3 +74,76 @@ describe('company — about', () => {
     }
   });
 });
+
+describe('company — patents and awards', () => {
+  it('generates the route with a single h1 and its canonical', () => {
+    const doc = docFor('company/patents-and-awards/index.html');
+    expect(doc.querySelectorAll('h1')).toHaveLength(1);
+    expect(doc.querySelector('link[rel="canonical"]')?.getAttribute('href'))
+      .toBe('https://litex.com.tw/company/patents-and-awards/');
+  });
+
+  it('cites the utility model in the form the register uses', () => {
+    const text = docFor('company/patents-and-awards/index.html').body.textContent ?? '';
+    expect(text).toContain('TWM545145');
+    expect(text).toContain('Elastic ribbon having extensible electronic device');
+    expect(text).toContain('2017-03-20');
+  });
+
+  // Taiwan utility models run ten years from filing and the sibling patent lapsed
+  // for non-payment. Until LiTex confirms renewal, the page states the record and
+  // stops. tests/chrome.test.ts separately bans the string "PATENTED" site-wide.
+  it('does not assert a right currently in force', () => {
+    const text = docFor('company/patents-and-awards/index.html').body.textContent ?? '';
+    expect(text.toLowerCase()).toContain('renewal');
+  });
+
+  it('states plainly that the older filings are no longer in force', () => {
+    const text = docFor('company/patents-and-awards/index.html').body.textContent ?? '';
+    expect(text).toContain('Abandoned 2012-04-23');
+    expect(text).toContain('Lapsed 2017-10-01');
+  });
+
+  it('renders the lapsed filings as a table, not prose', () => {
+    const doc = docFor('company/patents-and-awards/index.html');
+    const headers = [...doc.querySelectorAll('th[scope="col"]')].map((th) => th.textContent);
+    expect(headers.join(' ')).toContain('Status');
+    expect(doc.querySelectorAll('tbody tr')).toHaveLength(4);
+  });
+
+  it('names the register it was checked against, and when', () => {
+    const note = docFor('company/patents-and-awards/index.html')
+      .querySelector('[data-source-note]');
+    expect(note?.textContent).toContain('2026-08-11');
+  });
+
+  it('transcribes the TAITRONICS award rather than leaving it in the photograph', () => {
+    const text = docFor('company/patents-and-awards/index.html').body.textContent ?? '';
+    for (const fact of [
+      'TAITRONICS',
+      'The Quality Award',
+      'Non-Carbon Fiber Electrical Heating Textile',
+      'September 2014',
+    ]) {
+      expect(text, `the award transcription is missing ${fact}`).toContain(fact);
+    }
+  });
+
+  it('shows the award certificate itself', () => {
+    const figures = docFor('company/patents-and-awards/index.html')
+      .querySelectorAll('[data-archive-figure]');
+    expect(figures.length).toBe(1);
+  });
+
+  // US 12/787,378 was abandoned, so the USPTO cover page in the catalog cannot be
+  // attributed to it, and it carries no number of its own. Publishing it on this
+  // page would assert a US grant LiTex does not hold.
+  it('never publishes the unattributable US patent certificate', () => {
+    const html = readFileSync(
+      fileURLToPath(new URL('../dist/company/patents-and-awards/index.html', import.meta.url)),
+      'utf8',
+    );
+    expect(html).not.toContain('us-patent');
+    expect(html).not.toContain('Kappos');
+  });
+});
