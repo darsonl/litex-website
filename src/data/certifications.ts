@@ -44,5 +44,5 @@ export const SGS_REPORT = {
   year: 2013,
   /** What the stored photograph actually resolves, checked 2026-08-11. */
   readable: 'The report number, the SGS mark, and a photograph of the tested sample',
-  notReadable: 'The test scope, the standards applied, the results, and the addressee block',
+  notReadable: 'The test scope, the standards applied, and the addressee block. The results are not on a cover page at all',
 } as const;
