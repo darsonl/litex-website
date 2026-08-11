@@ -1035,7 +1035,7 @@ describe('company — patents and awards', () => {
       'TAITRONICS',
       'The Quality Award',
       'Non-Carbon Fiber Electrical Heating Textile',
-      '2014.9.29',
+      'September 2014',
     ]) {
       expect(text, `the award transcription is missing ${fact}`).toContain(fact);
     }
@@ -1100,7 +1100,14 @@ export const AWARD = {
   prize: 'The Quality Award · 優選獎',
   subject: 'Non-Carbon Fiber Electrical Heating Textile · 非碳纖維電子發熱紡織品',
   awardedTo: '富鉅紡織科技股份有限公司 / LiTex Textile & Technology Co., Ltd',
-  dated: '2014.9.29',
+  /**
+   * The certificate prints a full date in its bottom-right corner, but the day is
+   * roughly five pixels tall in the only photograph that exists of it and the final
+   * digit cannot be resolved — it is a 6 or a 9. An earlier session recorded
+   * "2014.9.29" as fully read; re-checked at 14x on 2026-08-11, that confidence was
+   * not warranted. The year and month are unambiguous, so those are what we publish.
+   */
+  dated: 'September 2014',
 } as const;
 
 /** Shaped for SpecTable directly — this is spec data, and it is rendered as such. */
