@@ -58,9 +58,9 @@ describe('company — about', () => {
   });
 
   // Astro's compressHTML strips the newline between text and a following element,
-  // so `since\n<span>1999</span>` ships as `since1999`. Every phrase below spans one
-  // of those joins in the source — they are the four places on this page where an
-  // element starts a line.
+  // so `since\n<span>1999</span>` ships as `since1999`. Each phrase below spans a
+  // place in the source where an element starts a line, guarded by an explicit
+  // {' '} marker — this list is illustrative, not a claim that it is exhaustive.
   it('keeps spaces around inline values that start a source line', () => {
     const text = docFor('company/about/index.html').body.textContent ?? '';
     for (const phrase of [
@@ -68,6 +68,7 @@ describe('company — about', () => {
       'later, Conductive Metal Yarn',
       'up to 70 cm. See the full comparison',
       'storefront at litex.en.alibaba.com',
+      'person is sales@litex.com.tw',
     ]) {
       expect(text, `lost the space in "${phrase}"`).toContain(phrase);
     }
