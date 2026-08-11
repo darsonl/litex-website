@@ -1,6 +1,6 @@
 # Session handoff — LiTex website redesign
 
-**Written:** 2026-08-11 (end of session 6)
+**Written:** 2026-08-11, last updated 2026-08-12 (end of session 6)
 **Reason:** Session running out of context. This file is the resume point.
 
 ---
@@ -43,12 +43,15 @@ the quality came from.
   and fixed. Full account in
   `.superpowers/sdd/2026-08-11-litex-company-downloads-legal/progress.md`. Pushed, and open as
   **PR #5** — https://github.com/darsonl/litex-website/pull/5. **Not merged yet.**
-- `npm run build` exits 0, emitting **24 pages**. `npm test` = **229 tests across 16 files**, all
+- `npm run build` exits 0, emitting **24 pages**. `npm test` = **230 tests across 16 files**, all
   passing. Design detector returns `[]` for `src/components src/pages src/styles`.
 - `dist` totals **16 MB**, of which `dist/catalogs` is about **11 MB** — the six catalog PDFs,
   served for the first time this plan.
 - Routes added this plan: `/company/`, `/company/about/`, `/company/patents-and-awards/`,
   `/company/certifications/`, `/downloads/`, `/legal/privacy/`.
+- **Working tree is clean and everything is pushed.** Nothing is in flight, nothing is half-done.
+  The only outstanding action on Plan 5 is **merging PR #5**, which is the user's call — see
+  "Resuming in a new session" at the bottom of this file.
 - Repo public at **https://github.com/darsonl/litex-website**. Plans 1–4 merged via PR #1–#4; Plan 5
   merges via whichever PR number the controller opens next — not confirmed at the time this file was
   written.
@@ -237,3 +240,53 @@ Ordered by how much damage the wrong answer does.
 10. **Are the 2018 catalogs still the current set?** `/downloads/` now serves all six and says plainly that they are eight years old. Spec §7 item 15.
 11. **Re-shoot `wired-conductive-tape`** (600×341 is genuinely the largest in the archive).
 12. Carried over: EMI `(c)` column and `(ø)` units; the stainless steel yarn table's owning product.
+
+
+---
+
+## Resuming in a new session
+
+**Everything below was true at 2026-08-12. Trust it over any recollection.**
+
+### Where things stand
+
+Plan 5 is **finished and pushed**, open as PR #5, **not merged**. Working tree clean, branch
+`plan-5-company-downloads-legal` at `c2cb3f3`. `npm run build` → 24 pages. `npm test` → 230
+passing across 16 files. Detector → `[]`.
+
+The full execution record — every task, every review finding, every fix round, every deferred
+minor, and the parked residual — is in
+`.superpowers/sdd/2026-08-11-litex-company-downloads-legal/progress.md`. That directory is
+gitignored, so it exists only on this machine. Read it before re-litigating anything about Plan 5.
+
+### Do this first, in order
+
+1. **Merge PR #5** (`gh pr merge 5 --squash --delete-branch`, or via the web UI), then
+   `git checkout main && git pull`. Nothing else in Plan 5 is outstanding.
+   - Note: `gh pr edit` and `gh pr merge` may fail with a **token scope error** (`read:org`
+     missing). Fall back to the REST API — `gh api --method PUT repos/darsonl/litex-website/pulls/5/merge`
+     — or merge in the browser. This is a token config issue, not a repo problem.
+2. **Delete the SDD workspace** once merged: `rm -rf .superpowers/sdd/2026-08-11-litex-company-downloads-legal`.
+   Git history is the record after that. Do not delete it before merging — this file cites it.
+3. **Write Plan 6** with `superpowers:writing-plans`. Scope, sources and house style are all
+   described above. Do not re-run brainstorming or the spec self-review.
+
+### What NOT to redo
+
+- Do not re-derive the patent statuses, the TAITRONICS award text, the SGS report facts, the
+  catalog page counts, or any company photograph's contents. All were verified twice and are
+  recorded above.
+- Do not "fix" the missing full stop at the end of the Mobile information paragraph on
+  `/legal/privacy/`, or the reduced-precision "September 2014" award date. Both are deliberate
+  and both are explained in comments beside them.
+- Do not restore `PATENTED` or `1M545145` anywhere. A test bans both site-wide.
+- Do not add a fourth inline contact `<address>` — use `src/components/ContactBlock.astro`.
+
+### Execution mode recommendation for Plan 6
+
+Run it **subagent-driven** (`superpowers:subagent-driven-development`), as Plan 5 was. The
+evidence is in the ledger: five of eight implementation tasks needed a fix round, every one of
+those findings traced to the plan's own text rather than to implementer error, and a further
+three surfaced only in the whole-branch review. The plan's author cannot review the plan's
+prose — that separation is where the quality came from, and Plan 6 publishes seven dated news
+posts whose original text is thin enough to invite exactly the same kind of drift.
