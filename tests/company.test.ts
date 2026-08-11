@@ -117,6 +117,22 @@ describe('company — patents and awards', () => {
     expect(note?.textContent).toContain('2026-08-11');
   });
 
+  // SpecTable renders its own [data-source-note]; the page's hand-authored correction
+  // note is a second, distinct note and must not collide with that selector.
+  it('states the malformed-number correction in its own page note', () => {
+    const note = docFor('company/patents-and-awards/index.html')
+      .querySelector('[data-page-note]');
+    expect(note).toBeTruthy();
+    expect(note?.textContent).toContain('TWM545145U');
+    expect(note?.textContent).toContain('malformed');
+  });
+
+  it('discloses that older filings may be in an individual\'s name, not the company\'s', () => {
+    const text = docFor('company/patents-and-awards/index.html').body.textContent ?? '';
+    expect(text).toContain('Fu-Biau Hsu');
+    expect(text).toContain('許富標');
+  });
+
   it('transcribes the TAITRONICS award rather than leaving it in the photograph', () => {
     const text = docFor('company/patents-and-awards/index.html').body.textContent ?? '';
     for (const fact of [
