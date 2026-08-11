@@ -1451,7 +1451,8 @@ export const SGS_REPORT = {
   year: 2013,
   /** What the stored photograph actually resolves, checked 2026-08-11. */
   readable: 'The report number, the SGS mark, and a photograph of the tested sample',
-  notReadable: 'The test scope, the standards applied, the results, and the addressee block',
+  notReadable:
+    'The test scope, the standards applied, and the addressee block. The results are not on a cover page at all',
 } as const;
 ```
 
@@ -1495,9 +1496,10 @@ import sgs from '../../assets/company/sgs-test-report.jpg';
     />
     <div class="detail">
       <p>
-        The report was issued in <span class="value">{SGS_REPORT.year}</span> and covers toughness
-        testing. We publish the cover photograph rather than the report because the cover is what
-        our 2018 catalog contains.
+        The report was issued in <span class="value">{SGS_REPORT.year}</span>. We publish the cover
+        photograph rather than the report because the cover is what our 2018 catalog contains. Our
+        catalog describes this report as certifying toughness — that description is the catalog's,
+        not something the cover shows.
       </p>
       <p>
         <strong>Readable at the resolution we hold:</strong> {SGS_REPORT.readable}.
