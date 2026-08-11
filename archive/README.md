@@ -78,14 +78,10 @@ Three reasons this is not an exposure:
   directory. `tests/imagery.test.ts` asserts no archive image reaches `dist/`, and no `AIza`
   string appears anywhere in a build.
 
-**It is most likely not LiTex's key at all.** Jetpack supplies its own Maps key for that widget
-unless a site owner enters one. To confirm: look in Google Cloud Console → APIs & Services →
-Credentials for a key ending `p8dwTE`. If it is not there, it belongs to Automattic and there is
-nothing to do — do not attempt to revoke a third party's key. If it *is* there, the correct fix is
-restriction rather than rotation: *Application restrictions* → HTTP referrers, *API restrictions* →
-Maps Embed API only. The risk worth closing in that case is not Maps quota, which is free and
-unmetered for Embed, but an unrestricted key being usable against any other API enabled on the
-same project.
+**It is not LiTex's key — confirmed and closed 2026-08-11.** Jetpack supplies its own Maps key for
+that widget unless a site owner enters one. Google Cloud Console was checked and **no key ending
+`p8dwTE` exists in LiTex's account**, so it belongs to Automattic. There is nothing to revoke,
+restrict or rotate, and no third party's key should be tampered with. Do not reopen this.
 
 **Why it is not redacted.** `.gitattributes` pins `archive/** -text` specifically so nothing
 rewrites these files; the archive's value is that it is exactly what was served. Editing the key
