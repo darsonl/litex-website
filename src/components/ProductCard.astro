@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import StatusBadge from './StatusBadge.astro';
 
 interface Props {
@@ -7,11 +8,18 @@ interface Props {
   summary: string;
   status: 'active' | 'legacy';
   certifications: readonly string[];
+  image?: ImageMetadata;
+  imageAlt?: string;
 }
 
-const { href, name, summary, status, certifications } = Astro.props;
+const { href, name, summary, status, certifications, image, imageAlt } = Astro.props;
 ---
 <article class="card">
+  {image && (
+    <a class="thumb" href={href} tabindex="-1" aria-hidden="true">
+      <Image src={image} alt={imageAlt ?? ''} width={560} loading="lazy" decoding="async" />
+    </a>
+  )}
   <h2 class="name"><a href={href}>{name}</a></h2>
   <StatusBadge status={status} />
   <p class="summary">{summary}</p>
@@ -28,6 +36,19 @@ const { href, name, summary, status, certifications } = Astro.props;
     display: flex;
     flex-direction: column;
     gap: var(--s-3);
+  }
+  /* Bleeds the thumbnail to the card edges, cancelling the card's own padding. */
+  .thumb {
+    display: block;
+    margin: calc(var(--s-6) * -1) calc(var(--s-6) * -1) 0;
+    border-bottom: 1px solid var(--c-line);
+  }
+  .thumb :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 14 / 9;
+    object-fit: cover;
   }
   .name {
     margin: 0;

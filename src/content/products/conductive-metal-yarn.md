@@ -2,6 +2,10 @@
 name: "Conductive Metal Yarn"
 status: "active"
 summary: "Tinned copper filaments helically wound around a core. Loom-made, so it is mass manufacturable."
+heroImage:
+  src: "../../assets/products/conductive-metal-yarn.jpg"
+  alt: "Three views of the yarn: a spool of it resting on wood, a macro of the metal filament coiled around the core, and an electron micrograph of the cut end labelling the outer metal layer and the polymer core"
+  aiGenerated: false
 applications:
   - heated-apparel-wearables
 certifications: ["REACH", "RoHS", "SGS"]

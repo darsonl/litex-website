@@ -211,6 +211,114 @@ describe('all seeded products', () => {
   });
 });
 
+describe('product hero imagery', () => {
+  const slugs = [
+    'conductive-metal-yarn', 'electrical-heating-textile', 'emi-shielding-woven-tube',
+    'rfid-textile-tape', 'braided-self-curling-tube', 'wired-conductive-tape',
+    'silica-gel-switch-controller',
+  ];
+
+  it('every product page shows a photograph', () => {
+    for (const slug of slugs) {
+      const doc = docFor(`products/${slug}/index.html`);
+      expect(doc.querySelector('[data-product-hero] img'), `${slug} has no hero`).toBeTruthy();
+    }
+  });
+
+  it('every hero carries alt text that is not just the product name', () => {
+    for (const slug of slugs) {
+      const doc = docFor(`products/${slug}/index.html`);
+      const img = doc.querySelector('[data-product-hero] img');
+      const alt = img?.getAttribute('alt') ?? '';
+      const h1 = doc.querySelector('h1')?.textContent?.trim() ?? '';
+      expect(alt.length, `${slug} alt is too short to be descriptive`).toBeGreaterThan(30);
+      expect(alt.toLowerCase(), `${slug} alt merely repeats the name`).not.toBe(h1.toLowerCase());
+    }
+  });
+
+  it('every hero declares intrinsic width and height, so nothing shifts on load', () => {
+    for (const slug of slugs) {
+      const doc = docFor(`products/${slug}/index.html`);
+      const img = doc.querySelector('[data-product-hero] img');
+      expect(Number(img?.getAttribute('width')), `${slug} width`).toBeGreaterThan(0);
+      expect(Number(img?.getAttribute('height')), `${slug} height`).toBeGreaterThan(0);
+    }
+  });
+
+  it('serves modern formats through a picture element', () => {
+    const doc = docFor('products/conductive-metal-yarn/index.html');
+    const types = [...doc.querySelectorAll('[data-product-hero] source')]
+      .map((s) => s.getAttribute('type'));
+    expect(types).toContain('image/avif');
+    expect(types).toContain('image/webp');
+  });
+
+  it('defers hero decoding rather than blocking render', () => {
+    const doc = docFor('products/conductive-metal-yarn/index.html');
+    const img = doc.querySelector('[data-product-hero] img');
+    expect(img?.getAttribute('decoding')).toBe('async');
+  });
+
+  it('never ships the Pexels stock photo', () => {
+    for (const slug of slugs) {
+      const doc = docFor(`products/${slug}/index.html`);
+      expect(doc.documentElement.outerHTML).not.toContain('pexels');
+    }
+  });
+
+  // Two heroes come from the archived site, not from the catalog named in catalogPdf.
+  // A caption that names a document the photograph did not come from is a false
+  // provenance claim on a page whose whole argument is that its figures are traceable.
+  it('never credits a catalog the photograph did not actually come from', () => {
+    const manifest = JSON.parse(
+      readFileSync(
+        fileURLToPath(new URL('../src/assets/products/provenance.json', import.meta.url)),
+        'utf8',
+      ),
+    ) as Record<string, { source: string }>;
+
+    for (const slug of slugs) {
+      const doc = docFor(`products/${slug}/index.html`);
+      const caption = doc.querySelector('[data-product-hero] figcaption')?.textContent ?? '';
+      expect(caption.trim(), `${slug} hero has no caption`).toBeTruthy();
+
+      const named = caption.match(/\S+\.pdf/)?.[0];
+      if (named) {
+        expect(manifest[`${slug}.jpg`].source, `${slug} credits ${named}`).toBe(
+          `archive/catalogs/${named}`,
+        );
+      }
+    }
+  });
+});
+
+describe('product thumbnails', () => {
+  it('shows a thumbnail on every card in the products index', () => {
+    const doc = docFor('products/index.html');
+    expect(doc.querySelectorAll('.card img')).toHaveLength(7);
+  });
+
+  it('gives every thumbnail width and height so the grid does not reflow', () => {
+    const doc = docFor('products/index.html');
+    for (const img of [...doc.querySelectorAll('.card img')]) {
+      expect(Number(img.getAttribute('width'))).toBeGreaterThan(0);
+      expect(Number(img.getAttribute('height'))).toBeGreaterThan(0);
+    }
+  });
+
+  it('lazy-loads thumbnails, which are below the fold', () => {
+    const doc = docFor('products/index.html');
+    for (const img of [...doc.querySelectorAll('.card img')]) {
+      expect(img.getAttribute('loading')).toBe('lazy');
+    }
+  });
+
+  it('carries thumbnails through to application pages too', () => {
+    const doc = docFor('applications/cable-protection-emi-shielding/index.html');
+    expect(doc.querySelectorAll('.card img').length).toBeGreaterThan(0);
+  });
+});
+
 describe('built applications', () => {
   it('generates an index listing all six applications', () => {
     const doc = docFor('applications/index.html');

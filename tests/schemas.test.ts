@@ -5,8 +5,10 @@ import { applicationSchema } from '../src/schemas/application';
 
 /** Stands in for Astro's reference(); shape matches what Astro produces. */
 const referenceStub = () => z.object({ collection: z.string(), id: z.string() }).or(z.string());
+/** Stands in for Astro's image(); the real one returns ImageMetadata at build time. */
+const imageStub = () => z.string();
 
-const product = productSchema(referenceStub);
+const product = productSchema({ reference: referenceStub, image: imageStub });
 const application = applicationSchema(referenceStub);
 
 const validProduct = {
@@ -64,21 +66,39 @@ describe('productSchema', () => {
     expect(r.success).toBe(true);
   });
 
-  it('refuses an AI-generated product hero image', () => {
+  it('accepts a hero image with real alt text', () => {
     const r = product.safeParse({
       ...validProduct,
-      heroImage: { src: '/img/cmy.jpg', alt: 'Conductive metal yarn', aiGenerated: true },
+      heroImage: { src: './cmy.jpg', alt: 'Coiled copper covering over a polymer core', aiGenerated: false },
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it('rejects a hero image with empty alt text', () => {
+    const r = product.safeParse({
+      ...validProduct,
+      heroImage: { src: './cmy.jpg', alt: '', aiGenerated: false },
+    });
+    expect(r.success).toBe(false);
+    expect(JSON.stringify(r.error?.issues)).toContain('alt');
+  });
+
+  it('rejects alt text that merely repeats the product name', () => {
+    const r = product.safeParse({
+      ...validProduct,
+      heroImage: { src: './cmy.jpg', alt: 'Conductive Metal Yarn', aiGenerated: false },
+    });
+    expect(r.success).toBe(false);
+    expect(JSON.stringify(r.error?.issues)).toContain('alt');
+  });
+
+  it('still refuses an AI-generated hero even with good alt text', () => {
+    const r = product.safeParse({
+      ...validProduct,
+      heroImage: { src: './cmy.jpg', alt: 'Coiled copper covering over a polymer core', aiGenerated: true },
     });
     expect(r.success).toBe(false);
     expect(JSON.stringify(r.error?.issues)).toContain('aiGenerated');
-  });
-
-  it('accepts a real photographed product hero', () => {
-    const r = product.safeParse({
-      ...validProduct,
-      heroImage: { src: '/img/cmy.jpg', alt: 'Conductive metal yarn', aiGenerated: false },
-    });
-    expect(r.success).toBe(true);
   });
 
   it('defaults needsVerification to false but accepts an explicit flag', () => {
