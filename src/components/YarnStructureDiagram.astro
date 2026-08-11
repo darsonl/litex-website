@@ -1,0 +1,89 @@
+---
+interface Props {
+  /** Number of coverings — 1 for 1S, 2 for 1S1Z, 4 for 2S2Z. */
+  coverings: number;
+  /** Helical direction of each covering layer, in winding order. */
+  directions: readonly ('S' | 'Z')[];
+  /** Grade name, e.g. "1S1Z". */
+  label: string;
+  caption: string;
+}
+
+const { coverings, directions, label, caption } = Astro.props;
+
+const W = 320;
+const H = 96;
+const CORE_Y = H / 2;
+const CORE_R = 16;
+const STROKES = 11;
+const STEP = (W - 24) / STROKES;
+
+// Handedness verified 2026-08-11 against archive/images/cmy-structure1.jpg, LiTex's
+// own illustration of 1s / 1z / 1s1z: the S ribbon descends left to right, Z is its
+// mirror. Every line below is drawn from (x1, lower) to (x2, upper), so S needs its
+// larger x at the lower end — hence the negative offset. Handedness IS part of the
+// specification; flipping this sign publishes a wrong spec, not a style variation.
+const layers = directions.map((direction, index) => ({
+  direction,
+  reach: CORE_R - index * 3,
+  strokes: Array.from({ length: STROKES }, (_, i) => {
+    const x = 12 + i * STEP + index * (STEP / directions.length);
+    const dx = direction === 'S' ? -10 : 10;
+    return { x1: x - dx, x2: x + dx };
+  }),
+}));
+
+const titleId = `yarn-${label.toLowerCase()}-title`;
+---
+<figure class="diagram" data-yarn-diagram>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby={titleId}>
+    <title id={titleId}>{caption}</title>
+
+    <!-- Core polymer yarn -->
+    <rect
+      x="8" y={CORE_Y - CORE_R} width={W - 16} height={CORE_R * 2} rx={CORE_R}
+      fill="var(--c-base)" stroke="var(--c-line)" stroke-width="1"
+    />
+
+    {layers.map((layer) => (
+      <g
+        data-direction={layer.direction}
+        stroke={layer.direction === 'S' ? 'var(--c-copper)' : 'var(--c-copper-lift)'}
+        stroke-width="2"
+        stroke-linecap="round"
+      >
+        {layer.strokes.map((s) => (
+          <line x1={s.x1} y1={CORE_Y + layer.reach} x2={s.x2} y2={CORE_Y - layer.reach} />
+        ))}
+      </g>
+    ))}
+  </svg>
+
+  <figcaption>
+    <span class="grade value">{label}</span>
+    <span class="count value">{coverings} covering{coverings === 1 ? '' : 's'}</span>
+    <span class="text">{caption}</span>
+  </figcaption>
+</figure>
+
+<style>
+  .diagram {
+    margin: 0;
+    background: var(--c-raised);
+    border: 1px solid var(--c-line);
+    padding: var(--s-4);
+  }
+  svg { display: block; width: 100%; height: auto; }
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s-2) var(--s-4);
+    margin-top: var(--s-3);
+    padding-top: var(--s-3);
+    border-top: 1px solid var(--c-line);
+  }
+  .grade { font-size: var(--t-16); color: var(--c-copper); letter-spacing: 0.04em; }
+  .count { font-size: var(--t-10); color: var(--c-text-2); letter-spacing: 0.08em; }
+  .text { font-size: var(--t-12); color: var(--c-text-2); flex: 1 1 12rem; }
+</style>

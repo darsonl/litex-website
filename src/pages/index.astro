@@ -1,9 +1,83 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { COMPANY } from '../lib/company';
+
+const products = await getCollection('products');
+const applications = await getCollection('applications');
+
+const doors = [
+  {
+    href: '/products/',
+    eyebrow: 'By product',
+    title: 'Start from the material',
+    count: `${products.length} products`,
+    body: 'Conductive metal yarn, heating textile, EMI shielding tube, RFID and conductive tape. Every page publishes its specifications as data, with the source document named.',
+  },
+  {
+    href: '/applications/',
+    eyebrow: 'By application',
+    title: 'Start from what you are building',
+    count: `${applications.length} applications`,
+    body: 'Heated apparel, automotive interiors, therapeutic heating, cable protection, smart textiles and industrial woven metal — each listing the products that serve it.',
+  },
+];
 ---
 <BaseLayout
   title="LiTex Textile & Technology — conductive metal yarn and heating textile"
   description="LiTex weaves conductive elements into textile. Conductive Metal Yarn, electrical heating textile, EMI shielding and RFID tape, manufactured in Taipei since 1999."
 >
   <h1>We specialize in weaving conductive elements into textile.</h1>
+
+  <p class="lede">
+    A metal layer coiled over a core polymer yarn, made on looms rather than by hand — which is
+    what makes it manufacturable at volume. Woven in Taipei since {COMPANY.foundedYear}.
+  </p>
+
+  <div class="doors">
+    {doors.map((door) => (
+      <a class="door" href={door.href} data-door>
+        <span class="eyebrow value">{door.eyebrow}</span>
+        <span class="title">{door.title}</span>
+        <span class="body">{door.body}</span>
+        <span class="count value">{door.count} →</span>
+      </a>
+    ))}
+  </div>
 </BaseLayout>
+
+<style>
+  .lede {
+    font-size: var(--t-20);
+    color: var(--c-text-2);
+    max-width: 58ch;
+    margin: 0 0 var(--s-16);
+  }
+  .doors {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    gap: var(--s-4);
+  }
+  .door {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    padding: var(--s-8);
+    background: var(--c-raised);
+    border: 1px solid var(--c-line);
+    text-decoration: none;
+    color: var(--c-text-1);
+  }
+  .door:hover { border-color: var(--c-copper); }
+  .eyebrow {
+    font-size: var(--t-10);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--c-copper);
+  }
+  .title { font-size: var(--t-26); line-height: 1.2; }
+  .body { color: var(--c-text-2); font-size: var(--t-14); }
+  /* auto pushes the CTA to the card floor, so both doors' arrows align even though
+     one has a line more body copy than the other. */
+  .count { font-size: var(--t-12); color: var(--c-copper); margin-top: auto; padding-top: var(--s-4); }
+</style>

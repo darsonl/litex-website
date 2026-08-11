@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SpecTable from '../../components/SpecTable.astro';
+import { HEATING_COMPARISON } from '../../data/heatingComparison';
+---
+<BaseLayout
+  title="Heating element comparison — CMY vs carbon fibre, film and steel fibre | LiTex"
+  description="How Conductive Metal Yarn compares with carbon fibre, flexible printed circuit heating film and stainless steel fibre, on material behaviour and manufacturing process."
+>
+  <p class="breadcrumb"><a href="/technology/">← Technology</a></p>
+
+  <h1>Choosing a heating element</h1>
+
+  <p class="lede">
+    Four ways to put heat into a textile assembly, and what separates them in practice: how the
+    element behaves when it is bent, and how it is made.
+  </p>
+
+  <SpecTable
+    table={HEATING_COMPARISON}
+    caption="Heating elements compared"
+    sourceNote="2018-non-carbon-electrical-heating-textile.pdf — LiTex's own comparison, not an independent test"
+  />
+
+  <h2>What the table is claiming</h2>
+
+  <p>
+    The two columns are doing different work. <strong>Material characteristics</strong> is about
+    what happens under repeated flexing, which is the failure mode that matters in a garment or a
+    seat. <strong>Manufacturing process</strong> is about whether volume is reachable at all — an
+    element assembled by hand carries its labour cost into every unit.
+  </p>
+
+  <p>
+    LiTex's argument for coiled yarn rests on holding both at once: the coil bends without the
+    fracture that affects brittle elements, and it is woven on standard looms rather than assembled,
+    so volume is a matter of loom time.{' '}
+    <a href="/technology/">How the coiling actually works →</a>
+  </p>
+
+  <p>
+    This comparison is LiTex's, published in its 2018 catalog. It is reproduced here because it is
+    the clearest statement of where the product is positioned — not as an independent benchmark.{' '}
+    <a href="/products/electrical-heating-textile/">See the heating textile built from it →</a>
+  </p>
+</BaseLayout>
+
+<style>
+  .breadcrumb { font-size: var(--t-14); margin-top: 0; }
+  .lede { font-size: var(--t-20); color: var(--c-text-2); max-width: 58ch; }
+  p { max-width: 70ch; }
+</style>
