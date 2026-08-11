@@ -1,0 +1,28 @@
+---
+import { COMPANY } from '../lib/company';
+
+interface Props {
+  showLegalNameZh?: boolean;
+}
+
+const { showLegalNameZh = false } = Astro.props;
+---
+<address class="contact" data-contact-block>
+  <p>{COMPANY.legalName}</p>
+  {showLegalNameZh && <p>{COMPANY.legalNameZh}</p>}
+  {COMPANY.addressLines.map((line) => <p>{line}</p>)}
+  <p>Tel <a class="value" href={COMPANY.phoneHref}>{COMPANY.phone}</a></p>
+  <p>Fax <span class="value">{COMPANY.fax}</span></p>
+  <p><a class="value" href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></p>
+  <p>{COMPANY.hours}</p>
+</address>
+
+<style>
+  .contact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-1);
+    font-style: normal;
+    color: var(--c-text-2);
+  }
+</style>
