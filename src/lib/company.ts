@@ -3,8 +3,9 @@
  *
  * Every value traces to archive/: the address and hours to the contact widget in
  * archive/pages/about.html, sales@litex.com.tw to the body of
- * archive/pages/news-2017-wearable-expo.html, and the Chinese legal name to the
- * TAITRONICS certificate in 2018-company-introduction.pdf p.2.
+ * archive/pages/news-2017-wearable-expo.html, the Chinese legal name to the
+ * TAITRONICS certificate in 2018-company-introduction.pdf p.2, and the fax number to
+ * the footer of archive/catalogs/201611e68ea7e588b6e599a8final.txt.
  *
  * The email is also declared as CONTACT_EMAIL in astro.config.mjs, because pages
  * must not import that file — it would pull defineConfig from astro/config into the
@@ -18,6 +19,12 @@ export const COMPANY = {
   email: 'sales@litex.com.tw',
   phone: '+886-2-2308-4712',
   phoneHref: 'tel:+886223084712',
+  /**
+   * From the footer of archive/catalogs/201611e68ea7e588b6e599a8final.txt, which is
+   * the only LiTex document that publishes it. Still worth carrying: fax is a live
+   * channel in Taiwanese and Japanese industrial procurement.
+   */
+  fax: '+886-2-2308-4714',
   addressLines: ['188 Bangka Blvd., Wanhua Dist.', 'Taipei, Taiwan 108'],
   hours: 'Mon–Fri 09:00–18:00',
 } as const;
