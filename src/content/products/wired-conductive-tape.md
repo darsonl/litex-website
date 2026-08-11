@@ -10,6 +10,7 @@ applications:
   - smart-textiles-rfid
   - industrial-woven-metal
 certifications: []
+catalogPdf: "2018-wired-conductive-tape.pdf"
 needsVerification: false
 ---
 

@@ -40,6 +40,9 @@ describe('privacy notice', () => {
   it('carries the mobile-information statement the old site published', () => {
     const text = docFor('legal/privacy/index.html').body.textContent ?? '';
     expect(text).toContain('No mobile information will be shared with third parties');
+    // Pins the deliberate absence of a trailing full stop — the archived page never
+    // had one, and the page's own source note claims the paragraph is verbatim.
+    expect(text).toContain('this information will not be shared with any third parties');
   });
 
   it('is reachable from the footer of every page', () => {
@@ -59,17 +62,28 @@ describe('privacy notice stays true as the site grows', () => {
 
   // Plan 8 adds Cloudflare Web Analytics. When it does, update the page to describe
   // it and remove this test in the same commit.
+  //
+  // The privacy page claims "Fonts, images, stylesheets and scripts are all served
+  // from this domain". Images are covered site-wide by tests/imagery.test.ts and fonts
+  // by tests/fonts.test.ts; stylesheets were previously checked on the homepage only
+  // (tests/build.test.ts). The selector below is widened to link[rel="stylesheet"] and
+  // link[rel="preconnect"], site-wide, so this guard covers the sentence the page
+  // actually publishes rather than just its "no analytics" clause.
   it('claims no analytics only while the site really runs none', () => {
-    const scripts = new Set<string>();
+    const external = new Set<string>();
     for (const file of walk(DIST).filter((f) => f.endsWith('.html'))) {
       const doc = parseHTML(readFileSync(file, 'utf8')).document;
-      for (const s of [...doc.querySelectorAll('script[src]')]) {
-        const src = s.getAttribute('src') ?? '';
-        if (/^https?:\/\//.test(src)) scripts.add(src);
+      for (const el of [
+        ...doc.querySelectorAll('script[src], link[rel="stylesheet"], link[rel="preconnect"]'),
+      ]) {
+        const url = el.getAttribute('src') ?? el.getAttribute('href') ?? '';
+        if (/^https?:\/\//.test(url)) external.add(url);
       }
     }
-    expect([...scripts], 'the site now loads a third-party script — update /legal/privacy/')
-      .toEqual([]);
+    expect(
+      [...external],
+      'the site now loads a third-party script, stylesheet or preconnect — update /legal/privacy/',
+    ).toEqual([]);
     expect(docFor('legal/privacy/index.html').body.textContent).toContain('no analytics');
   });
 

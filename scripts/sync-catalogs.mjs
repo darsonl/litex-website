@@ -1,7 +1,9 @@
 /**
  * Copy the six catalog PDFs out of archive/ and into public/, and record their sizes.
  *
- * Run: node scripts/sync-catalogs.mjs   (npm runs it automatically via `prebuild`)
+ * Run: node scripts/sync-catalogs.mjs   (npm's "build" script runs it before `astro
+ * build`, and "predev" runs it before `astro dev`, so it is not left to an implicit
+ * lifecycle hook a different package manager or `npx astro build` could skip)
  *
  * Why a build step rather than committed files: the PDFs total roughly 11 MB and are
  * already versioned under archive/, which is the source of truth for everything on

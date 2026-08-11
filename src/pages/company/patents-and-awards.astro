@@ -99,6 +99,9 @@ const CHECKED = '2026-08-11';
     sourceNote="Statuses for the Taiwan and US records were read from the public registers on 2026-08-11. Filing numbers are from archive/extracted-from-images.md §2."
   />
 
+  {/* data-page-note, not data-source-note: SpecTable already emits one
+      [data-source-note] for its own figures, and every other page on the site
+      treats that hook as singular. This note is about the page, not the table. */}
   <p class="note" data-page-note>
     <small>
       Registers checked {CHECKED}. The number printed in our 2018 material is malformed — it

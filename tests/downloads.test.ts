@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
@@ -8,6 +8,12 @@ import catalogFiles from '../src/data/catalog-files.json';
 
 const DIST = fileURLToPath(new URL('../dist', import.meta.url));
 const ARCHIVE = fileURLToPath(new URL('../archive/catalogs', import.meta.url));
+const PRODUCTS = fileURLToPath(new URL('../src/content/products', import.meta.url));
+
+/** Every product slug, read from the collection so this list cannot go stale. */
+const PRODUCT_SLUGS = readdirSync(PRODUCTS)
+  .filter((f) => f.endsWith('.md'))
+  .map((f) => f.replace(/\.md$/, ''));
 
 function docFor(relativePath: string) {
   return parseHTML(readFileSync(join(DIST, relativePath), 'utf8')).document;
@@ -97,10 +103,7 @@ describe('product pages link their catalog', () => {
   });
 
   it('never links a catalog that is not served', () => {
-    for (const slug of [
-      'conductive-metal-yarn', 'electrical-heating-textile', 'emi-shielding-woven-tube',
-      'rfid-textile-tape', 'silica-gel-switch-controller',
-    ]) {
+    for (const slug of PRODUCT_SLUGS) {
       const doc = docFor(`products/${slug}/index.html`);
       for (const a of [...doc.querySelectorAll('a[href^="/catalogs/"]')]) {
         const href = a.getAttribute('href') ?? '';

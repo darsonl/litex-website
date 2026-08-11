@@ -10,6 +10,18 @@ function humanSize(bytes: number): string {
   const mb = bytes / 1_048_576;
   return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
 }
+
+/** Fails loudly, naming the file, instead of an opaque "Cannot read properties of
+ * undefined" if a CATALOGS entry has no row in catalog-files.json. */
+function sizeOf(file: string): { bytes: number } {
+  const entry = sizes[file];
+  if (!entry) {
+    throw new Error(
+      `${file} has no entry in src/data/catalog-files.json — re-run scripts/sync-catalogs.mjs`,
+    );
+  }
+  return entry;
+}
 ---
 <BaseLayout
   title="Catalog downloads — LiTex Textile & Technology"
@@ -28,7 +40,7 @@ function humanSize(bytes: number): string {
       <li class="item" data-catalog={catalog.file}>
         <h2><a href={`/catalogs/${catalog.file}`}>{catalog.title}</a></h2>
         <p class="meta value">
-          PDF · {catalog.pages} pages · {humanSize(sizes[catalog.file].bytes)} · {catalog.year}
+          PDF · {catalog.pages} pages · {humanSize(sizeOf(catalog.file).bytes)} · {catalog.year}
         </p>
         <p class="blurb">{catalog.description}</p>
         {catalog.product && (

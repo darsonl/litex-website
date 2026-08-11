@@ -106,6 +106,15 @@ describe('company — patents and awards', () => {
     expect(text).toContain('2017-03-20');
   });
 
+  // src/data/patents.ts comments that UTILITY_MODEL.holder is "an exact match" for
+  // COMPANY.legalNameZh — that claim is what makes the attribution to LiTex certain,
+  // so it must actually hold rather than merely be asserted in a comment.
+  it('attributes the utility model to LiTex\'s exact legal name in Chinese', async () => {
+    const { UTILITY_MODEL } = await import('../src/data/patents');
+    const { COMPANY } = await import('../src/lib/company');
+    expect(UTILITY_MODEL.holder).toBe(COMPANY.legalNameZh);
+  });
+
   // Taiwan utility models run ten years from filing and the sibling patent lapsed
   // for non-payment. Until LiTex confirms renewal, the page states the record and
   // stops. tests/chrome.test.ts separately bans the string "PATENTED" site-wide.
