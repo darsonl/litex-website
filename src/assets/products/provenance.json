@@ -5,6 +5,7 @@
     "xref": 11,
     "crop": null,
     "dimensions": "1062x562",
+    "reducedFrom": null,
     "note": "Catalog p.3: spool of CMY on wood, a macro of three coiled filaments, and an SEM micrograph captioned \"outer layer: micro metal\" and \"Core: polymer yarn\"",
     "aiGenerated": false,
     "extracted": "2026-08-11"
@@ -15,6 +16,7 @@
     "xref": 3,
     "crop": null,
     "dimensions": "1000x500",
+    "reducedFrom": null,
     "note": "Catalog p.2: folded lengths of white open-mesh heating textile on a dark wooden bench",
     "aiGenerated": false,
     "extracted": "2026-08-11"
@@ -24,7 +26,8 @@
     "page": 1,
     "xref": 26,
     "crop": null,
-    "dimensions": "2030x914",
+    "dimensions": "1400x630",
+    "reducedFrom": "2030x914",
     "note": "Catalog p.1: three spools of braided shielding tube, with two close-ups of the braid flaring open",
     "aiGenerated": false,
     "extracted": "2026-08-11"
@@ -40,6 +43,7 @@
       "y": 0
     },
     "dimensions": "1035x525",
+    "reducedFrom": null,
     "note": "Catalog p.1, top band cropped from the page image layer: two lengths of RFID woven tape on a wooden surface, showing the serpentine antenna path",
     "aiGenerated": false,
     "extracted": "2026-08-11"
@@ -50,6 +54,7 @@
     "xref": 4,
     "crop": null,
     "dimensions": "600x341",
+    "reducedFrom": null,
     "note": "Catalog p.2: two lengths of dark woven tape with a pale conductive wire in a repeating wave, held against a steel ruler. Largest available.",
     "aiGenerated": false,
     "extracted": "2026-08-11"
@@ -59,7 +64,8 @@
     "page": null,
     "xref": null,
     "crop": null,
-    "dimensions": "copied",
+    "dimensions": "853x548",
+    "reducedFrom": null,
     "note": "Archived product page image: the HT001 switch with its three lead pairs annotated B+/B-, T1/T2 and P+/P-, plus an inset close-up of the moulded body",
     "aiGenerated": false,
     "extracted": "2026-08-11"
@@ -69,7 +75,8 @@
     "page": null,
     "xref": null,
     "crop": null,
-    "dimensions": "copied",
+    "dimensions": "1400x1400",
+    "reducedFrom": "2806x2806",
     "note": "Archived product page image: five diameters of black braided sleeve laid side by side on a white surface",
     "aiGenerated": false,
     "extracted": "2026-08-11"

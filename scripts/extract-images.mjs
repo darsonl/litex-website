@@ -12,11 +12,25 @@
  * that stops being used cannot linger as an orphan.
  */
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import sharp from 'sharp';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const OUT = `${ROOT}src/assets/products`;
+
+/**
+ * Longest edge kept for a stored source, and the quality used when one is reduced.
+ *
+ * Astro emits the untouched source file alongside its generated variants for every
+ * image a content schema resolves, even when no markup references it. The braided
+ * tube arrived at 2806px and shipped 1.5MB of dist nobody could ever download.
+ * 1400 leaves headroom over the 1200px widest variant the layout requests without
+ * paying for resolution the page cannot use. Images already inside the cap are
+ * stored byte-for-byte as extracted.
+ */
+const MAX_EDGE = 1400;
+const REDUCED_QUALITY = 82;
 
 /** Every entry was confirmed by decoding the image and viewing it on 2026-08-11. */
 const SOURCES = [
@@ -91,17 +105,38 @@ for (const s of SOURCES) {
     ).trim();
   }
 
+  // Read into a buffer rather than handing sharp the path: on Windows sharp keeps
+  // the file open, and writing the reduced image back over it fails with EUNKNOWN.
+  let bytes = readFileSync(dest);
+  const meta = await sharp(bytes).metadata();
+  let reducedFrom = null;
+
+  if (Math.max(meta.width, meta.height) > MAX_EDGE) {
+    bytes = await sharp(bytes)
+      .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: REDUCED_QUALITY, mozjpeg: true })
+      .toBuffer();
+    writeFileSync(dest, bytes);
+    reducedFrom = `${meta.width}x${meta.height}`;
+  }
+
+  const final = await sharp(bytes).metadata();
+  dimensions = `${final.width}x${final.height}`;
+
   manifest[file] = {
     source: s.copyFrom ?? s.from,
     page: s.page ?? null,
     xref: s.xref ?? null,
     crop: s.crop ?? null,
     dimensions,
+    reducedFrom,
     note: s.note,
     aiGenerated: false,
     extracted: '2026-08-11',
   };
-  console.log(`${file.padEnd(36)} ${dimensions}`);
+  console.log(
+    `${file.padEnd(36)} ${dimensions}${reducedFrom ? ` (reduced from ${reducedFrom})` : ''}`,
+  );
 }
 
 writeFileSync(`${OUT}/provenance.json`, `${JSON.stringify(manifest, null, 2)}\n`);

@@ -1,10 +1,12 @@
 ---
 import { getCollection, getEntry, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductHero from '../../components/ProductHero.astro';
 import SpecTable from '../../components/SpecTable.astro';
 import StatusBadge from '../../components/StatusBadge.astro';
 import { mustResolve } from '../../lib/references';
 import { productJsonLd } from '../../lib/jsonld';
+import provenance from '../../assets/products/provenance.json';
 
 export async function getStaticPaths() {
   const products = await getCollection('products');
@@ -29,6 +31,17 @@ const applications = await Promise.all(
 // that pulls `defineConfig` from astro/config into the page bundle.
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 
+// The caption must name where the photograph actually came from, which is not always
+// catalogPdf — two heroes come from the archived site rather than a catalog. The
+// manifest written by scripts/extract-images.mjs is the record; key it by slug,
+// because that script names every file <slug>.jpg.
+const heroSource = (provenance as Record<string, { source: string } | undefined>)[
+  `${product.id}.jpg`
+]?.source;
+const heroCaption = heroSource?.startsWith('archive/catalogs/')
+  ? `Photograph from ${heroSource.slice('archive/catalogs/'.length)}`
+  : 'Photograph from the LiTex product archive';
+
 const jsonLd = productJsonLd({
   name: product.data.name,
   description: product.data.summary,
@@ -49,6 +62,14 @@ const jsonLd = productJsonLd({
 
   {product.data.certifications.length > 0 && (
     <p class="certs value">{product.data.certifications.join(' · ')}</p>
+  )}
+
+  {product.data.heroImage && (
+    <ProductHero
+      image={product.data.heroImage.src}
+      alt={product.data.heroImage.alt}
+      caption={heroCaption}
+    />
   )}
 
   <div class="prose"><Content /></div>
