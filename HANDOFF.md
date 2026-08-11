@@ -19,12 +19,21 @@ Read before writing it: this file, `PRODUCT.md`, and
 §7 gaps). The five completed plans in `docs/superpowers/plans/` are worth skimming for house
 style — they are long, fully-specified, and every code block is real.
 
-**Execution mode:** all five plans ran **inline** via `superpowers:executing-plans` — subagents are
-disabled and inline reuses context cheaply. Working pattern that has held for 32 tasks across five
-plans: branch → task → test → commit per task → PR → merge → delete branch. Plan 5 additionally ran
-a whole-branch review before merge (after all 8 implementation tasks were individually reviewed),
-which caught a cross-task drift no single-task review could see — see "What Plan 6 inherits" below
-for the fix. Worth repeating.
+**Execution mode:** Plans 1–4 ran **inline** via `superpowers:executing-plans`. **Plan 5 ran
+subagent-driven** via `superpowers:subagent-driven-development` — a fresh implementer per task, a
+spec-plus-quality review after each, and one whole-branch review at the end. Both modes work; the
+branch → task → test → commit per task → PR → merge → delete branch pattern is unchanged and has
+now held for 33 tasks across five plans.
+
+Subagent-driven is worth repeating, on this evidence: **five of the eight implementation tasks
+needed a fix round, and every one of those findings traced to the plan text rather than to
+implementer error.** A fresh reviewer reading one task's diff against its brief caught things the
+plan's own author did not — a page asserting a test scope three lines above declaring that scope
+unreadable, a verified fact silently dropped from a data file, a quotation claimed verbatim that
+had gained a full stop, a present-tense claim resting on 2017 sources. The whole-branch review then
+caught three more that no single-task review could see, including a CSS bug that made the contact
+address render as seven loose paragraphs on three routes. Budget for the review loop; it is where
+the quality came from.
 
 ---
 
