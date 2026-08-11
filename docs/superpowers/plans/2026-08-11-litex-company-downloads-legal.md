@@ -1234,13 +1234,21 @@ const CHECKED = '2026-08-11';
     because they protect anything today.
   </p>
 
+  <p>
+    Some of these older filings were made in the name of Fu-Biau Hsu (許富標) as an individual
+    rather than the company. We have not confirmed which.
+  </p>
+
   <SpecTable
     table={LAPSED_FILINGS}
     caption="Earlier filings — status as at 2026-08-11"
     sourceNote="Statuses for the Taiwan and US records were read from the public registers on 2026-08-11. Filing numbers are from archive/extracted-from-images.md §2."
   />
 
-  <p class="note" data-source-note>
+  {/* data-page-note, not data-source-note: SpecTable already emits one
+      [data-source-note] for its own figures, and every other page on the site
+      treats that hook as singular. This note is about the page, not the table. */}
+  <p class="note" data-page-note>
     <small>
       Registers checked {CHECKED}. The number printed in our 2018 material is malformed — it
       carries a leading digit that is a transcription error. The register form is{' '}
@@ -1511,7 +1519,10 @@ import sgs from '../../assets/company/sgs-test-report.jpg';
     it is the only way to get a document that is current.
   </p>
 
-  <p class="note" data-source-note>
+  {/* data-page-note, not data-source-note: SpecTable already emits one
+      [data-source-note] for its own figures, and every other page on the site
+      treats that hook as singular. This note is about the page, not the table. */}
+  <p class="note" data-page-note>
     <small>
       All claims on this page are LiTex's own, taken from the catalogs named in the table above and
       dated 2018 or earlier. Nothing here has been re-tested or re-certified since. Product pages
@@ -2630,6 +2641,7 @@ Ordered by how much damage the wrong answer does. Items 1 and 3 are new.
 4. **The thermograph's test conditions** — voltage, duration, ambient temperature, colour scale. Held out of `/technology/` for a third plan running.
 5. **What the USPTO certificate actually is**, given 12/787,378 was abandoned. It is now deliberately unpublished, so this is no longer blocking anything — but if it turns out to be a granted patent under a different number, that is a real asset currently missing from the site.
 6. **Are CN 201485574U, TW 099146482 and CN 201120008487.x still live?** `/company/patents-and-awards/` prints "Not verified" against all three. LiTex can answer this in a sentence and the page improves immediately.
+6b. **Which of the older filings were made by Fu-Biau Hsu (許富標) personally rather than by the company?** The register check found individual applicants on the older family but did not enumerate which. The page says "some" because that is the precision the evidence supports; naming them would be better, and only LiTex can.
 7. **Company facts for `/company/about/`** — headcount, floor area, production capacity, factory locations. The page deliberately states none of these. Spec §7 item 13.
 8. **Should `/legal/privacy/` be reviewed by LiTex's counsel?** The page states only verifiable properties of the site and makes no promise the site cannot keep, but it is a legal document published in LiTex's name in a market where such documents matter. Flag it; do not block launch on it.
 9. **CuNi status** — "coming soon" in 2018; `/technology/` still says exactly that.
