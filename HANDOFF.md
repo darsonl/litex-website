@@ -1,297 +1,170 @@
 # Session handoff — LiTex website redesign
 
-**Written:** 2026-08-10
-**Reason:** User restarting Claude Code so impeccable's skills and slash commands register.
+**Written:** 2026-08-11 (end of session 4)
+**Reason:** Session running out of context. This file is the resume point.
 
 ---
 
-## ▶ Do this first in the new session
+## ▶ Do this first
 
-**Plans 1 and 2 are built and merged. Plan 3 is WRITTEN BUT NOT EXECUTED.**
-Do not re-run brainstorming, the spec self-review, `/impeccable init`, or `writing-plans` for
-Plans 1–3 — all are complete.
+**Plans 1–4 are built, verified and merged.** Do not re-run brainstorming, the spec self-review,
+`/impeccable init`, or `writing-plans` for Plans 1–4 — all complete.
 
-### → Start here: execute Plan 3
+### → Start here: write Plan 5 with `superpowers:writing-plans`, then execute it
 
-```
-docs/superpowers/plans/2026-08-11-litex-product-photography.md
-```
+Plan 5 is **`/company/` hub + `/company/about/` + `/company/patents-and-awards/` +
+`/company/certifications/` + `/downloads/` + `/legal/privacy/`.**
 
-Invoke `superpowers:executing-plans` and work Tasks 1–6 in order. **The plan is self-contained** —
-it carries every source path, xref, image dimension and the full alt text for all seven products.
-You do not need to re-survey the PDFs; that was done and verified on 2026-08-11.
+Read before writing it: this file, `PRODUCT.md`, and
+`docs/superpowers/specs/2026-08-10-litex-website-redesign-design.md` (§3 IA, §5 design system,
+§6 extracted content, §7 gaps). The three completed plans in `docs/superpowers/plans/` are worth
+skimming for house style — they are long, fully-specified, and every code block is real.
 
-**Execution mode:** Plans 1 and 2 both ran inline via `superpowers:executing-plans`. This session
-is configured not to spawn subagents, and inline reuses context cheaply. Do the same unless asked.
-Working pattern that has held for 15 tasks: branch → task → test → commit per task → PR → merge →
-delete branch. Branch name for this one: `plan-3-product-photography`.
+**Execution mode:** all four plans ran **inline** via `superpowers:executing-plans` — subagents are
+disabled and inline reuses context cheaply. Working pattern that has held for 24 tasks:
+branch → task → test → commit per task → PR → merge → delete branch.
 
-### Plan roadmap — renumbered to 6 total
+---
 
-Splitting imagery into its own plan changed the count from 5 to 6.
+## State as of 2026-08-11
+
+- **`main` is at `573dbe2`, clean and pushed. Nothing in flight** — no open branch, no open PR.
+- Repo public at **https://github.com/darsonl/litex-website**. Plans 1–4 merged via PR #1–#4; all
+  four branches deleted, remote pruned.
+- `npm test` = **160 tests across 13 files**, all passing. `npm run build` exits 0, emitting
+  **18 pages**. Design detector returns `[]` for `src/components src/pages src/styles`.
+- dist imagery: 3110 KB total, largest asset 280 KB.
+
+### Plan roadmap — now 8 total
+
+Plan 4 was scoped down (site had no navigation at all), which pushed the count from 6 to 8.
 
 | Plan | Scope | State |
 |---|---|---|
 | 1 | Foundation & content layer | ✅ merged (PR #1) |
 | 2 | Product layer & spec table | ✅ merged (PR #2) |
-| 3 | **Product photography & image pipeline** | 📝 written, **not executed** |
-| 4 | Content pages: `/technology/`, `/company/` + 3 children, `/downloads/`, `/news/` + 7 posts | not written |
-| 5 | Contact + sample-request flow: Pages Function, Turnstile, KV, store-before-send | not written |
-| 6 | Launch: `_redirects` (23 URLs), sitemap, analytics, Sveltia CMS, print stylesheet, Lighthouse/axe budgets, broken-link check | not written |
-
-Write each of 4–6 with `superpowers:writing-plans` immediately before executing it.
-
-### Resume state as of 2026-08-11 (end of session 3)
-
-- **`main` is at `aebf5e1`, clean, pushed. Nothing is in flight — no open branch, no open PR.**
-- Plans 1 and 2 merged via PR #1 and PR #2; both branches deleted.
-- Repo is public at **https://github.com/darsonl/litex-website**.
-- `npm run build` exits 0, emitting **7 product routes, 6 application routes**, the two indexes
-  and the home page. `npm test` = **97 tests across 9 files, all passing**.
-- **Blockers: 1 of 4 remain.** Only the WordPress.com Site Redirect, and the user has said they
-  are not using WordPress — so legacy `litextextile.wordpress.com` URLs will not 301 and that
-  ranking is not recoverable. Business decision, already taken. Nothing blocks building.
-- **Image usage rights are granted (2026-08-11).** LiTex has confirmed usage rights on the catalog
-  photography. This closes Plan 3's open question 1 and clears the company-catalog assets held for
-  Plan 4 — the patent certificate, TAITRONICS award, SGS report, factory, loom, trade-show and
-  personnel photographs. **No rights confirmation is outstanding for any image in `archive/`.**
-- **The public repo is deliberate (2026-08-11).** The archived catalogs and product images are
-  material LiTex publishes for the public, so there is nothing to protect. Do not raise it again
-  or suggest making the repo private.
-- **Domain and email are settled:** `litex.com.tw` and `sales@litex.com.tw`, declared once in
-  `astro.config.mjs` as `SITE_URL` / `CONTACT_EMAIL`. Both corroborated by LiTex's own 2018
-  catalog footer, which also gives `+886 2 2308-4712` and
-  `No. 188, Bangka Blvd., Taipei City 10860, Taiwan` for the Plan 5 contact page.
-- Every Definition-of-Done item in both plans was verified **empirically** — each guard
-  deliberately broken, observed to fail, restored. Never assumed from reading the code.
-- Verified toolchain, all latest at install: `astro@7.2.0` · `vitest@4.1.10` · `linkedom@0.18.13`
-  · `@fontsource-variable/archivo@5.3.0` · `@fontsource/ibm-plex-mono@5.3.0`. All pinned exactly.
-- **Verified `astro:content` exports:** `getCollection`, `getEntry`, `getEntries`, `render`
-  (alias of `renderEntry`), `reference`, `z`. `getEntryBySlug`/`getDataEntryById` are deprecated.
-
-### Reusable modules Plans 3–5 should not rebuild
-
-| Module | Purpose |
-|---|---|
-| `src/lib/references.ts` | `mustResolve()` — **always** wrap `getEntry()` in it |
-| `src/lib/crossLinks.ts` | `productsClaiming()` — reverse lookup for dual-entry |
-| `src/lib/csv.ts` | RFC 4180 serialization |
-| `src/lib/jsonld.ts` | schema.org `Product` builder |
-| `src/lib/contrast.ts` | WCAG maths behind the token guard |
-| `src/components/` | `SpecTable`, `ProductCard`, `StatusBadge` |
-
-### Verifying spec data from a PDF — the method that works here
-
-`pdftoppm` is **not** installed, so the Read tool cannot render PDFs. `pymupdf` **is**:
-
-```python
-import fitz
-doc = fitz.open('archive/catalogs/<name>.pdf')
-doc[page].get_pixmap(dpi=170).save('out.png')   # then read the PNG
-```
-
-This is how the RFID and EMI tables were verified on 2026-08-11. **`pdftotext -layout` silently
-scrambles these catalogs' tables** — it dropped an entire row from the RFID table and mangled a
-header. Do not trust it for anything going into a `specTable`.
-
-### ⚠ Plan 1 finding that changes later plans
-
-**Astro 7.2.0 does NOT fail the build on a broken `reference()`.** It logs
-`Entry <collection> → <id> was not found.`, **exits 0**, and renders the reference as blank —
-silent data loss. Plan 1's Definition of Done asserted the opposite; that assertion was false.
-
-Fixed by `src/lib/references.ts` → `mustResolve()`, which every page must use when resolving a
-reference. **Plans 2–5: do not call `getEntry()` bare.** Wrap it, or the missing entry ships as
-an empty string. Unit tests in `tests/references.test.ts`.
-
-The general lesson: this stack's "the build will catch it" assumptions need to be *tested*, not
-trusted. Schema-level guards (`superRefine`) genuinely do fail the build (verified, exit 127);
-reference integrity does not.
-- **Market and credibility questions are settled (2026-08-10). Nothing is outstanding.**
-  **EU is the priority market**, which agrees with all archive evidence (Techtextil Frankfurt,
-  Düsseldorf Wire Show) and with the REACH/RoHS/SGS claims LiTex already makes. Japan secondary.
-  The credibility bar in spec §5 stays exactly as designed — **REACH · RoHS · SGS TESTED ·
-  PATENTED TW 1M545145 · MANUFACTURING SINCE 1999** — built on what LiTex holds today. Gap 17
-  (North American certifications) is **withdrawn**; no new certification class is being pursued.
-  The remaining certification work is gap 5: obtaining the actual SGS/REACH documents with dates
-  and scope. English at launch is correct, not a compromise.
+| 3 | Product photography & image pipeline | ✅ merged (PR #3) |
+| 4 | Site chrome & the technology section | ✅ merged (PR #4) |
+| 5 | **`/company/` ×4 · `/downloads/` · `/legal/privacy/`** | ← **next, not written** |
+| 6 | `/news/` index + 7 posts | not written |
+| 7 | Contact + sample-request flow (Pages Function, Turnstile, KV) | not written |
+| 8 | Launch: `_redirects`, sitemap, analytics, Sveltia CMS, print stylesheet, Lighthouse/axe, broken-link check | not written |
 
 ---
 
-## Where we are
+## What Plan 5 inherits from Plan 4 — use these, don't reinvent
 
-Brainstorming, spec, `/impeccable init`, and **Plans 1 and 2** are all complete.
-
-Plan 1 built the foundation: design tokens with an enforced WCAG guard, self-hosted typography
-with a banned-font guard, an accessible base layout, and typed content schemas enforcing
-provenance and imagery policy.
-
-Plan 2 built the product layer: **all seven products and all six applications**, cross-linked in
-both directions, with the spec-table component (build-time CSV serialization, progressive-
-enhancement copy control, provenance line) and schema.org `Product` JSON-LD emitted from the same
-data that renders the page.
-
-**Two corrections Plan 2 made to earlier assumptions, both caught by verifying rather than
-trusting:**
-
-1. `pdftotext -layout` had **dropped a row** (`Orientation: S`) from the RFID spec table and
-   mangled a header. Found by rendering the PDF page and reading it. Both previously-ambiguous
-   tables are now verified against source artwork and no product carries `needsVerification`.
-2. The EMI catalog has a fifth column headed `(c)` whose meaning appears nowhere in the document.
-   **Omitted rather than published with a guessed meaning** — logged in Plan 2's open questions.
-
-Next gate: **merge `plan-2-product-layer` into `main`**, then write Plan 3.
-
-### Brainstorming checklist state
-
-| # | Step | State |
+| Thing | Where | Note |
 |---|---|---|
-| 1 | Explore project context | ✅ done |
-| 2 | Ask clarifying questions | ✅ done |
-| 3 | Offer visual companion | ✅ done — accepted, used for 4 screens |
-| 4 | Propose approaches | ✅ done |
-| 5 | Present design sections | ✅ IA, technical architecture and design system approved in conversation (spec §3, §4, §5). Gaps register (spec §7) written, not walked through. |
-| 6 | Write design doc | ✅ written and committed (`d77837e`) |
-| 7 | Spec self-review | ✅ done — 9 defects found and fixed |
-| 8 | User reviews spec | ✅ approved (user proceeded to `/impeccable init`) |
-| 9 | Invoke `writing-plans` | ✅ Plan 1 written — `docs/superpowers/plans/2026-08-10-litex-foundation-content-layer.md` |
-
-Brainstorming is **complete**. `PRODUCT.md` is written, the impeccable detector hook is genuinely
-enabled, and the spec is split into 5 sequential plans. Plan 1 (foundation & content layer) is
-written and self-reviewed; plans 2–5 are outlined in its scope section and not yet written.
-
-**Verified environment facts** (checked 2026-08-10, don't re-derive): Node v24.14.0 · npm 11.12.0 ·
-**Astro 7.2.0** (not the 5.x the spec sketched) · content config at `src/content.config.ts` with
-`z` imported from **`astro/zod`**, `glob` from `astro/loaders`, `defineCollection`/`reference` from
-`astro:content` · zod 4.4.3, where single- and two-arg `z.record()` behave identically.
-
-### Spec self-review findings (all fixed in place)
-
-The review was not a formality — it caught one user-facing bug and two factual errors:
-
-1. **`legacy` colour token failed WCAG AA** (4.19:1 on base, 4.02:1 on the `raised` surface it
-   actually renders against). It carries the small `○ LEGACY · SAMPLING ONLY` label. Raised to
-   `#7E858A` (5.03:1 on raised). Ratios are now computed, stated for both surfaces, and asserted in CI.
-2. **IA tree still listed 4 application pages** after the shortlist was revised to 6 — the revision
-   note was added but the tree beneath it was never updated. Automotive and Healthcare routes added.
-3. **Legacy URL count was 24 in three places; it is 23**, verified against `archive/README.md`.
-4. `copper` and `text-1` contrast figures were both overstated. Corrected.
-5. Blog-post arithmetic was wrong (10 posts, not 7 or 5). Page count restated as 27 routes + 7 news.
-6. Catalog extraction status was vague and inaccurate — now a table; **RFID text extraction is the
-   priority**, since it is the only source for a route that has no content behind it.
-7. One cross-reference pointed at §6 instead of §7.
+| Primary nav | `src/lib/nav.ts` | Add `/company/` and `/downloads/` here. `tests/chrome.test.ts` **fails if a chrome link has no built page behind it** — add the route first. |
+| Company facts | `src/lib/company.ts` | `COMPANY` + `CREDIBILITY`. A test fails if `COMPANY.email` drifts from `CONTACT_EMAIL` in `astro.config.mjs`. |
+| Chrome | `SiteNav.astro`, `SiteFooter.astro` | Mounted globally in `BaseLayout.astro`. |
+| Page container | `.page` in `global.css` | `max-width: 76rem`, plus h1/h2/h3 rhythm. |
+| Spec tables | `SpecTable.astro` | Takes `{ columns, rows }`; gives Copy-as-CSV + provenance note free. |
+| Tier 3 imagery guard | `tests/imagery.test.ts` | **Vacuous today, starts biting the moment `/company/` gets a photograph.** Every raster on `/company/` or `/technology/` must trace to a `provenance.json` entry with `aiGenerated: false`. |
+| Image extraction | `scripts/extract-images.mjs` + `extract-image.py` | Re-runnable, writes `src/assets/products/provenance.json`. Extend for `/company/` assets. |
 
 ---
 
-## Decisions locked in (do not relitigate)
+## Assets held for Plan 5 — verified 2026-08-11 by rendering each
 
-| Topic | Decision |
+All in `archive/catalogs/2018-company-introduction.pdf`. **Decode via `fitz.Pixmap`, never
+`extract_image`** — see the toolchain memory for why.
+
+| xref | Size | Content | Page |
+|---|---|---|---|
+| p1 xref 52 | 989×692 | Loom with LiTex-branded tape, two framed certificates, spool of woven tape | `/company/about/` |
+| p1 xref 54 | 1024×536 | Factory floor — creels, spools, machinery | `/company/about/` |
+| p2 xref 8 | 626×504 | Trade-show booth and three staff under a LITEX sign | `/company/about/` |
+| p2 xref 5 | 1035×442 | US patent certificate · TAITRONICS award · SGS report | `/company/certifications/`, `/company/patents-and-awards/` |
+| p2 xref 6 · heating p1 xref 122 | 746×253 · 1310×462 | Heating textile + **thermograph** | `/technology/` — **held, see open questions** |
+
+**TAITRONICS award, fully read:** 40th Taipei International Electronics Show, Technology Innovation
+Awards, **優選獎 / The Quality Award**, dated **2014.9.29**, for **非碳纖維電子發熱紡織品 /
+Non-Carbon Fiber Electrical Heating Textile**, to 富鉅紡織科技股份有限公司.
+**SGS report number: `CE/2013/52203`** (2013; scope not readable at stored resolution).
+
+---
+
+## ⚠ Patent facts — resolved 2026-08-11, do not re-derive or revert
+
+The archive's patent claims are **stale and partly false**. Transcribing
+`archive/images/patents-and-awards.jpg` onto `/company/patents-and-awards/` would publish two
+untrue statements.
+
+| Record | Truth (Google Patents) |
 |---|---|
-| Goals | Qualified inquiries **+** findability/credibility **+** technical self-serve reference — all three |
-| Platform | New static site + own domain (**not** WordPress) |
-| Content sourcing | Only what exists on the current site today; everything else → gaps register |
-| IA | **Dual-entry** — products ↔ applications, cross-linked |
-| Scope | **Full expansion** — 28 pages |
-| Maintenance | Git-backed CMS (Sveltia) at `/admin` |
-| Visual direction | **"Technical Instrument"** — dark, data-forward, copper accent |
-| Typography | **Archivo + IBM Plex Mono** (Inter rejected — see below) |
-| Applications | 4 evidenced ones only; automotive + medical excluded pending confirmation |
-| Language | English at launch, i18n-ready |
-| Content sourcing | Widened 2026-08-10 — LiTex's **Alibaba storefront** counts as a source alongside the site. Rule is *never invent*, not *never leave the domain*. Facts carry `sourceNote` + retrieval date. |
-| Imagery | Three tiers: SVG technical diagrams are the primary visual language · AI-generated permitted for abstract/atmosphere (flagged `aiGenerated`) · **real photography only** for product, factory, machinery, personnel, certifications — enforced by build rule |
-| Stack | Astro · Cloudflare Pages · Pages Function forms + Turnstile + KV · Cloudflare Web Analytics |
+| **TWM545145U** | *"Elastic ribbon having extensible electronic device"*, filed 2017-03-20 by **富鉅紡織科技股份有限公司** — exact match for `COMPANY.legalNameZh`, so certainly LiTex's. **Renewal status unconfirmed.** |
+| **US 12/787,378** | **ABANDONED 2012-04-23** — "failure to respond to an office action". Published US2010/0300060A1. **Never granted.** |
+| **TW M371733** | **LAPSED 2017-10-01**, non-payment. Archive lists it under "Issued patents" — true once, false now. |
+| Applicant | Older filings are **Fu-Biau Hsu / 許富標 as an individual**, not the company. |
+
+- The archive prints **"TW 1M545145" — malformed**; the leading `1` is a transcription artifact.
+  Correct form is **TWM545145** / `M545145`.
+- Because the US application was abandoned, **the USPTO ribbon certificate in the catalog is not
+  for it.** What it depicts is unknown. Do not attribute it. It carries **no number** — it is the
+  generic cover page; the number lives on the facing page, never photographed. Don't try to read
+  it off the image; that was checked at 4× upscale.
+- The credibility bar now reads **`TW UTILITY MODEL M545145`**, deliberately *not* asserting a
+  right in force. `tests/chrome.test.ts` fails if `1M545145` or `PATENTED` reaches any built page.
+  **Do not restore "PATENTED" without LiTex confirming renewal.**
 
 ---
 
-## impeccable
+## Settled — do not re-raise
 
-Installed this session via `npx impeccable install` → `.claude/skills/impeccable/`.
-v3.5.0, Apache-2.0, by Paul Bakaus, `github.com/pbakaus/impeccable`.
-
-- **Hooks are live** in `.claude/settings.local.json`: fast detector pass after
-  `Edit|Write|MultiEdit`, deeper pass on `Stop`.
-- **It already changed a decision.** Running the detector on the mockups flagged
-  `overused-font: Inter` (7 instances). Correct critique — Inter was reflexive, not chosen.
-  Replaced with **Archivo + IBM Plex Mono**, confirmed by the user.
-- **Run the detector directly** (works without slash commands):
-  ```
-  node .claude/skills/impeccable/scripts/detect.mjs <file-or-dir-or-url>
-  ```
-- **Commands worth using later:** `audit` (a11y/perf gate in spec §4), `harden` (form edge cases),
-  `adapt` (mobile), `clarify` (UX copy on the sample-request flow), `critique`, `live`.
-
-### Why `/impeccable init` runs *after* the spec
-
-`init` runs a multi-round discovery interview and writes `PRODUCT.md` (users, brand, principles),
-which every other impeccable command then reads. Nearly all of that ground is already covered by
-the spec. Running it after means it can absorb settled decisions instead of asking the user to
-re-answer questions from this session.
+- **Image usage rights granted** (2026-08-11) for all catalog photography, including the
+  certificates and personnel shots held for Plan 5.
+- **The public repo is deliberate.** The archived catalogs and images are material LiTex publishes
+  publicly. Do not suggest making it private.
+- **The Google Maps API key in `archive/pages/*.html` is not a leak and is not LiTex's.** Google
+  Cloud Console was checked 2026-08-11: no key ending `p8dwTE` exists in their account, so it is
+  Automattic's. Nothing to revoke. Documented in `archive/README.md`. Do not propose a history
+  rewrite.
+- **News posts stay as short dated entries** (decided 2026-08-11) — published honestly with their
+  original dates, not merged into a timeline and not expanded with invented detail. Be warned:
+  *New Braided Self-curling Tube* has **no body text at all**, *Tokyo Wearable Expo 2022* has one
+  sentence, and the longest of the seven is three sentences.
+- **WordPress.com Site Redirect:** the user is not using WordPress, so legacy
+  `litextextile.wordpress.com` URLs will not 301 and that ranking is not recoverable. Business
+  decision, already taken. Nothing blocks building.
+- **`litex.com.tw` and `sales@litex.com.tw` are confirmed** and declared in `astro.config.mjs`.
+  `mail@example.com` is theme boilerplate — a test fails if any `example.com` string is rendered.
 
 ---
 
-## The original site is archived — do not re-fetch it
+## Toolchain gotchas that have already cost time
 
-`archive/` holds a complete local copy captured 2026-08-10:
+Full detail in the `litex-verified-toolchain` memory. The ones that bite hardest:
 
-- `archive/pages/` — all 23 HTML pages
-- `archive/catalogs/` — all 6 PDFs (11 MB) + `.txt` extractions
-- `archive/images/` — all 46 images (29 MB)
-- **`archive/extracted-from-images.md`** — the payload: spec tables, patents and feature lists
-  transcribed out of JPGs into plain text
-- `archive/README.md` — filename → original URL map, capture method
-
-**This archive changed a decision.** `applications.jpg` and `cmy-applications.jpg` show LiTex
-claiming **Automotive** and **Healthcare** applications — which had been excluded from the spec
-as unevidenced. The evidence was inside a JPG. Spec §3 has been corrected: the shortlist is now
-**six** applications, with Architecture, Agriculture and Loudspeaker coil-cords held pending
-detail from LiTex.
-
-**Still un-transcribed:** two catalogs are image-only PDFs with no text layer
-(`2018-company-introduction.pdf`, `2018-wired-conductive-tape.pdf`) and need OCR or vision
-reading. Three more have `.txt` extractions not yet folded into
-`extracted-from-images.md` — including **`2018-rfid-textile-tape.pdf`, the only source for the
-new RFID product page**.
-
-## Environment notes
-
-- **Git repo exists.** Initialised with `.gitignore` + `.gitattributes`; spec and full archive
-  committed as `d77837e`.
-- **Visual companion** was running on `http://localhost:51079` — it dies with the session restart.
-  Mockups persist at `.superpowers/brainstorm/1097-1786371119/content/`:
-  `visual-direction.html`, `information-architecture.html`, `design-system.html`, `typography.html`.
-  Restart with:
-  ```
-  "C:/Users/Darson/.claude/plugins/cache/claude-plugins-official/superpowers/6.2.0/skills/brainstorming/scripts/start-server.sh" --project-dir "C:/Users/Darson/Projects/litex-website" --open
-  ```
-- **PDF extraction works** via `pdftotext -layout` (present at `/mingw64/bin/pdftotext`).
-  `pypdf` is installed; `pdfplumber` is not. Only the heating-textile catalog has been extracted
-  so far — five catalogs remain.
+1. **`extract_image()` returns raw stored bytes** — three catalog images are **JPEG 2000**, which
+   sharp cannot decode at all, and all six are **CMYK**. Decode through `fitz.Pixmap` →
+   `fitz.csRGB`. Soft masks are page-layout gutters over white; ignore them.
+2. **Astro `compressHTML` (default true) strips the newline between text and a following element**,
+   so `covering,\n<span>1S1Z</span>` ships as `covering,1S1Z`. Fix with an explicit `{' '}`.
+   Detect with `grep -oE '[a-zA-Z,;:.]<(span|a|strong|em)\b'` over `dist/**/*.html`.
+3. **`<Picture>` sizes its fallback from the source's intrinsic width** unless given `width`, and
+   **Astro emits the untouched source file for every `image()` a schema resolves**, referenced or
+   not. Both silently ship megabytes. Sources are capped at 1400 px by the extraction script.
+4. **A broken `reference()` does not fail the build** (exits 0, renders blank). Always use
+   `mustResolve()` from `src/lib/references.ts`. Schema `superRefine` violations *do* fail (127).
+5. **sharp holds files open on Windows** — read into a Buffer before writing back to the same path.
+6. A local, gitignored waiver in `.impeccable/config.local.json` silences the `broken-image` rule
+   inside `tests/imagery.test.ts` only (it false-positived on the `<img>`-matching regexes there).
+   The rule still fires everywhere else — verified.
 
 ---
 
-## Immediate risks to keep visible
+## Open questions for LiTex — do not guess these
 
-Gaps register §7 was walked through with the user on 2026-08-10. **BLOCKERs went 4 → 3 → 1.**
-
-**Only one blocker remains (2026-08-11):**
-
-1. **301s need WordPress.com's paid Site Redirect upgrade.** Free plan cannot do it; without it the
-   migration forfeits all existing search ranking. Must be arranged at cutover.
-
-**Closed 2026-08-11 — do not reopen:**
-
-- ~~No real email address.~~ **`sales@litex.com.tw` is the real inbound address.** Declared as
-  `CONTACT_EMAIL` in `astro.config.mjs`; Plan 2's contact page must read it from there.
-  `mail@example.com` is WordPress theme boilerplate and appears 4× on the archived contact page —
-  a build test now asserts no page renders any `example.com` string.
-- ~~Domain ownership unconfirmed.~~ **LiTex owns `litex.com.tw`.** `SITE_URL` is no longer a
-  placeholder; canonicals resolve to `https://litex.com.tw/` (trailing slash, from
-  `build.format: 'directory'` — which keeps the legacy-URL 301 map 1:1).
-
-**No longer blockers:** the placeholder US address is confirmed theme boilerplate (it sits on the
-same page as the real Taipei address — just delete it), and the RFID specs have been recovered from
-the catalog into spec §6.
-
-**Needs a human:** capturing `litex.en.alibaba.com` (supplier ID 234468551). It likely answers gap
-items 5, 10, 11 and 13 in one pass. curl, WebFetch **and** headless Chrome all hit Alibaba's captcha
-interception — verified, don't retry them. Needs a real browser session or a manual page save.
+1. **TWM545145 renewal status.** Its sibling lapsed for non-payment; this is the claim currently on
+   every page. Highest priority.
+2. **The thermograph's test conditions** — voltage, duration, ambient temperature, colour scale.
+   Held out of `/technology/` until answered; publishing it as evidence of a measurable claim
+   without conditions invites the exact diligence failure this redesign exists to fix.
+3. **What the USPTO certificate actually is**, given 12/787,378 was abandoned.
+4. **SGS `CE/2013/52203` is from 2013** and its scope is unreadable. Is there anything newer?
+5. **CuNi status** — "coming soon" in 2018; `/technology/` currently says exactly that.
+6. **Is the 2018 grade range (1S–4S4Z) still current?** The whole `/technology/` argument rests on it.
+7. **Re-shoot `wired-conductive-tape`** (600×341 is genuinely the largest in the archive).
+8. Carried over: EMI `(c)` column and `(ø)` units; the stainless steel yarn table's owning product.
