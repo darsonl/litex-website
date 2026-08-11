@@ -97,3 +97,45 @@ describe('technology index', () => {
     expect(hrefs).toContain('/technology/');
   });
 });
+
+describe('heating element comparison', () => {
+  it('generates the route that the 2018 blog post redirects to', () => {
+    const doc = docFor('technology/heating-element-comparison/index.html');
+    expect(doc.querySelectorAll('h1')).toHaveLength(1);
+    expect(doc.querySelector('link[rel="canonical"]')?.getAttribute('href'))
+      .toBe('https://litex.com.tw/technology/heating-element-comparison/');
+  });
+
+  it('compares all four heating elements', () => {
+    const text = docFor('technology/heating-element-comparison/index.html').body.textContent ?? '';
+    for (const element of ['Carbon fibre', 'heating film', 'Stainless steel fibre', 'Conductive Metal Yarn']) {
+      expect(text, `${element} is missing from the comparison`).toContain(element);
+    }
+  });
+
+  it('renders as a spec table with scoped headers, not prose', () => {
+    const doc = docFor('technology/heating-element-comparison/index.html');
+    const headers = [...doc.querySelectorAll('th[scope="col"]')].map((th) => th.textContent);
+    expect(headers.join(' ')).toContain('Manufacturing process');
+    expect(doc.querySelectorAll('tbody tr')).toHaveLength(4);
+  });
+
+  it('offers the comparison as CSV, like every other spec table on the site', () => {
+    const button = docFor('technology/heating-element-comparison/index.html')
+      .querySelector('[data-copy-csv]');
+    expect(button, 'no copy-as-CSV control').toBeTruthy();
+    expect(button?.getAttribute('data-csv')).toContain('Carbon fibre');
+  });
+
+  it('names its source, because it is a competitive claim', () => {
+    const note = docFor('technology/heating-element-comparison/index.html')
+      .querySelector('[data-source-note]');
+    expect(note?.textContent).toContain('2018-non-carbon-electrical-heating-textile.pdf');
+  });
+
+  it('is linked from the technology index', () => {
+    const hrefs = [...docFor('technology/index.html').querySelectorAll('main a')]
+      .map((a) => a.getAttribute('href'));
+    expect(hrefs).toContain('/technology/heating-element-comparison/');
+  });
+});
