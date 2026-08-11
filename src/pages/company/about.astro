@@ -1,0 +1,137 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArchiveFigure from '../../components/ArchiveFigure.astro';
+import ContactBlock from '../../components/ContactBlock.astro';
+import { COMPANY } from '../../lib/company';
+import premises from '../../assets/company/premises.jpg';
+import nameplates from '../../assets/company/heritage-nameplates.jpg';
+import factory from '../../assets/company/factory-floor.jpg';
+import stand from '../../assets/company/trade-show-stand.jpg';
+
+const CATALOG = '2018-company-introduction.pdf';
+---
+<BaseLayout
+  title="About LiTex — weaving conductive elements into textile since 1999"
+  description="LiTex is a 1999 spinoff of Hen Hao Trading, a Taipei narrow-fabrics manufacturer. Woven metal for heavy industry came first; conductive metal yarn grew out of it."
+>
+  <p class="breadcrumb"><a href="/company/">← Company</a></p>
+
+  <h1>About LiTex</h1>
+
+  <p class="lede">
+    We specialize in weaving conductive elements into textile. The weaving came first — the
+    conductivity was added to a competence the business already had.
+  </p>
+
+  <h2>A spinoff, not a startup</h2>
+
+  <p>
+    LiTex was founded in 1999 as a spinoff of <strong>Hen Hao Trading</strong>, a traditional
+    narrow fabrics manufacturer, and remains its subsidiary today. Narrow fabrics — tapes,
+    ribbons, webbing, braid — are made on looms built for exactly the widths a conductive tape
+    needs, which is why a conductive yarn business grew out of a ribbon business rather than out
+    of an electronics one.
+  </p>
+
+  <ArchiveFigure
+    image={nameplates}
+    size="half"
+    loading="eager"
+    alt="Two brushed-steel company nameplates mounted side by side, engraved 恆好貿易有限公司 / HEN HAO TRADING CO., LTD. and 台灣吉普織帶工業 / TAIWAN TULIP RIBBON & BRAIDS"
+    caption={`Nameplates at the shared premises. Photographed for ${CATALOG}.`}
+  />
+
+  <p>
+    LiTex and {COMPANY.parentCompany} share these Taipei premises, which is why both plates still
+    hang there — alongside{' '}
+    <strong>Taiwan Tulip Ribbon &amp; Braids</strong>, a ribbon and braid works at the same address.
+  </p>
+
+  <h2>Woven metal came before conductive yarn</h2>
+
+  <p>
+    Through special projects and contracts, LiTex moved into manufacturing for heavy industries
+    that needed woven metal products. Those projects are where the competence came from: putting
+    metal into fabric without the fabric ceasing to behave like fabric. That skill produced the
+    Wired Conductive Woven Tape and, later,{' '}
+    <a href="/products/conductive-metal-yarn/">Conductive Metal Yarn</a>.
+  </p>
+
+  <blockquote>
+    <p>
+      Our objective is to create new innovative products, and take a step into functional fabrics
+      to make ourselves standout in an ever-evolving industry.
+    </p>
+  </blockquote>
+
+  <h2>Made on looms, not by hand</h2>
+
+  <ArchiveFigure
+    image={factory}
+    alt="Three photographs of the LiTex plant: a creel rack loaded with bobbins, a narrow-fabric loom drawing striped webbing over its rollers, and a long row of covering machines under a shed roof"
+    caption={`Creel, narrow-fabric loom and covering machines. Photographed for ${CATALOG}.`}
+  />
+
+  <p>
+    The claim that separates Conductive Metal Yarn from carbon fibre and stainless steel fibre is
+    not a material claim, it is a manufacturing one: CMY is made ready to use on these looms,
+    where the alternatives are mostly assembled by hand. Fabric width is customisable up to 70 cm.{' '}
+    <a href="/technology/heating-element-comparison/">See the full comparison →</a>
+  </p>
+
+  <h2>Where we are, and where you can meet us</h2>
+
+  <div class="cols">
+    <ArchiveFigure
+      image={premises}
+      size="half"
+      alt="A multi-storey building photographed from street level, with an illuminated shopfront sign reading LiTex above the characters LED 紡織科技"
+      caption={`The Bangka Blvd. premises. Photographed for ${CATALOG}.`}
+    />
+    <ArchiveFigure
+      image={stand}
+      size="half"
+      alt="Three LiTex staff in matching branded polo shirts standing in an exhibition stand, beneath a sign reading LITEX TEXTILE & TECH. CO., LTD."
+      caption={`A LiTex stand and the people on it. Photographed for ${CATALOG}.`}
+    />
+  </div>
+
+  <ContactBlock />
+
+  <p>
+    LiTex has exhibited at Techtextil in Frankfurt (2017), the Wire Show in
+    Düsseldorf (2018) and the Wearable Expo in Tokyo (2022). Between shows, the fastest route to a person is{' '}
+    <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a> or the storefront at{' '}
+    <a href="https://litex.en.alibaba.com/">litex.en.alibaba.com</a>.
+  </p>
+
+  <p class="note" data-source-note>
+    <small>
+      Photographs and company description are from {CATALOG} and the previous LiTex website, both
+      dated 2018. Headcount, floor area and production capacity are not published anywhere LiTex
+      has released, so they are not stated here.
+    </small>
+  </p>
+</BaseLayout>
+
+<style>
+  .breadcrumb { font-size: var(--t-14); }
+  .lede { font-size: var(--t-20); color: var(--c-text-2); max-width: 58ch; }
+  p { max-width: 70ch; }
+  blockquote {
+    margin: var(--s-8) 0;
+    padding-left: var(--s-6);
+    border-left: 2px solid var(--c-copper);
+  }
+  blockquote p {
+    font-size: var(--t-20);
+    color: var(--c-text-1);
+    margin: 0;
+  }
+  .cols {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-6);
+  }
+  .note { color: var(--c-text-2); margin-top: var(--s-16); }
+</style>

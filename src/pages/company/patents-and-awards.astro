@@ -1,0 +1,146 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArchiveFigure from '../../components/ArchiveFigure.astro';
+import SpecTable from '../../components/SpecTable.astro';
+import { UTILITY_MODEL, AWARD, LAPSED_FILINGS } from '../../data/patents';
+import award from '../../assets/company/taitronics-award.jpg';
+
+const CHECKED = '2026-08-11';
+---
+<BaseLayout
+  title="Patents and awards — LiTex Textile & Technology"
+  description="LiTex holds Taiwan utility model M545145 for an elastic ribbon with an extensible electronic device, and won the 2014 TAITRONICS Quality Award for non-carbon-fibre heating textile."
+>
+  <p class="breadcrumb"><a href="/company/">← Company</a></p>
+
+  <h1>Patents and awards</h1>
+
+  <p class="lede">
+    One registered utility model, one award, and four older filings that are no longer in force.
+    Every status below was checked against the public registers on{' '}
+    <span class="value">{CHECKED}</span> rather than copied from our own 2018 material.
+  </p>
+
+  <h2>Registered utility model</h2>
+
+  <dl class="record">
+    <div>
+      <dt>Number</dt>
+      <dd class="value">{UTILITY_MODEL.number}</dd>
+    </div>
+    <div>
+      <dt>Title</dt>
+      <dd>{UTILITY_MODEL.title}</dd>
+    </div>
+    <div>
+      <dt>Filed</dt>
+      <dd class="value">{UTILITY_MODEL.filed}</dd>
+    </div>
+    <div>
+      <dt>Holder</dt>
+      <dd>{UTILITY_MODEL.holder} — {UTILITY_MODEL.holderNote}</dd>
+    </div>
+  </dl>
+
+  <p>
+    This covers the construction behind the{' '}
+    <a href="/products/wired-conductive-tape/">Wired Conductive Woven Tape</a>: an elastic ribbon
+    carrying an electronic device that stretches with it.
+  </p>
+
+  <p class="caveat">
+    A Taiwan utility model runs ten years from its filing date and must be maintained.{' '}
+    <strong>We have not published a renewal confirmation for this record</strong>, and its
+    sibling below lapsed for unpaid fees, so this page states what the register shows and no
+    more. Ask us for the current certificate if the right matters to your decision.
+  </p>
+
+  <h2>2014 TAITRONICS Technology Innovation Award</h2>
+
+  <div class="award">
+    <ArchiveFigure
+      image={award}
+      size="document"
+      alt="A framed certificate headed with a 40th anniversary mark and the TAITRONICS Technology Innovation Awards logo, naming 富鉅紡織科技股份有限公司 and the award 優選獎, The Quality Award"
+      caption="TAITRONICS certificate, photographed for 2018-company-introduction.pdf."
+    />
+    <dl class="record">
+      <div><dt>Event</dt><dd>{AWARD.event}</dd></div>
+      <div><dt>Programme</dt><dd>{AWARD.programme}</dd></div>
+      <div><dt>Prize</dt><dd>{AWARD.prize}</dd></div>
+      <div><dt>For</dt><dd>{AWARD.subject}</dd></div>
+      <div><dt>Awarded to</dt><dd>{AWARD.awardedTo}</dd></div>
+      <div><dt>Dated</dt><dd class="value">{AWARD.dated}</dd></div>
+    </dl>
+  </div>
+
+  <p>
+    The award was for the heating textile specifically, and specifically for it{' '}
+    <em>not</em> being carbon fibre — which is the same argument{' '}
+    <a href="/technology/heating-element-comparison/">the comparison page</a> makes with numbers.
+  </p>
+
+  <h2>Earlier filings, no longer in force</h2>
+
+  <p>
+    Our 2018 catalog and website list these as issued or pending. That was true when it was
+    written and is not true now. They are kept here because they are part of the record, not
+    because they protect anything today.
+  </p>
+
+  <p>
+    Some of these older filings were made in the name of Fu-Biau Hsu (許富標) as an
+    individual rather than the company. We have not confirmed which.
+  </p>
+
+  <SpecTable
+    table={LAPSED_FILINGS}
+    caption="Earlier filings — status as at 2026-08-11"
+    sourceNote="Statuses for the Taiwan and US records were read from the public registers on 2026-08-11. Filing numbers are from archive/extracted-from-images.md §2."
+  />
+
+  {/* data-page-note, not data-source-note: SpecTable already emits one
+      [data-source-note] for its own figures, and every other page on the site
+      treats that hook as singular. This note is about the page, not the table. */}
+  <p class="note" data-page-note>
+    <small>
+      Registers checked {CHECKED}. The number printed in our 2018 material is malformed — it
+      carries a leading digit that is a transcription error. The register form is{' '}
+      <span class="value">{UTILITY_MODEL.number}</span>.
+    </small>
+  </p>
+</BaseLayout>
+
+<style>
+  .breadcrumb { font-size: var(--t-14); }
+  .lede { font-size: var(--t-20); color: var(--c-text-2); max-width: 58ch; }
+  p { max-width: 70ch; }
+  .record { margin: var(--s-6) 0; display: grid; gap: var(--s-3); }
+  .record div {
+    display: grid;
+    grid-template-columns: minmax(0, 9rem) 1fr;
+    gap: var(--s-4);
+    align-items: baseline;
+  }
+  dt {
+    font-family: var(--font-mono);
+    font-size: var(--t-10);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--c-text-2);
+  }
+  dd { margin: 0; }
+  .caveat {
+    border-left: 2px solid var(--c-legacy);
+    padding-left: var(--s-6);
+    color: var(--c-text-2);
+  }
+  .award {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-8);
+    align-items: flex-start;
+  }
+  .award .record { flex: 1 1 20rem; }
+  .note { color: var(--c-text-2); margin-top: var(--s-16); }
+</style>

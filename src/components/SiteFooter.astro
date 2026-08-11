@@ -1,5 +1,6 @@
 ---
 import { COMPANY, CREDIBILITY } from '../lib/company';
+import { NAV } from '../lib/nav';
 
 const year = new Date().getFullYear();
 ---
@@ -21,13 +22,13 @@ const year = new Date().getFullYear();
 
       <nav class="secondary" aria-label="Footer">
         <span class="label">Browse</span>
-        <a href="/products/">Products</a>
-        <a href="/applications/">Applications</a>
+        {NAV.map((item) => <a href={item.href}>{item.label}</a>)}
       </nav>
     </div>
 
     <p class="legal">
       <small>© {year} {COMPANY.legalName} · {COMPANY.legalNameZh}</small>
+      <a href="/legal/privacy/">Privacy</a>
     </p>
   </div>
 </footer>
@@ -81,5 +82,13 @@ const year = new Date().getFullYear();
     margin-bottom: var(--s-2);
   }
   .hours { color: var(--c-text-2); }
-  .legal { margin: var(--s-12) 0 0; color: var(--c-text-2); }
+  .legal {
+    margin: var(--s-12) 0 0;
+    color: var(--c-text-2);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-6);
+    align-items: baseline;
+    font-size: var(--t-14);
+  }
 </style>

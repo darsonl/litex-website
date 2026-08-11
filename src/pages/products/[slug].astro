@@ -95,7 +95,9 @@ const jsonLd = productJsonLd({
   )}
 
   {product.data.catalogPdf && (
-    <p class="value">Catalog: {product.data.catalogPdf}</p>
+    <p class="catalog">
+      <a href={`/catalogs/${product.data.catalogPdf}`}>Download the {product.data.name} catalog (PDF)</a>
+    </p>
   )}
 
   <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)}></script>
@@ -106,4 +108,5 @@ const jsonLd = productJsonLd({
   .summary { color: var(--c-text-2); font-size: var(--t-20); max-width: 60ch; }
   .certs { color: var(--c-copper); font-size: var(--t-12); letter-spacing: 0.04em; }
   .prose { max-width: 70ch; }
+  .catalog { font-size: var(--t-14); }
 </style>

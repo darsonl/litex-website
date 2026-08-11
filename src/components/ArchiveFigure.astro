@@ -1,0 +1,79 @@
+---
+import { Picture } from 'astro:assets';
+
+interface Props {
+  image: ImageMetadata;
+  alt: string;
+  /** What the reader is looking at, and which document it came out of. Required. */
+  caption: string;
+  size?: 'full' | 'half' | 'document';
+  loading?: 'eager' | 'lazy';
+}
+
+const { image, alt, caption, size = 'full', loading = 'lazy' } = Astro.props;
+
+/**
+ * Rendered ceiling per size, in px, chosen to sit UNDER the narrowest source that
+ * uses it: half serves premises (401), heritage-nameplates (414) and
+ * trade-show-stand (326); document serves the two certificate crops (297, 293).
+ * Upscaling a certificate makes it less readable, not more.
+ */
+const CAP = { full: 1200, half: 320, document: 288 } as const;
+
+/** `sizes` must match the CSS ceiling or the browser downloads the wrong variant. */
+const SIZES = {
+  full: '(max-width: 60rem) 100vw, 60rem',
+  half: '320px',
+  document: '288px',
+} as const;
+
+// Never request a width larger than the source (ProductHero.astro has the same
+// guard for the same reason), and never larger than the box will render.
+const widths = [400, 800, 1200].filter((w) => w <= Math.min(image.width, CAP[size]));
+if (widths.length === 0) widths.push(Math.min(image.width, CAP[size]));
+
+// Without an explicit `width`, Picture generates its fallback image element at the
+// source's intrinsic size regardless of `widths`. That is how Plan 3 shipped a 1.5 MB
+// fallback nobody could download.
+const width = Math.max(...widths);
+const height = Math.round((image.height / image.width) * width);
+---
+<figure class:list={['archive', size]} data-archive-figure>
+  <Picture
+    src={image}
+    alt={alt}
+    width={width}
+    height={height}
+    widths={widths}
+    sizes={SIZES[size]}
+    formats={['avif', 'webp']}
+    loading={loading}
+    decoding="async"
+  />
+  <figcaption>{caption}</figcaption>
+</figure>
+
+<style>
+  .archive {
+    margin: var(--s-6) 0 var(--s-8);
+    background: var(--c-raised);
+    border: 1px solid var(--c-line);
+  }
+  .full { max-width: 100%; }
+  .half { max-width: 320px; }
+  .document { max-width: 288px; }
+
+  .archive :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  figcaption {
+    font-family: var(--font-mono);
+    font-size: var(--t-12);
+    line-height: 1.45;
+    color: var(--c-text-2);
+    padding: var(--s-3);
+    border-top: 1px solid var(--c-line);
+  }
+</style>

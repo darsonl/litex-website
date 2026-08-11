@@ -1,0 +1,78 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CATALOGS } from '../data/catalogs';
+import catalogFiles from '../data/catalog-files.json';
+
+const sizes = catalogFiles as Record<string, { bytes: number }>;
+
+/** MB above a megabyte, KB below — a buyer deciding whether to tap wants one number. */
+function humanSize(bytes: number): string {
+  const mb = bytes / 1_048_576;
+  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
+}
+
+/** Fails loudly, naming the file, instead of an opaque "Cannot read properties of
+ * undefined" if a CATALOGS entry has no row in catalog-files.json. */
+function sizeOf(file: string): { bytes: number } {
+  const entry = sizes[file];
+  if (!entry) {
+    throw new Error(
+      `${file} has no entry in src/data/catalog-files.json — re-run scripts/sync-catalogs.mjs`,
+    );
+  }
+  return entry;
+}
+---
+<BaseLayout
+  title="Catalog downloads — LiTex Textile & Technology"
+  description="All six LiTex product catalogs as PDFs: heating textile, EMI shielding tube, RFID tape, wired conductive tape, the silicon switch, and the company introduction."
+>
+  <h1>Catalog downloads</h1>
+
+  <p class="lede">
+    Every catalog LiTex has published, with what is actually inside it. The current set dates from
+    2018, and 2016 for the switch — the specification figures on this site come out of these
+    documents and carry the same date.
+  </p>
+
+  <ul class="list">
+    {CATALOGS.map((catalog) => (
+      <li class="item" data-catalog={catalog.file}>
+        <h2><a href={`/catalogs/${catalog.file}`}>{catalog.title}</a></h2>
+        <p class="meta value">
+          PDF · {catalog.pages} pages · {humanSize(sizeOf(catalog.file).bytes)} · {catalog.year}
+        </p>
+        <p class="blurb">{catalog.description}</p>
+        {catalog.product && (
+          <p class="also"><a href={catalog.product}>Specifications as data →</a></p>
+        )}
+      </li>
+    ))}
+  </ul>
+
+  <p class="note" data-source-note>
+    <small>
+      These are the documents as LiTex published them, unaltered. Where a figure in one of them has
+      been transcribed onto this site, the page carries a source note naming the file and page.
+    </small>
+  </p>
+</BaseLayout>
+
+<style>
+  .lede { font-size: var(--t-20); color: var(--c-text-2); max-width: 58ch; }
+  .list { list-style: none; margin: var(--s-8) 0; padding: 0; }
+  .item {
+    padding: var(--s-6) 0;
+    border-top: 1px solid var(--c-line);
+  }
+  .item h2 { margin: 0 0 var(--s-2); font-size: var(--t-20); }
+  .meta {
+    margin: 0 0 var(--s-3);
+    font-size: var(--t-12);
+    letter-spacing: 0.06em;
+    color: var(--c-text-2);
+  }
+  .blurb { margin: 0; max-width: 70ch; color: var(--c-text-2); }
+  .also { margin: var(--s-3) 0 0; font-size: var(--t-14); }
+  .note { color: var(--c-text-2); margin-top: var(--s-16); }
+</style>

@@ -1,0 +1,98 @@
+{
+  "premises.jpg": {
+    "source": "archive/catalogs/2018-company-introduction.pdf",
+    "page": 1,
+    "xref": 52,
+    "crop": {
+      "w": 401,
+      "h": 535,
+      "x": 0,
+      "y": 157
+    },
+    "dimensions": "401x535",
+    "reducedFrom": null,
+    "note": "Catalog p.1, left panel: the LiTex building photographed from street level, with an illuminated shopfront sign reading LiTex over LED 紡織科技",
+    "aiGenerated": false,
+    "extracted": "2026-08-11"
+  },
+  "heritage-nameplates.jpg": {
+    "source": "archive/catalogs/2018-company-introduction.pdf",
+    "page": 1,
+    "xref": 52,
+    "crop": {
+      "w": 414,
+      "h": 156,
+      "x": 433,
+      "y": 157
+    },
+    "dimensions": "414x156",
+    "reducedFrom": null,
+    "note": "Catalog p.1, upper right panel: two brushed-steel company nameplates side by side, reading 恆好貿易有限公司 / HEN HAO TRADING CO., LTD. and 台灣吉普織帶工業 / TAIWAN TULIP RIBBON & BRAIDS",
+    "aiGenerated": false,
+    "extracted": "2026-08-11"
+  },
+  "factory-floor.jpg": {
+    "source": "archive/catalogs/2018-company-introduction.pdf",
+    "page": 1,
+    "xref": 54,
+    "crop": {
+      "w": 1000,
+      "h": 486,
+      "x": 24,
+      "y": 50
+    },
+    "dimensions": "1000x486",
+    "reducedFrom": null,
+    "note": "Catalog p.1: three factory photographs — a creel rack of bobbins, a narrow-fabric loom running striped webbing over its rollers, and a long row of covering machines under a shed roof",
+    "aiGenerated": false,
+    "extracted": "2026-08-11"
+  },
+  "trade-show-stand.jpg": {
+    "source": "archive/catalogs/2018-company-introduction.pdf",
+    "page": 2,
+    "xref": 8,
+    "crop": {
+      "w": 326,
+      "h": 484,
+      "x": 289,
+      "y": 0
+    },
+    "dimensions": "326x484",
+    "reducedFrom": null,
+    "note": "Catalog p.2, right panel: three LiTex staff in branded polo shirts standing in an exhibition stand under a sign reading LITEX TEXTILE & TECH. CO., LTD.",
+    "aiGenerated": false,
+    "extracted": "2026-08-11"
+  },
+  "taitronics-award.jpg": {
+    "source": "archive/catalogs/2018-company-introduction.pdf",
+    "page": 2,
+    "xref": 5,
+    "crop": {
+      "w": 297,
+      "h": 442,
+      "x": 366,
+      "y": 0
+    },
+    "dimensions": "297x442",
+    "reducedFrom": null,
+    "note": "Catalog p.2, centre panel: the 2014 TAITRONICS Technology Innovation Awards certificate, 優選獎 / The Quality Award, naming 富鉅紡織科技股份有限公司 and 非碳纖維電子發熱紡織品, dated September 2014 (the day is illegible at this resolution)",
+    "aiGenerated": false,
+    "extracted": "2026-08-11"
+  },
+  "sgs-test-report.jpg": {
+    "source": "archive/catalogs/2018-company-introduction.pdf",
+    "page": 2,
+    "xref": 5,
+    "crop": {
+      "w": 293,
+      "h": 442,
+      "x": 737,
+      "y": 0
+    },
+    "dimensions": "293x442",
+    "reducedFrom": null,
+    "note": "Catalog p.2, right panel: the cover of SGS Test Report CE/2013/52203, showing a photographed fabric sample. The addressee block and the test scope are not legible at this resolution",
+    "aiGenerated": false,
+    "extracted": "2026-08-11"
+  }
+}

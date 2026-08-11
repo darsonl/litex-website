@@ -3,19 +3,38 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
 
-const DIR = fileURLToPath(new URL('../src/assets/products', import.meta.url));
-const manifest = JSON.parse(readFileSync(join(DIR, 'provenance.json'), 'utf8')) as Record<
-  string,
-  { source: string; note: string; aiGenerated: boolean; dimensions: string }
->;
+type Entry = {
+  source: string;
+  note: string;
+  aiGenerated: boolean;
+  dimensions: string;
+};
 
-const imageFiles = readdirSync(DIR).filter((f) => /\.(jpg|jpeg|png)$/i.test(f));
+const GROUPS = ['products', 'company'] as const;
 
-const EXPECTED_SLUGS = [
-  'conductive-metal-yarn', 'electrical-heating-textile', 'emi-shielding-woven-tube',
-  'rfid-textile-tape', 'wired-conductive-tape', 'silica-gel-switch-controller',
-  'braided-self-curling-tube',
-];
+function dirFor(group: string): string {
+  return fileURLToPath(new URL(`../src/assets/${group}`, import.meta.url));
+}
+
+function manifestFor(group: string): Record<string, Entry> {
+  return JSON.parse(readFileSync(join(dirFor(group), 'provenance.json'), 'utf8'));
+}
+
+function imagesIn(group: string): string[] {
+  return readdirSync(dirFor(group)).filter((f) => /\.(jpg|jpeg|png)$/i.test(f));
+}
+
+const EXPECTED: Record<string, string[]> = {
+  products: [
+    'conductive-metal-yarn', 'electrical-heating-textile', 'emi-shielding-woven-tube',
+    'rfid-textile-tape', 'wired-conductive-tape', 'silica-gel-switch-controller',
+    'braided-self-curling-tube',
+  ],
+  company: [
+    'premises', 'heritage-nameplates', 'factory-floor', 'trade-show-stand',
+    'taitronics-award', 'sgs-test-report',
+  ],
+};
 
 /** First bytes of the formats Astro's sharp can actually decode. */
 const MAGIC: Record<string, string> = {
@@ -24,9 +43,13 @@ const MAGIC: Record<string, string> = {
   '.png': '89504e',
 };
 
-describe('image provenance', () => {
-  it('ships an image for every product', () => {
-    for (const slug of EXPECTED_SLUGS) {
+describe.each(GROUPS)('image provenance — %s', (group) => {
+  const dir = dirFor(group);
+  const manifest = manifestFor(group);
+  const imageFiles = imagesIn(group);
+
+  it('ships an image for every expected slug', () => {
+    for (const slug of EXPECTED[group]) {
       expect(
         imageFiles.some((f) => f.startsWith(`${slug}.`)),
         `no image found for ${slug}`,
@@ -53,7 +76,7 @@ describe('image provenance', () => {
     }
   });
 
-  it('declares every product photograph as real, never AI generated', () => {
+  it('declares every photograph as real, never AI generated', () => {
     for (const [file, entry] of Object.entries(manifest)) {
       expect(entry.aiGenerated, `${file} claims to be AI generated`).toBe(false);
     }
@@ -74,7 +97,7 @@ describe('image provenance', () => {
 
   it('ships no image larger than 4 MB, before Astro optimizes it', () => {
     for (const file of imageFiles) {
-      const mb = statSync(join(DIR, file)).size / 1_048_576;
+      const mb = statSync(join(dir, file)).size / 1_048_576;
       expect(mb, `${file} is ${mb.toFixed(1)} MB`).toBeLessThan(4);
     }
   });
@@ -86,8 +109,36 @@ describe('image provenance', () => {
   it('holds bytes that match the extension, so sharp can actually decode them', () => {
     for (const file of imageFiles) {
       const ext = file.slice(file.lastIndexOf('.')).toLowerCase();
-      const head = readFileSync(join(DIR, file)).subarray(0, 3).toString('hex');
+      const head = readFileSync(join(dir, file)).subarray(0, 3).toString('hex');
       expect(head, `${file} is not really a ${ext} file`).toBe(MAGIC[ext]);
+    }
+  });
+
+  // A mis-specified crop produces a uniform black rectangle: a real JPEG, of a real
+  // size, with a real provenance entry, that passes every other test in this file.
+  // Verified 2026-08-11 — Pixmap.copy() works in absolute coordinates, so a
+  // destination created at (0,0) does not intersect a source region at x=366.
+  it('holds a photograph rather than a flat rectangle', () => {
+    for (const file of imageFiles) {
+      const bytes = statSync(join(dir, file)).size;
+      const [w, h] = manifest[file].dimensions.split('x').map(Number);
+      const bytesPerPixel = bytes / (w * h);
+      expect(
+        bytesPerPixel,
+        `${file} is ${bytes} bytes for ${w}x${h} — too uniform to be a photograph`,
+      ).toBeGreaterThan(0.04);
+    }
+  });
+});
+
+describe('provenance across groups', () => {
+  it('never uses the same filename in two groups, so a merged lookup is unambiguous', () => {
+    const seen = new Map<string, string>();
+    for (const group of GROUPS) {
+      for (const file of Object.keys(manifestFor(group))) {
+        expect(seen.has(file), `${file} appears in both ${seen.get(file)} and ${group}`).toBe(false);
+        seen.set(file, group);
+      }
     }
   });
 });

@@ -1,0 +1,108 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContactBlock from '../../components/ContactBlock.astro';
+import { COMPANY } from '../../lib/company';
+
+/**
+ * Every statement below is a property of the site as built, checkable in dist/:
+ * no cookies are set, no third-party host is requested, no analytics script runs,
+ * and there is no form. tests/legal.test.ts and tests/build.test.ts both assert the
+ * last three. When Plan 7 adds the contact form or Plan 8 adds analytics, this page
+ * changes in the same commit — the tests fail until it does.
+ */
+const UPDATED = '2026-08-11';
+---
+<BaseLayout
+  title="Privacy — LiTex Textile & Technology"
+  description="What this website collects, which is almost nothing: no cookies, no analytics, no third-party requests. How to contact LiTex about personal data."
+>
+  <h1>Privacy</h1>
+
+  <p class="lede">
+    This site collects nothing about you. That is not a policy position so much as a description
+    of how it is built — there is no cookie, no analytics script and no third-party request on any
+    page of it.
+  </p>
+
+  <h2>Who is responsible</h2>
+
+  <ContactBlock />
+
+  <h2>What this website does</h2>
+
+  <ul>
+    <li>
+      <strong>No cookies.</strong> No page on this site sets a cookie or writes to local storage.
+    </li>
+    <li>
+      <strong>No analytics.</strong> There is no analytics script, no tag manager and no pixel.
+      Nobody is counting your visit.
+    </li>
+    <li>
+      <strong>No third-party requests.</strong> Fonts, images, stylesheets and scripts are all
+      served from this domain. Loading a page contacts no other company.
+    </li>
+    <li>
+      <strong>No forms.</strong> There is nothing on this site to submit. Contact happens by email
+      or telephone, using the details above.
+    </li>
+  </ul>
+
+  <h2>Hosting</h2>
+
+  <p>
+    The site is served by Cloudflare Pages. Like any web host, Cloudflare processes the technical
+    information a browser sends in order to deliver a page — your IP address, the page requested,
+    and your user agent — and retains it briefly for security and operational purposes. LiTex does
+    not receive that data as a report and does not combine it with anything else.
+  </p>
+
+  <h2>If you email or telephone us</h2>
+
+  <p>
+    Then we hold whatever you send us: your name, your address, and what you asked about. We use it
+    to answer you and to handle any resulting quotation, sample or order, and we keep it for as
+    long as that business relationship needs. We do not sell it and we do not pass it to anyone
+    outside the company for marketing.
+  </p>
+
+  <h2>Your rights</h2>
+
+  <p>
+    If you are in the EU or the UK, you can ask us for a copy of what we hold about you, ask us to
+    correct it, or ask us to delete it. Write to{' '}
+    <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a> and say which. If a request is about an
+    inquiry you sent us, telling us roughly when you sent it makes it much faster to find.
+  </p>
+
+  <h2>Mobile information</h2>
+
+  {/* This paragraph deliberately ends without a full stop — so did
+      archive/pages/privacy-policy.html, and the source note below claims it is carried
+      over verbatim. Do not "fix" the punctuation; that would falsify the source note. */}
+  <p class="quoted">
+    No mobile information will be shared with third parties/affiliates for marketing/promotional
+    purposes. All other categories exclude text messaging originator opt-in data and consent; this
+    information will not be shared with any third parties
+  </p>
+
+  <p class="note" data-source-note>
+    <small>
+      Last updated {UPDATED}. The mobile-information paragraph is carried over verbatim from the
+      previous LiTex privacy policy, where it was the entire text of the page.
+    </small>
+  </p>
+</BaseLayout>
+
+<style>
+  .lede { font-size: var(--t-20); color: var(--c-text-2); max-width: 58ch; }
+  p, li { max-width: 70ch; }
+  ul { padding-left: var(--s-6); }
+  li { margin-bottom: var(--s-3); }
+  .quoted {
+    border-left: 2px solid var(--c-line);
+    padding-left: var(--s-6);
+    color: var(--c-text-2);
+  }
+  .note { color: var(--c-text-2); margin-top: var(--s-16); }
+</style>

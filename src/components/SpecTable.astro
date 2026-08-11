@@ -4,6 +4,13 @@ import { specTableToCsv, columnHeader, type CsvColumn, type CsvRow } from '../li
 interface Props {
   table: { columns: CsvColumn[]; rows: CsvRow[] };
   caption: string;
+  /**
+   * Renders as a <p data-source-note>. If a page needs its own separate trailing
+   * note in addition to this one, give it [data-page-note] instead — a page with
+   * two [data-source-note] elements makes `querySelector('[data-source-note]')`
+   * silently pick the wrong one. patents-and-awards.astro and certifications.astro
+   * both follow this pattern.
+   */
   sourceNote?: string;
   needsVerification?: boolean;
 }

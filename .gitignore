@@ -16,6 +16,10 @@ dist/
 .vercel/
 .wrangler/
 
+# Catalog PDFs, copied out of archive/ by scripts/sync-catalogs.mjs at build time.
+# The archive copy is the versioned one; see scripts/sync-catalogs.mjs.
+public/catalogs/
+
 # Env
 .env
 .env.*
