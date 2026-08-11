@@ -2,6 +2,10 @@
 name: "Silica Gel Switch Controller"
 status: "legacy"
 summary: "HT001 silicon switch controlling heating textile, with NTC temperature sensor ports."
+heroImage:
+  src: "../../assets/products/silica-gel-switch-controller.jpg"
+  alt: "The HT001 switch with its three lead pairs annotated: battery input B+/B-, temperature sensor T1/T2, and heating textile output P+/P-"
+  aiGenerated: false
 applications: []
 certifications: []
 catalogPdf: "201611e68ea7e588b6e599a8final.pdf"

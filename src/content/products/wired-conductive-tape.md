@@ -2,6 +2,10 @@
 name: "Wired Conductive Woven Tape"
 status: "active"
 summary: "Narrow textile tape with conductive wire woven in, usable as a cable and sewable into fabric."
+heroImage:
+  src: "../../assets/products/wired-conductive-tape.jpg"
+  alt: "Two lengths of dark woven tape carrying a pale conductive wire in a repeating wave, held against a steel ruler marked in centimetres"
+  aiGenerated: false
 applications:
   - smart-textiles-rfid
   - industrial-woven-metal

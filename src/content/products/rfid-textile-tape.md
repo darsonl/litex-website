@@ -2,6 +2,10 @@
 name: "RFID Wired Woven Tape"
 status: "active"
 summary: "Narrow woven tape with conductive wire inside, providing RFID tag antenna reception."
+heroImage:
+  src: "../../assets/products/rfid-textile-tape.jpg"
+  alt: "Two lengths of white woven tape on a wooden surface, each carrying a looping serpentine antenna path along its length"
+  aiGenerated: false
 applications:
   - smart-textiles-rfid
 certifications: []

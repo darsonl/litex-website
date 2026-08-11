@@ -2,6 +2,10 @@
 name: "Electrical Heating Textile"
 status: "active"
 summary: "Non-carbon heating fabric woven from conductive metal yarn, customizable up to 70 cm wide."
+heroImage:
+  src: "../../assets/products/electrical-heating-textile.jpg"
+  alt: "Folded lengths of white open-mesh heating fabric on a dark wooden bench, the grey conductive yarn visible running through the weave"
+  aiGenerated: false
 applications:
   - heated-apparel-wearables
   - automotive-interiors

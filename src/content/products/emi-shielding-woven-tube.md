@@ -2,6 +2,10 @@
 name: "EMI Shielding Woven Tube"
 status: "active"
 summary: "Braided tube of copper-plated aramid that expands to encase cables needing EMI protection."
+heroImage:
+  src: "../../assets/products/emi-shielding-woven-tube.jpg"
+  alt: "Three spools of flat grey braided tube, beside two close-ups of the braid expanded into a round tube and flattening back into a ribbon"
+  aiGenerated: false
 applications:
   - cable-protection-emi-shielding
 certifications: ["RoHS"]
