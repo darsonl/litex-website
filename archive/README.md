@@ -53,6 +53,45 @@ down during migration.
   list, and the HT001 switch specs existed only as JPGs. All now transcribed in
   `extracted-from-images.md`.
 
+## The Google Maps API key in `pages/` is expected — do not treat it as a leak
+
+Automated secret scanners (GitHub's included) flag a `AIzaSy…p8dwTE` string in **23 of the 23
+files** in `pages/`. It is a true pattern match and a false alarm. Before raising it again, read
+this section.
+
+Every occurrence is byte-identical and sits in exactly one place — the `src` of the Google Maps
+Embed iframe in WordPress.com's "Contact Info & Map" widget (`widget_contact_info-8`), which
+renders LiTex's Taipei address:
+
+```
+<iframe src="https://www.google.com/maps/embed/v1/place?q=188+Bangka+Blvd...&key=AIzaSy…p8dwTE">
+```
+
+Three reasons this is not an exposure:
+
+- **It was already public.** These files are a byte-for-byte capture of a live public website.
+  Anyone who viewed source on litextextile.wordpress.com could read this key. Committing the
+  capture disclosed nothing that was not already served to every visitor.
+- **Maps browser keys are public by design.** They ship in client-side HTML and are secured by
+  HTTP referrer restrictions, not by secrecy. Rotating one, on its own, accomplishes nothing.
+- **It never reaches the built site.** `archive/` is source material, never a published asset
+  directory. `tests/imagery.test.ts` asserts no archive image reaches `dist/`, and no `AIza`
+  string appears anywhere in a build.
+
+**It is most likely not LiTex's key at all.** Jetpack supplies its own Maps key for that widget
+unless a site owner enters one. To confirm: look in Google Cloud Console → APIs & Services →
+Credentials for a key ending `p8dwTE`. If it is not there, it belongs to Automattic and there is
+nothing to do — do not attempt to revoke a third party's key. If it *is* there, the correct fix is
+restriction rather than rotation: *Application restrictions* → HTTP referrers, *API restrictions* →
+Maps Embed API only. The risk worth closing in that case is not Maps quota, which is free and
+unmetered for Embed, but an unrestricted key being usable against any other API enabled on the
+same project.
+
+**Why it is not redacted.** `.gitattributes` pins `archive/** -text` specifically so nothing
+rewrites these files; the archive's value is that it is exactly what was served. Editing the key
+out would break that guarantee, would not remove it from git history, and would buy nothing given
+the key was public to begin with.
+
 ## How it was captured
 
 ```bash
