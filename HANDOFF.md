@@ -41,10 +41,9 @@ the quality came from.
 
 - Plan 5's branch, `plan-5-company-downloads-legal`, is complete: all 9 tasks done, each reviewed
   and fixed. Full account in
-  `.superpowers/sdd/2026-08-11-litex-company-downloads-legal/progress.md`. 20 commits ahead of
-  `main` (`0488e25`). **Not pushed or merged yet — the controller pushes, opens the PR, and merges
-  after this commit.**
-- `npm run build` exits 0, emitting **24 pages**. `npm test` = **226 tests across 16 files**, all
+  `.superpowers/sdd/2026-08-11-litex-company-downloads-legal/progress.md`. Pushed, and open as
+  **PR #5** — https://github.com/darsonl/litex-website/pull/5. **Not merged yet.**
+- `npm run build` exits 0, emitting **24 pages**. `npm test` = **229 tests across 16 files**, all
   passing. Design detector returns `[]` for `src/components src/pages src/styles`.
 - `dist` totals **16 MB**, of which `dist/catalogs` is about **11 MB** — the six catalog PDFs,
   served for the first time this plan.
@@ -62,7 +61,7 @@ the quality came from.
 | 2 | Product layer & spec table | ✅ merged (PR #2) |
 | 3 | Product photography & image pipeline | ✅ merged (PR #3) |
 | 4 | Site chrome & the technology section | ✅ merged (PR #4) |
-| 5 | `/company/` ×4 · `/downloads/` · `/legal/privacy/` | ✅ complete — controller to push/PR/merge |
+| 5 | `/company/` ×4 · `/downloads/` · `/legal/privacy/` | ✅ complete — **PR #5 open, not merged** |
 | 6 | `/news/` index + 7 posts | ← **next, not written** |
 | 7 | Contact + sample-request flow (Pages Function, Turnstile, KV) | not written |
 | 8 | Launch: `_redirects`, sitemap, analytics, Sveltia CMS, print stylesheet, Lighthouse/axe, broken-link check | not written |
@@ -91,7 +90,7 @@ pipeline, verified 2026-08-11 by rendering and viewing each file.
 | Slug | Shows | Used on |
 |---|---|---|
 | `premises` | The LiTex building photographed from street level, illuminated shopfront sign reading *LiTex* over *LED 紡織科技* | `/company/about/` |
-| `heritage-nameplates` | Two brushed-steel predecessor-company nameplates: 恆好貿易有限公司 / HEN HAO TRADING CO., LTD. and 台灣吉普織帶工業 / TAIWAN TULIP RIBBON & BRAIDS | `/company/about/` |
+| `heritage-nameplates` | Two brushed-steel group-company nameplates: 恆好貿易有限公司 / HEN HAO TRADING CO., LTD. and 台灣吉普織帶工業 / TAIWAN TULIP RIBBON & BRAIDS | `/company/about/` |
 | `factory-floor` | Creel rack, narrow-fabric loom, a row of covering machines | `/company/about/` |
 | `trade-show-stand` | Three staff under a sign reading LITEX TEXTILE & TECH. CO., LTD. | `/company/about/` |
 | `taitronics-award` | 2014 TAITRONICS Technology Innovation Awards certificate | `/company/patents-and-awards/` |
@@ -101,7 +100,7 @@ pipeline, verified 2026-08-11 by rendering and viewing each file.
 described p.1 xref 52 as *"a loom with LiTex-branded tape, two framed certificates, a spool of woven
 tape."* That is wrong on every count — there is no loom in it and there are no certificates in it.
 It is three panels: the LiTex building from street level with an illuminated shopfront sign; **two
-brushed-steel predecessor-company nameplates** reading 恆好貿易有限公司 / HEN HAO TRADING CO., LTD.
+brushed-steel group-company nameplates** reading 恆好貿易有限公司 / HEN HAO TRADING CO., LTD.
 and 台灣吉普織帶工業 / TAIWAN TULIP RIBBON & BRAIDS; and spools of metal filament beside woven tape.
 Taiwan Tulip Ribbon & Braids appears in **no archived HTML** — only in this photograph. The old
 wording is deleted from this file; do not reintroduce it.
@@ -156,6 +155,19 @@ untrue statements.
 - **WordPress.com Site Redirect:** the user is not using WordPress, so legacy
   `litextextile.wordpress.com` URLs will not 301 and that ranking is not recoverable. Business
   decision, already taken. Nothing blocks building.
+- **LiTex is a subsidiary of Hen Hao Trading, and the two share the Bangka Blvd. premises.**
+  Confirmed by the user 2026-08-11. Hen Hao is the **current parent**, not a predecessor — an
+  earlier draft of `/company/about/` called the nameplates "the two businesses that came before",
+  which was wrong and is now fixed. Taiwan Tulip Ribbon & Braids is a third company in the same
+  group. Declared once as `COMPANY.parentCompany` in `src/lib/company.ts`.
+- **SGS report `CE/2013/52203` is issued in Hen Hao Trading's name**, confirmed by the user
+  2026-08-11. This *was* open question 1 and is now closed. It is stated outright on
+  `/company/certifications/` under "Issued to", because a buyer who requests the report and meets
+  an unfamiliar company name on it has found a discrepancy the site created by staying quiet. Note
+  it is **not** read off the cover photograph — the addressee block there is still illegible, and
+  `SGS_REPORT.notReadable` correctly still says so. A residual commercial question remains, and it
+  is a question for LiTex rather than for the site: a procurement filter that requires the
+  certificate be in the *supplier's* name is not satisfied by a parent-company document.
 - **`litex.com.tw` and `sales@litex.com.tw` are confirmed** and declared in `astro.config.mjs`.
   `mail@example.com` is theme boilerplate — a test fails if any `example.com` string is rendered.
 
@@ -209,17 +221,16 @@ product catalog links 404 in production with no test catching it.
 
 Ordered by how much damage the wrong answer does.
 
-1. **Is SGS report `CE/2013/52203` issued to LiTex or to Hen Hao Trading?** The addressee block on the photographed cover appears to read `… TRADING CO., LTD.`, which is not LiTex's name in either language, and Hen Hao is at the same address. Not legible enough to publish, legible enough to matter: `/company/certifications/` now points buyers at this report, and a buyer who requests it and receives a document in another company's name has found a problem the site created. **Ask before launch.**
-2. **TWM545145 renewal status.** Unchanged, still the highest-value answer. Its sibling lapsed for non-payment; this is the claim in the footer of every page. A confirmation would let the credibility bar say something stronger than "TW UTILITY MODEL".
-3. **What is the SGS report's scope?** Not readable at the stored resolution — the site currently says so out loud. The full report closes the largest hole in `/company/certifications/`, and spec §7 item 5 rates it High.
-4. **The thermograph's test conditions** — voltage, duration, ambient temperature, colour scale. Held out of `/technology/` for a third plan running.
-5. **What the USPTO certificate actually is**, given 12/787,378 was abandoned. It is now deliberately unpublished, so this is no longer blocking anything — but if it turns out to be a granted patent under a different number, that is a real asset currently missing from the site.
-6. **Are CN 201485574U, TW 099146482 and CN 201120008487.x still live?** `/company/patents-and-awards/` prints "Not verified" against all three. LiTex can answer this in a sentence and the page improves immediately.
-6b. **Which of the older filings were made by Fu-Biau Hsu (許富標) personally rather than by the company?** The register check found individual applicants on the older family but did not enumerate which. The page says "some" because that is the precision the evidence supports; naming them would be better, and only LiTex can.
-7. **Company facts for `/company/about/`** — headcount, floor area, production capacity, factory locations. The page deliberately states none of these. Spec §7 item 13.
-8. **Should `/legal/privacy/` be reviewed by LiTex's counsel?** The page states only verifiable properties of the site and makes no promise the site cannot keep, but it is a legal document published in LiTex's name in a market where such documents matter. Flag it; do not block launch on it.
-9. **CuNi status** — "coming soon" in 2018; `/technology/` still says exactly that.
-10. **Is the 2018 grade range (1S–4S4Z) still current?** The whole `/technology/` argument rests on it.
-11. **Are the 2018 catalogs still the current set?** `/downloads/` now serves all six and says plainly that they are eight years old. Spec §7 item 15.
-12. **Re-shoot `wired-conductive-tape`** (600×341 is genuinely the largest in the archive).
-13. Carried over: EMI `(c)` column and `(ø)` units; the stainless steel yarn table's owning product.
+1. **TWM545145 renewal status.** Unchanged, still the highest-value answer. Its sibling lapsed for non-payment; this is the claim in the footer of every page. A confirmation would let the credibility bar say something stronger than "TW UTILITY MODEL".
+2. **What is the SGS report's scope?** Not readable at the stored resolution — the site currently says so out loud. The full report closes the largest hole in `/company/certifications/`, and spec §7 item 5 rates it High.
+3. **The thermograph's test conditions** — voltage, duration, ambient temperature, colour scale. Held out of `/technology/` for a third plan running.
+4. **What the USPTO certificate actually is**, given 12/787,378 was abandoned. It is now deliberately unpublished, so this is no longer blocking anything — but if it turns out to be a granted patent under a different number, that is a real asset currently missing from the site.
+5. **Are CN 201485574U, TW 099146482 and CN 201120008487.x still live?** `/company/patents-and-awards/` prints "Not verified" against all three. LiTex can answer this in a sentence and the page improves immediately.
+5b. **Which of the older filings were made by Fu-Biau Hsu (許富標) personally rather than by the company?** The register check found individual applicants on the older family but did not enumerate which. The page says "some" because that is the precision the evidence supports; naming them would be better, and only LiTex can.
+6. **Company facts for `/company/about/`** — headcount, floor area, production capacity, factory locations. The page deliberately states none of these. Spec §7 item 13.
+7. **Should `/legal/privacy/` be reviewed by LiTex's counsel?** The page states only verifiable properties of the site and makes no promise the site cannot keep, but it is a legal document published in LiTex's name in a market where such documents matter. Flag it; do not block launch on it.
+8. **CuNi status** — "coming soon" in 2018; `/technology/` still says exactly that.
+9. **Is the 2018 grade range (1S–4S4Z) still current?** The whole `/technology/` argument rests on it.
+10. **Are the 2018 catalogs still the current set?** `/downloads/` now serves all six and says plainly that they are eight years old. Spec §7 item 15.
+11. **Re-shoot `wired-conductive-tape`** (600×341 is genuinely the largest in the archive).
+12. Carried over: EMI `(c)` column and `(ø)` units; the stainless steel yarn table's owning product.

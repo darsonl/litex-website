@@ -15,6 +15,15 @@ export const COMPANY = {
   legalName: 'LiTex Textile & Technology Co., Ltd.',
   /** From the 2014 TAITRONICS award certificate, shown beside the English name. */
   legalNameZh: '富鉅紡織科技股份有限公司',
+  /**
+   * LiTex is a subsidiary of Hen Hao Trading and the two operate from the same
+   * Taipei premises — confirmed by LiTex 2026-08-11. This is not decoration: some
+   * compliance documents, including SGS report CE/2013/52203, are issued in the
+   * parent's name, and a buyer who meets that name for the first time on a
+   * certificate they requested reads it as a discrepancy. Declaring the
+   * relationship is what turns it into ordinary group structure.
+   */
+  parentCompany: 'Hen Hao Trading Co., Ltd.',
   foundedYear: 1999,
   email: 'sales@litex.com.tw',
   phone: '+886-2-2308-4712',

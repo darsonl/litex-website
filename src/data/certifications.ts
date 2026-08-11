@@ -45,4 +45,12 @@ export const SGS_REPORT = {
   /** What the stored photograph actually resolves, checked 2026-08-11. */
   readable: 'The report number, the SGS mark, and a photograph of the tested sample',
   notReadable: 'The test scope, the standards applied, and the addressee block. The results are not on a cover page at all',
+  /**
+   * NOT read off the photograph — the addressee block is illegible there, which is
+   * why it stays listed under notReadable. Confirmed by LiTex 2026-08-11: the report
+   * is issued to the parent company. Published because a buyer who requests this
+   * report and meets an unfamiliar company name on it has found a discrepancy the
+   * site created by staying silent.
+   */
+  issuedTo: 'Hen Hao Trading Co., Ltd.',
 } as const;

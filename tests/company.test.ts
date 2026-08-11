@@ -41,11 +41,22 @@ describe('company — about', () => {
   });
 
   // The nameplate photograph is the only evidence anywhere in the archive that the
-  // Hen Hao heritage claim is more than a sentence. Naming the second predecessor
-  // matters too: it appears in no archived HTML, only in this photograph.
-  it('names the predecessor businesses the nameplate photograph shows', () => {
+  // Hen Hao claim is more than a sentence. Naming the third company matters too: it
+  // appears in no archived HTML, only in this photograph.
+  it('names the group companies the nameplate photograph shows', () => {
     const text = docFor('company/about/index.html').body.textContent ?? '';
     expect(text).toContain('Taiwan Tulip Ribbon & Braids');
+  });
+
+  // Confirmed by LiTex 2026-08-11. Hen Hao is the current parent, not a predecessor —
+  // an earlier draft called these "the businesses that came before", which was wrong.
+  // The relationship is load-bearing: SGS report CE/2013/52203 is issued in the
+  // parent's name, so a buyer who meets that name first on a certificate they
+  // requested has found a discrepancy this page exists to pre-empt.
+  it('states the parent-company relationship rather than implying separation', () => {
+    const text = docFor('company/about/index.html').body.textContent ?? '';
+    expect(text).toContain('subsidiary of Hen Hao Trading');
+    expect(text, 'the page still frames the group as predecessors').not.toContain('came before:');
   });
 
   it('shows premises, plant and people rather than asserting them', () => {
@@ -80,7 +91,7 @@ describe('company — about', () => {
   it('keeps spaces around inline values that start a source line', () => {
     const text = docFor('company/about/index.html').body.textContent ?? '';
     for (const phrase of [
-      'and Taiwan Tulip Ribbon & Braids',
+      'alongside Taiwan Tulip Ribbon & Braids',
       'later, Conductive Metal Yarn',
       'up to 70 cm. See the full comparison',
       'storefront at litex.en.alibaba.com',
@@ -255,6 +266,22 @@ describe('company — certifications', () => {
     expect(note).toBeTruthy();
     expect(note?.textContent).toContain('LiTex\'s own');
     expect(note?.textContent).toContain('2018 or earlier');
+  });
+
+  // The whole point of naming the addressee. A buyer who requests CE/2013/52203 and
+  // meets an unfamiliar company name on the document has found a discrepancy the site
+  // manufactured by staying quiet. Confirmed by LiTex 2026-08-11 — it is deliberately
+  // NOT read off the cover photograph, where the addressee block stays illegible.
+  it('warns that the SGS report is issued in the parent company\'s name', () => {
+    const text = docFor('company/certifications/index.html').body.textContent ?? '';
+    expect(text).toContain('Hen Hao Trading');
+    expect(text.toLowerCase()).toContain('parent company');
+  });
+
+  it('keeps the report\'s addressee identical to the declared parent company', async () => {
+    const { SGS_REPORT } = await import('../src/data/certifications');
+    const { COMPANY } = await import('../src/lib/company');
+    expect(SGS_REPORT.issuedTo).toBe(COMPANY.parentCompany);
   });
 });
 
