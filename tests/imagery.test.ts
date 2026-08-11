@@ -17,6 +17,20 @@ const distFiles = walk(DIST);
 const htmlFiles = distFiles.filter((f) => f.endsWith('.html'));
 const imageFiles = distFiles.filter((f) => /\.(avif|webp|jpe?g|png|gif|svg)$/i.test(f));
 
+/**
+ * Every provenance manifest, merged. tests/provenance.test.ts asserts the two
+ * groups share no filename, so a flat lookup is unambiguous.
+ */
+function allProvenance(): Record<string, { aiGenerated: boolean }> {
+  return ['products', 'company'].reduce(
+    (all, group) => ({
+      ...all,
+      ...JSON.parse(readFileSync(join(SRC, `assets/${group}/provenance.json`), 'utf8')),
+    }),
+    {},
+  );
+}
+
 describe('imagery policy', () => {
   it('never ships the Pexels stock photo anywhere in the build', () => {
     const offenders = distFiles.filter((f) => f.toLowerCase().includes('pexels'));
@@ -69,12 +83,9 @@ describe('imagery policy', () => {
     expect(leaked).toEqual([]);
   });
 
-  it('declares no AI-generated product photography', () => {
-    const manifest = JSON.parse(
-      readFileSync(join(SRC, 'assets/products/provenance.json'), 'utf8'),
-    ) as Record<string, { aiGenerated: boolean }>;
-    for (const [file, entry] of Object.entries(manifest)) {
-      expect(entry.aiGenerated, `${file} is AI generated and used as a product image`).toBe(false);
+  it('declares no AI-generated photography anywhere in the asset tree', () => {
+    for (const [file, entry] of Object.entries(allProvenance())) {
+      expect(entry.aiGenerated, `${file} is AI generated and used as real photography`).toBe(false);
     }
   });
 });
@@ -85,14 +96,12 @@ describe('Tier 3 sections — real photography only', () => {
   // Tier 3 wall to wall, so every raster image they render must trace to a provenance
   // entry that declares itself real. Inline SVG diagrams are Tier 1 and exempt.
   //
-  // This is near-vacuous today — /technology/ ships no rasters — and that is the point.
-  // Plan 5 puts the factory and certificate photographs on /company/, and the rule needs
-  // to be enforced by then rather than remembered.
+  // This stopped being vacuous in Plan 5: /company/ now ships six photographs,
+  // including two certificate crops. Every one must trace to a manifest entry that
+  // declares itself real.
   const TIER_3 = ['technology', 'company'];
 
-  const manifest = JSON.parse(
-    readFileSync(join(SRC, 'assets/products/provenance.json'), 'utf8'),
-  ) as Record<string, { aiGenerated: boolean }>;
+  const manifest = allProvenance();
 
   /** Astro emits /_astro/<stem>.<hash>[_<variant>].<ext>; recover the original stem. */
   function sourceStem(src: string): string {

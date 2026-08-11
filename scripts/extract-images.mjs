@@ -17,7 +17,14 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const OUT = `${ROOT}src/assets/products`;
+
+/**
+ * Output groups. Company photography is kept apart from product photography
+ * because they are governed differently: tests/provenance.test.ts asserts one
+ * image per product slug, and a factory photograph is not a product.
+ */
+const GROUPS = ['products', 'company'];
+const dirFor = (group) => `${ROOT}src/assets/${group}`;
 
 /**
  * Longest edge kept for a stored source, and the quality used when one is reduced.
@@ -79,18 +86,77 @@ const SOURCES = [
     copyFrom: 'archive/images/20200313_070104268_ios.jpg',
     note: 'Archived product page image: five diameters of black braided sleeve laid side by side on a white surface',
   },
+  // --- Company photography. All six are panels of two composite images in the
+  // company introduction catalog; each composite is a page layout, so cropping to
+  // the panel is what makes them usable rather than a design preference.
+  //
+  // The third panel of p.2 xref 5 — the US patent certificate cover — is
+  // deliberately NOT extracted. US 12/787,378 was abandoned on 2012-04-23, so the
+  // cover cannot be attributed to it, it carries no number of its own, and
+  // publishing it on a patents page asserts a US grant LiTex does not have.
+  {
+    group: 'company',
+    slug: 'premises',
+    from: 'archive/catalogs/2018-company-introduction.pdf',
+    page: 1, xref: 52,
+    crop: { w: 401, h: 535, x: 0, y: 157 },
+    note: 'Catalog p.1, left panel: the LiTex building photographed from street level, with an illuminated shopfront sign reading LiTex over LED 紡織科技',
+  },
+  {
+    group: 'company',
+    slug: 'heritage-nameplates',
+    from: 'archive/catalogs/2018-company-introduction.pdf',
+    page: 1, xref: 52,
+    crop: { w: 414, h: 156, x: 433, y: 157 },
+    note: 'Catalog p.1, upper right panel: two brushed-steel company nameplates side by side, reading 恆好貿易有限公司 / HEN HAO TRADING CO., LTD. and 台灣吉普織帶工業 / TAIWAN TULIP RIBBON & BRAIDS',
+  },
+  {
+    group: 'company',
+    slug: 'factory-floor',
+    from: 'archive/catalogs/2018-company-introduction.pdf',
+    page: 1, xref: 54,
+    crop: { w: 1000, h: 486, x: 24, y: 50 },
+    note: 'Catalog p.1: three factory photographs — a creel rack of bobbins, a narrow-fabric loom running striped webbing over its rollers, and a long row of covering machines under a shed roof',
+  },
+  {
+    group: 'company',
+    slug: 'trade-show-stand',
+    from: 'archive/catalogs/2018-company-introduction.pdf',
+    page: 2, xref: 8,
+    crop: { w: 326, h: 484, x: 289, y: 0 },
+    note: 'Catalog p.2, right panel: three LiTex staff in branded polo shirts standing in an exhibition stand under a sign reading LITEX TEXTILE & TECH. CO., LTD.',
+  },
+  {
+    group: 'company',
+    slug: 'taitronics-award',
+    from: 'archive/catalogs/2018-company-introduction.pdf',
+    page: 2, xref: 5,
+    crop: { w: 297, h: 442, x: 366, y: 0 },
+    note: 'Catalog p.2, centre panel: the 2014 TAITRONICS Technology Innovation Awards certificate, 優選獎 / The Quality Award, naming 富鉅紡織科技股份有限公司 and 非碳纖維電子發熱紡織品, dated 2014.9.29',
+  },
+  {
+    group: 'company',
+    slug: 'sgs-test-report',
+    from: 'archive/catalogs/2018-company-introduction.pdf',
+    page: 2, xref: 5,
+    crop: { w: 293, h: 442, x: 737, y: 0 },
+    note: 'Catalog p.2, right panel: the cover of SGS Test Report CE/2013/52203, showing a photographed fabric sample. The addressee block and the test scope are not legible at this resolution',
+  },
 ];
 
-mkdirSync(OUT, { recursive: true });
-for (const stale of readdirSync(OUT).filter((f) => /\.(jpe?g|png|webp|avif)$/i.test(f))) {
-  rmSync(`${OUT}/${stale}`);
+for (const group of GROUPS) {
+  mkdirSync(dirFor(group), { recursive: true });
+  for (const stale of readdirSync(dirFor(group)).filter((f) => /\.(jpe?g|png|webp|avif)$/i.test(f))) {
+    rmSync(`${dirFor(group)}/${stale}`);
+  }
 }
 
-const manifest = {};
+const manifests = Object.fromEntries(GROUPS.map((group) => [group, {}]));
 
 for (const s of SOURCES) {
+  const group = s.group ?? 'products';
   const file = `${s.slug}.jpg`;
-  const dest = `${OUT}/${file}`;
+  const dest = `${dirFor(group)}/${file}`;
   let dimensions;
 
   if (s.copyFrom) {
@@ -123,7 +189,7 @@ for (const s of SOURCES) {
   const final = await sharp(bytes).metadata();
   dimensions = `${final.width}x${final.height}`;
 
-  manifest[file] = {
+  manifests[group][file] = {
     source: s.copyFrom ?? s.from,
     page: s.page ?? null,
     xref: s.xref ?? null,
@@ -135,9 +201,14 @@ for (const s of SOURCES) {
     extracted: '2026-08-11',
   };
   console.log(
-    `${file.padEnd(36)} ${dimensions}${reducedFrom ? ` (reduced from ${reducedFrom})` : ''}`,
+    `${group.padEnd(9)} ${file.padEnd(30)} ${dimensions}${reducedFrom ? ` (reduced from ${reducedFrom})` : ''}`,
   );
 }
 
-writeFileSync(`${OUT}/provenance.json`, `${JSON.stringify(manifest, null, 2)}\n`);
-console.log(`\nWrote provenance for ${Object.keys(manifest).length} images.`);
+for (const group of GROUPS) {
+  writeFileSync(
+    `${dirFor(group)}/provenance.json`,
+    `${JSON.stringify(manifests[group], null, 2)}\n`,
+  );
+  console.log(`Wrote provenance for ${Object.keys(manifests[group]).length} ${group} images.`);
+}

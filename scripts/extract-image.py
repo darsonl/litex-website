@@ -31,9 +31,18 @@ if pix.colorspace is None or pix.colorspace.name != "DeviceRGB":
 
 if len(sys.argv) > 4:
     w, h, x, y = (int(v) for v in sys.argv[4:8])
-    box = fitz.IRect(x, y, x + w, y + h)
-    cropped = fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, w, h), False)
-    cropped.copy(pix, box)
+    # Pixmap.copy() works in ABSOLUTE coordinates: it copies the intersection of the
+    # two pixmaps' rectangles. A destination created at IRect(0, 0, w, h) therefore
+    # does not intersect a source region at x=366 at all, and the result is a black
+    # rectangle. Create the destination AT the crop origin, then reset the origin so
+    # tobytes() writes a normal top-left-anchored image.
+    #
+    # The original version of this block created the destination at (0, 0). It was
+    # always wrong and never noticed, because its only caller — the RFID hero —
+    # crops from (0, 0), where the bug is invisible. Verified 2026-08-11.
+    cropped = fitz.Pixmap(fitz.csRGB, fitz.IRect(x, y, x + w, y + h), False)
+    cropped.copy(pix, cropped.irect)
+    cropped.set_origin(0, 0)
     pix = cropped
 
 with open(out, "wb") as f:
