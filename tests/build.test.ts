@@ -292,6 +292,33 @@ describe('product hero imagery', () => {
   });
 });
 
+describe('product thumbnails', () => {
+  it('shows a thumbnail on every card in the products index', () => {
+    const doc = docFor('products/index.html');
+    expect(doc.querySelectorAll('.card img')).toHaveLength(7);
+  });
+
+  it('gives every thumbnail width and height so the grid does not reflow', () => {
+    const doc = docFor('products/index.html');
+    for (const img of [...doc.querySelectorAll('.card img')]) {
+      expect(Number(img.getAttribute('width'))).toBeGreaterThan(0);
+      expect(Number(img.getAttribute('height'))).toBeGreaterThan(0);
+    }
+  });
+
+  it('lazy-loads thumbnails, which are below the fold', () => {
+    const doc = docFor('products/index.html');
+    for (const img of [...doc.querySelectorAll('.card img')]) {
+      expect(img.getAttribute('loading')).toBe('lazy');
+    }
+  });
+
+  it('carries thumbnails through to application pages too', () => {
+    const doc = docFor('applications/cable-protection-emi-shielding/index.html');
+    expect(doc.querySelectorAll('.card img').length).toBeGreaterThan(0);
+  });
+});
+
 describe('built applications', () => {
   it('generates an index listing all six applications', () => {
     const doc = docFor('applications/index.html');

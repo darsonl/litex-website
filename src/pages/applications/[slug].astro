@@ -38,6 +38,8 @@ const { Content } = await render(application);
             summary={product.data.summary}
             status={product.data.status}
             certifications={product.data.certifications}
+            image={product.data.heroImage?.src}
+            imageAlt={product.data.heroImage?.alt}
           />
         ))}
       </div>
