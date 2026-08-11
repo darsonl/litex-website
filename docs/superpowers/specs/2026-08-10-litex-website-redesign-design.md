@@ -374,7 +374,18 @@ if an asset with `aiGenerated: true` is used as a product-page hero, inside a sp
    constantly. Carries the LiTex wordmark, canonical URL, compliance line and phone number.
 3. **Product card** with explicit status — `● IN PRODUCTION` / `○ LEGACY · SAMPLING ONLY`. Lets the
    Silica Gel Switch keep its search value while being honest about availability.
-4. **Credibility bar** — REACH · RoHS · SGS TESTED · PATENTED TW 1M545145 · MANUFACTURING SINCE 1999.
+4. **Credibility bar** — REACH · RoHS · SGS TESTED · TW UTILITY MODEL M545145 · MANUFACTURING SINCE 1999.
+
+   > **Corrected 2026-08-11 — do not restore the original wording.** This line read
+   > "PATENTED TW 1M545145". Both halves were wrong. The number is malformed: the register
+   > shows **TWM545145U**, *"Elastic ribbon having extensible electronic device"*, filed
+   > 2017-03-20 by 富鉅紡織科技股份有限公司 (an exact match for LiTex's registered name, so
+   > the patent is certainly theirs); the leading "1" is a transcription artifact from
+   > `archive/images/patents-and-awards.jpg`. And "PATENTED" asserts a right currently in
+   > force, which is not established — sibling patent **TWM371733 lapsed for non-payment on
+   > 2017-10-01**, and **US 12/787,378 was abandoned on 2012-04-23** for failure to respond
+   > to an office action, so it never granted at all. Verified against Google Patents.
+   > Restore a stronger claim only on LiTex's confirmation of renewal status.
    Carried over from the rejected "Swiss Industrial" direction so the dark theme still serves
    sourcing managers, not just design engineers.
 

@@ -90,8 +90,20 @@ describe('site footer', () => {
 
   it('carries the credibility bar spec §5 specifies', () => {
     const text = docFor('index.html').querySelector('[data-credibility]')?.textContent ?? '';
-    for (const claim of ['REACH', 'RoHS', 'SGS TESTED', 'TW 1M545145', 'SINCE 1999']) {
+    for (const claim of ['REACH', 'RoHS', 'SGS TESTED', 'M545145', 'SINCE 1999']) {
       expect(text, `credibility bar is missing ${claim}`).toContain(claim);
+    }
+  });
+
+  // "TW 1M545145" is what the archive graphic prints and it is malformed; the real
+  // record is TWM545145U. Verified against Google Patents 2026-08-11. The site must
+  // never reintroduce the typo, and must not assert a right currently in force while
+  // the renewal status is unconfirmed.
+  it('cites the patent number in a form that matches the register', () => {
+    for (const file of htmlFiles) {
+      const html = readFileSync(file, 'utf8');
+      expect(html, `${file} prints the malformed patent number`).not.toContain('1M545145');
+      expect(html, `${file} asserts an unverified patent grant`).not.toContain('PATENTED');
     }
   });
 

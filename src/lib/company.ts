@@ -23,13 +23,28 @@ export const COMPANY = {
 } as const;
 
 /**
- * Spec §5 component 4, verbatim. Every item is a claim LiTex already makes in its
- * own catalogs — adding one requires evidence, not optimism.
+ * Spec §5 component 4. Every item is a claim LiTex already makes in its own catalogs —
+ * adding one requires evidence, not optimism.
+ *
+ * The patent item departs from the spec's wording deliberately, on evidence gathered
+ * 2026-08-11:
+ *
+ *  - The number the archive prints, "TW 1M545145", is malformed. The real record is
+ *    TWM545145U, "Elastic ribbon having extensible electronic device", filed
+ *    2017-03-20 by 富鉅紡織科技股份有限公司 — an exact match for legalNameZh above,
+ *    so it is certainly LiTex's. The leading "1" is a transcription artifact.
+ *  - "PATENTED" asserts a right currently in force, which is not established. Taiwan
+ *    utility models run ten years from filing, and the sibling patent TWM371733
+ *    lapsed for non-payment on 2017-10-01, so continued renewal cannot be assumed.
+ *    "TW UTILITY MODEL" states what the record shows and nothing more.
+ *
+ * Restore a stronger claim only when LiTex confirms the renewal status. See the open
+ * questions in the Plan 5 document.
  */
 export const CREDIBILITY: readonly string[] = [
   'REACH',
   'RoHS',
   'SGS TESTED',
-  'PATENTED TW 1M545145',
+  'TW UTILITY MODEL M545145',
   'MANUFACTURING SINCE 1999',
 ];

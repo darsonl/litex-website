@@ -17,4 +17,4 @@ Narrow textile tape with conductive wire woven within, usable as a regular cable
 
 Published features: can be customized to be non-elastic · allows cables to be incorporated into any form of fabric · excellent signal and electric conductance · tape form reduces tangling · the wire used is UL approved.
 
-This product is covered by patent TW 1M545145, "Wired Conductive Woven Tape".
+The elastic variety is the subject of Taiwan utility model TWM545145, "Elastic ribbon having extensible electronic device", filed 20 March 2017 by 富鉅紡織科技股份有限公司. Its renewal status has not been confirmed.
