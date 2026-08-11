@@ -759,14 +759,15 @@ describe('company — about', () => {
 
   // Astro's compressHTML strips the newline between text and a following element,
   // so `since\n<span>1999</span>` ships as `since1999`. Every phrase below spans one
-  // of those joins in the source — they are the four places on this page where an
-  // element starts a line.
+  // of those joins in the page source. Add a phrase whenever you add such a join —
+  // this list is not self-maintaining.
   it('keeps spaces around inline values that start a source line', () => {
     const text = docFor('company/about/index.html').body.textContent ?? '';
     for (const phrase of [
       'and Taiwan Tulip Ribbon & Braids',
       'later, Conductive Metal Yarn',
       'up to 70 cm. See the full comparison',
+      'person is sales@litex.com.tw',
       'storefront at litex.en.alibaba.com',
     ]) {
       expect(text, `lost the space in "${phrase}"`).toContain(phrase);
@@ -886,8 +887,8 @@ const CATALOG = '2018-company-introduction.pdf';
   </address>
 
   <p>
-    LiTex exhibits at Techtextil in Frankfurt, the Wire Show in Düsseldorf, and the Wearable Expo
-    in Tokyo. Between shows, the fastest route to a person is{' '}
+    LiTex has exhibited at Techtextil in Frankfurt (2017), the Wire Show in Düsseldorf (2018) and
+    the Wearable Expo in Tokyo (2022). Between shows, the fastest route to a person is{' '}
     <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a> or the storefront at{' '}
     <a href="https://litex.en.alibaba.com/">litex.en.alibaba.com</a>.
   </p>
