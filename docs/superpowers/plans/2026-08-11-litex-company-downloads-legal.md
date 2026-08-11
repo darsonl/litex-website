@@ -2496,10 +2496,13 @@ const UPDATED = '2026-08-11';
 
   <h2>Mobile information</h2>
 
+  {/* Quoted character for character from archive/pages/privacy-policy.html, where this
+      paragraph was the entire text of the page. It ends without a full stop there, so it
+      ends without one here — the source note below claims verbatim, so it must be. */}
   <p class="quoted">
     No mobile information will be shared with third parties/affiliates for marketing/promotional
     purposes. All other categories exclude text messaging originator opt-in data and consent; this
-    information will not be shared with any third parties.
+    information will not be shared with any third parties
   </p>
 
   <p class="note" data-source-note>
