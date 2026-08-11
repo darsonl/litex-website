@@ -90,7 +90,7 @@ pipeline, verified 2026-08-11 by rendering and viewing each file.
 | Slug | Shows | Used on |
 |---|---|---|
 | `premises` | The LiTex building photographed from street level, illuminated shopfront sign reading *LiTex* over *LED 紡織科技* | `/company/about/` |
-| `heritage-nameplates` | Two brushed-steel group-company nameplates: 恆好貿易有限公司 / HEN HAO TRADING CO., LTD. and 台灣吉普織帶工業 / TAIWAN TULIP RIBBON & BRAIDS | `/company/about/` |
+| `heritage-nameplates` | Two brushed-steel company nameplates at the shared premises: 恆好貿易有限公司 / HEN HAO TRADING CO., LTD. and 台灣吉普織帶工業 / TAIWAN TULIP RIBBON & BRAIDS | `/company/about/` |
 | `factory-floor` | Creel rack, narrow-fabric loom, a row of covering machines | `/company/about/` |
 | `trade-show-stand` | Three staff under a sign reading LITEX TEXTILE & TECH. CO., LTD. | `/company/about/` |
 | `taitronics-award` | 2014 TAITRONICS Technology Innovation Awards certificate | `/company/patents-and-awards/` |
@@ -100,7 +100,7 @@ pipeline, verified 2026-08-11 by rendering and viewing each file.
 described p.1 xref 52 as *"a loom with LiTex-branded tape, two framed certificates, a spool of woven
 tape."* That is wrong on every count — there is no loom in it and there are no certificates in it.
 It is three panels: the LiTex building from street level with an illuminated shopfront sign; **two
-brushed-steel group-company nameplates** reading 恆好貿易有限公司 / HEN HAO TRADING CO., LTD.
+brushed-steel company nameplates** reading 恆好貿易有限公司 / HEN HAO TRADING CO., LTD.
 and 台灣吉普織帶工業 / TAIWAN TULIP RIBBON & BRAIDS; and spools of metal filament beside woven tape.
 Taiwan Tulip Ribbon & Braids appears in **no archived HTML** — only in this photograph. The old
 wording is deleted from this file; do not reintroduce it.
@@ -158,8 +158,11 @@ untrue statements.
 - **LiTex is a subsidiary of Hen Hao Trading, and the two share the Bangka Blvd. premises.**
   Confirmed by the user 2026-08-11. Hen Hao is the **current parent**, not a predecessor — an
   earlier draft of `/company/about/` called the nameplates "the two businesses that came before",
-  which was wrong and is now fixed. Taiwan Tulip Ribbon & Braids is a third company in the same
-  group. Declared once as `COMPANY.parentCompany` in `src/lib/company.ts`.
+  which was wrong and is now fixed. Declared once as `COMPANY.parentCompany` in
+  `src/lib/company.ts`. **Only the LiTex/Hen Hao relationship is confirmed** — Taiwan Tulip Ribbon
+  & Braids is known solely from its nameplate at the same address, which establishes co-location
+  and nothing more. A draft of `/company/about/` called it "in the same group"; that was an
+  invented corporate fact about a third party and a test now guards against it returning.
 - **SGS report `CE/2013/52203` is issued in Hen Hao Trading's name**, confirmed by the user
   2026-08-11. This *was* open question 1 and is now closed. It is stated outright on
   `/company/certifications/` under "Issued to", because a buyer who requests the report and meets

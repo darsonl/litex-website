@@ -55,8 +55,23 @@ describe('company — about', () => {
   // requested has found a discrepancy this page exists to pre-empt.
   it('states the parent-company relationship rather than implying separation', () => {
     const text = docFor('company/about/index.html').body.textContent ?? '';
-    expect(text).toContain('subsidiary of Hen Hao Trading');
-    expect(text, 'the page still frames the group as predecessors').not.toContain('came before:');
+    // "spinoff" alone reads as separation, so the founding sentence has to carry the
+    // present tense too — the two framings must not be left for a reader to reconcile.
+    expect(text).toContain('remains its subsidiary today');
+    expect(text).toContain('share these Taipei premises');
+    expect(text, 'the page still frames Hen Hao as a predecessor').not.toContain('came before:');
+  });
+
+  // Only the LiTex/Hen Hao relationship is confirmed. Taiwan Tulip Ribbon & Braids is
+  // known solely from a nameplate at the shared address, which establishes co-location
+  // and nothing else — a draft of this page claimed it was "in the same group", which
+  // was an invented corporate fact about a third party.
+  it('claims no corporate relationship it cannot support', () => {
+    const text = docFor('company/about/index.html').body.textContent ?? '';
+    expect(text).toContain('at the same address');
+    expect(text, 'group membership asserted for a company nobody confirmed').not.toContain(
+      'in the same group',
+    );
   });
 
   it('shows premises, plant and people rather than asserting them', () => {
