@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 
@@ -76,5 +76,59 @@ describe('imagery policy', () => {
     for (const [file, entry] of Object.entries(manifest)) {
       expect(entry.aiGenerated, `${file} is AI generated and used as a product image`).toBe(false);
     }
+  });
+});
+
+describe('Tier 3 sections — real photography only', () => {
+  // Spec §5: any image that depicts LiTex's actual product, material, factory, machinery,
+  // personnel or certification documents must be real. /technology/ and /company/ are
+  // Tier 3 wall to wall, so every raster image they render must trace to a provenance
+  // entry that declares itself real. Inline SVG diagrams are Tier 1 and exempt.
+  //
+  // This is near-vacuous today — /technology/ ships no rasters — and that is the point.
+  // Plan 5 puts the factory and certificate photographs on /company/, and the rule needs
+  // to be enforced by then rather than remembered.
+  const TIER_3 = ['technology', 'company'];
+
+  const manifest = JSON.parse(
+    readFileSync(join(SRC, 'assets/products/provenance.json'), 'utf8'),
+  ) as Record<string, { aiGenerated: boolean }>;
+
+  /** Astro emits /_astro/<stem>.<hash>[_<variant>].<ext>; recover the original stem. */
+  function sourceStem(src: string): string {
+    const base = src.split('/').pop() ?? '';
+    return base.split('.')[0];
+  }
+
+  const tier3Html = htmlFiles.filter((f) =>
+    TIER_3.some((section) => f.includes(`${sep}${section}${sep}`)),
+  );
+
+  it('covers the sections it claims to cover', () => {
+    // If /technology/ stops being generated this suite would pass by doing nothing.
+    expect(tier3Html.length, 'no Tier 3 pages were found in dist').toBeGreaterThan(0);
+  });
+
+  it('renders no image on a Tier 3 page without a real-photography provenance entry', () => {
+    const offenders: string[] = [];
+    for (const file of tier3Html) {
+      const html = readFileSync(file, 'utf8');
+      for (const tag of html.match(/<img\b[^>]*>/g) ?? []) {
+        const src = tag.match(/\bsrc\s*=\s*"([^"]+)"/)?.[1] ?? '';
+        if (!src) continue;
+        const entry = manifest[`${sourceStem(src)}.jpg`] ?? manifest[`${sourceStem(src)}.png`];
+        if (!entry) offenders.push(`${file}: ${src} has no provenance entry`);
+        else if (entry.aiGenerated) offenders.push(`${file}: ${src} is AI generated`);
+      }
+    }
+    expect(offenders, `Tier 3 violations:\n${offenders.join('\n')}`).toEqual([]);
+  });
+
+  it('allows inline SVG diagrams, which are Tier 1', () => {
+    const tech = readFileSync(
+      tier3Html.find((f) => f.includes(`technology${sep}index.html`)) ?? '',
+      'utf8',
+    );
+    expect(tech).toContain('<svg');
   });
 });
