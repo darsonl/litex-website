@@ -1,0 +1,77 @@
+{
+  "conductive-metal-yarn.jpg": {
+    "source": "archive/catalogs/2018-non-carbon-electrical-heating-textile.pdf",
+    "page": 3,
+    "xref": 11,
+    "crop": null,
+    "dimensions": "1062x562",
+    "note": "Catalog p.3: spool of CMY on wood, a macro of three coiled filaments, and an SEM micrograph captioned \"outer layer: micro metal\" and \"Core: polymer yarn\"",
+    "aiGenerated": false,
+    "extracted": "2026-08-11"
+  },
+  "electrical-heating-textile.jpg": {
+    "source": "archive/catalogs/2018-non-carbon-electrical-heating-textile.pdf",
+    "page": 2,
+    "xref": 3,
+    "crop": null,
+    "dimensions": "1000x500",
+    "note": "Catalog p.2: folded lengths of white open-mesh heating textile on a dark wooden bench",
+    "aiGenerated": false,
+    "extracted": "2026-08-11"
+  },
+  "emi-shielding-woven-tube.jpg": {
+    "source": "archive/catalogs/2018-emi-shielding-wire-tube.pdf",
+    "page": 1,
+    "xref": 26,
+    "crop": null,
+    "dimensions": "2030x914",
+    "note": "Catalog p.1: three spools of braided shielding tube, with two close-ups of the braid flaring open",
+    "aiGenerated": false,
+    "extracted": "2026-08-11"
+  },
+  "rfid-textile-tape.jpg": {
+    "source": "archive/catalogs/2018-rfid-textile-tape.pdf",
+    "page": 1,
+    "xref": 1487,
+    "crop": {
+      "w": 1035,
+      "h": 525,
+      "x": 0,
+      "y": 0
+    },
+    "dimensions": "1035x525",
+    "note": "Catalog p.1, top band cropped from the page image layer: two lengths of RFID woven tape on a wooden surface, showing the serpentine antenna path",
+    "aiGenerated": false,
+    "extracted": "2026-08-11"
+  },
+  "wired-conductive-tape.jpg": {
+    "source": "archive/catalogs/2018-wired-conductive-tape.pdf",
+    "page": 2,
+    "xref": 4,
+    "crop": null,
+    "dimensions": "600x341",
+    "note": "Catalog p.2: two lengths of dark woven tape with a pale conductive wire in a repeating wave, held against a steel ruler. Largest available.",
+    "aiGenerated": false,
+    "extracted": "2026-08-11"
+  },
+  "silica-gel-switch-controller.jpg": {
+    "source": "archive/images/silica-gel-switch-controller.jpg",
+    "page": null,
+    "xref": null,
+    "crop": null,
+    "dimensions": "copied",
+    "note": "Archived product page image: the HT001 switch with its three lead pairs annotated B+/B-, T1/T2 and P+/P-, plus an inset close-up of the moulded body",
+    "aiGenerated": false,
+    "extracted": "2026-08-11"
+  },
+  "braided-self-curling-tube.jpg": {
+    "source": "archive/images/20200313_070104268_ios.jpg",
+    "page": null,
+    "xref": null,
+    "crop": null,
+    "dimensions": "copied",
+    "note": "Archived product page image: five diameters of black braided sleeve laid side by side on a white surface",
+    "aiGenerated": false,
+    "extracted": "2026-08-11"
+  }
+}
