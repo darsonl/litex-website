@@ -163,3 +163,72 @@ describe('company — patents and awards', () => {
     expect(html).not.toContain('Kappos');
   });
 });
+
+describe('company — certifications', () => {
+  it('generates the route with a single h1 and its canonical', () => {
+    const doc = docFor('company/certifications/index.html');
+    expect(doc.querySelectorAll('h1')).toHaveLength(1);
+    expect(doc.querySelector('link[rel="canonical"]')?.getAttribute('href'))
+      .toBe('https://litex.com.tw/company/certifications/');
+  });
+
+  it('covers all three claims the credibility bar makes', () => {
+    const text = docFor('company/certifications/index.html').body.textContent ?? '';
+    for (const claim of ['REACH', 'RoHS', 'SGS']) {
+      expect(text, `${claim} is not accounted for`).toContain(claim);
+    }
+  });
+
+  // The distinction the whole page turns on: a claim in our own catalog is not a
+  // certificate. A buyer must be able to see which is which at a glance.
+  it('says for every claim whether a document is published behind it', () => {
+    const doc = docFor('company/certifications/index.html');
+    const headers = [...doc.querySelectorAll('th[scope="col"]')].map((th) => th.textContent);
+    expect(headers.join(' ')).toContain('Document published here');
+    expect(doc.querySelectorAll('tbody tr')).toHaveLength(3);
+  });
+
+  it('names the SGS report number and its year', () => {
+    const text = docFor('company/certifications/index.html').body.textContent ?? '';
+    expect(text).toContain('CE/2013/52203');
+    expect(text).toContain('2013');
+  });
+
+  it('admits what the report photograph does not show', () => {
+    const text = docFor('company/certifications/index.html').body.textContent ?? '';
+    expect(text.toLowerCase()).toContain('not legible');
+  });
+
+  it('shows the report cover, captioned to its source', () => {
+    const figures = docFor('company/certifications/index.html')
+      .querySelectorAll('[data-archive-figure]');
+    expect(figures.length).toBe(1);
+    expect(figures[0].querySelector('figcaption')?.textContent)
+      .toContain('2018-company-introduction.pdf');
+  });
+
+  it('gives a buyer a route to the actual documents', () => {
+    const hrefs = [...docFor('company/certifications/index.html').querySelectorAll('main a')]
+      .map((a) => a.getAttribute('href'));
+    expect(hrefs).toContain('mailto:sales@litex.com.tw');
+  });
+
+  // A REACH or RoHS badge graphic asserts a conformity assessment that no document
+  // on this site supports. Words can be qualified; a badge cannot.
+  it('displays no compliance badge imagery', () => {
+    const doc = docFor('company/certifications/index.html');
+    for (const img of [...doc.querySelectorAll('img')]) {
+      const alt = (img.getAttribute('alt') ?? '').toLowerCase();
+      expect(alt, 'a REACH/RoHS badge is being rendered').not.toMatch(/reach|rohs/);
+    }
+  });
+
+  // SpecTable renders its own [data-source-note]; the page's hand-authored page note
+  // is a second, distinct note (Task 4 established this pattern for patents-and-awards).
+  it('states in its own page note that the claims are LiTex\'s own, dated 2018 or earlier', () => {
+    const note = docFor('company/certifications/index.html').querySelector('[data-page-note]');
+    expect(note).toBeTruthy();
+    expect(note?.textContent).toContain('LiTex\'s own');
+    expect(note?.textContent).toContain('2018 or earlier');
+  });
+});
