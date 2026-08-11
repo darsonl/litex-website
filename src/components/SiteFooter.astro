@@ -1,0 +1,85 @@
+---
+import { COMPANY, CREDIBILITY } from '../lib/company';
+
+const year = new Date().getFullYear();
+---
+<footer class="sitefooter" data-sitefooter>
+  <div class="inner">
+    <ul class="credibility value" data-credibility>
+      {CREDIBILITY.map((claim) => <li>{claim}</li>)}
+    </ul>
+
+    <div class="cols">
+      <address class="contact">
+        <span class="label">Manufacturer</span>
+        <span>{COMPANY.legalName}</span>
+        {COMPANY.addressLines.map((line) => <span>{line}</span>)}
+        <a class="value" href={COMPANY.phoneHref}>{COMPANY.phone}</a>
+        <a class="value" href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>
+        <span class="hours">{COMPANY.hours}</span>
+      </address>
+
+      <nav class="secondary" aria-label="Footer">
+        <span class="label">Browse</span>
+        <a href="/products/">Products</a>
+        <a href="/applications/">Applications</a>
+      </nav>
+    </div>
+
+    <p class="legal">
+      <small>© {year} {COMPANY.legalName} · {COMPANY.legalNameZh}</small>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .sitefooter {
+    border-top: 1px solid var(--c-line);
+    background: var(--c-raised);
+  }
+  .inner {
+    max-width: 76rem;
+    margin: 0 auto;
+    padding: var(--s-12) var(--s-6);
+  }
+  .credibility {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-4);
+    margin: 0 0 var(--s-12);
+    padding: 0 0 var(--s-6);
+    border-bottom: 1px solid var(--c-line);
+    font-size: var(--t-10);
+    letter-spacing: 0.12em;
+    color: var(--c-copper);
+  }
+  .credibility li + li::before {
+    content: '·';
+    margin-right: var(--s-4);
+    color: var(--c-line);
+  }
+  .cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: var(--s-8);
+  }
+  .contact, .secondary {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-1);
+    font-style: normal;
+    font-size: var(--t-14);
+    color: var(--c-text-2);
+  }
+  .label {
+    font-family: var(--font-mono);
+    font-size: var(--t-10);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--c-text-2);
+    margin-bottom: var(--s-2);
+  }
+  .hours { color: var(--c-text-2); }
+  .legal { margin: var(--s-12) 0 0; color: var(--c-text-2); }
+</style>

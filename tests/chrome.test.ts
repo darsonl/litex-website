@@ -79,3 +79,47 @@ describe('site chrome', () => {
     expect(first?.getAttribute('class')).toContain('skip-link');
   });
 });
+
+describe('site footer', () => {
+  it('puts a footer on every generated page', () => {
+    for (const file of htmlFiles) {
+      const doc = parseHTML(readFileSync(file, 'utf8')).document;
+      expect(doc.querySelector('footer[data-sitefooter]'), `${file} has no footer`).toBeTruthy();
+    }
+  });
+
+  it('carries the credibility bar spec §5 specifies', () => {
+    const text = docFor('index.html').querySelector('[data-credibility]')?.textContent ?? '';
+    for (const claim of ['REACH', 'RoHS', 'SGS TESTED', 'TW 1M545145', 'SINCE 1999']) {
+      expect(text, `credibility bar is missing ${claim}`).toContain(claim);
+    }
+  });
+
+  it('publishes the real contact details, on every page', () => {
+    for (const file of htmlFiles) {
+      const html = readFileSync(file, 'utf8');
+      expect(html, `${file} lost the contact address`).toContain('sales@litex.com.tw');
+      expect(html, `${file} lost the phone number`).toContain('2308-4712');
+    }
+  });
+
+  it('never reintroduces the theme placeholder contact details', () => {
+    for (const file of htmlFiles) {
+      const html = readFileSync(file, 'utf8');
+      expect(html, `${file} contains placeholder contact details`).not.toContain('example.com');
+      expect(html, `${file} contains the placeholder US address`).not.toContain('10 Street Road');
+      expect(html, `${file} contains the placeholder phone`).not.toContain('555 1234');
+    }
+  });
+
+  it('keeps the email in astro.config.mjs identical to the one pages render', async () => {
+    // Two declarations exist on purpose: pages must not import astro.config.mjs.
+    // They must never disagree.
+    const { COMPANY } = await import('../src/lib/company');
+    const config = readFileSync(
+      fileURLToPath(new URL('../astro.config.mjs', import.meta.url)),
+      'utf8',
+    );
+    expect(config, 'CONTACT_EMAIL has drifted from COMPANY.email').toContain(COMPANY.email);
+  });
+});
