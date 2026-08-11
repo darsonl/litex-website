@@ -40,9 +40,10 @@ the quality came from.
 ## State as of 2026-08-11 (end of session 6)
 
 - Plan 5's branch, `plan-5-company-downloads-legal`, is complete: all 9 tasks done, each reviewed
-  and fixed. Full account in
-  `.superpowers/sdd/2026-08-11-litex-company-downloads-legal/progress.md`. Pushed, and open as
-  **PR #5** — https://github.com/darsonl/litex-website/pull/5. **Not merged yet.**
+  and fixed. **Squash-merged 2026-08-12 as PR #5** — merge commit **`28fc138`** on `main`; both
+  the remote and local branches are deleted. The SDD ledger that recorded every task, review
+  finding and fix round has been **deleted** along with it; what survived it is the
+  "Carried-forward minors" section below, plus the parked residual.
 - `npm run build` exits 0, emitting **24 pages**. `npm test` = **230 tests across 16 files**, all
   passing. Design detector returns `[]` for `src/components src/pages src/styles`.
 - `dist` totals **16 MB**, of which `dist/catalogs` is about **11 MB** — the six catalog PDFs,
@@ -50,11 +51,12 @@ the quality came from.
 - Routes added this plan: `/company/`, `/company/about/`, `/company/patents-and-awards/`,
   `/company/certifications/`, `/downloads/`, `/legal/privacy/`.
 - **Working tree is clean and everything is pushed.** Nothing is in flight, nothing is half-done.
-  The only outstanding action on Plan 5 is **merging PR #5**, which is the user's call — see
-  "Resuming in a new session" at the bottom of this file.
-- Repo public at **https://github.com/darsonl/litex-website**. Plans 1–4 merged via PR #1–#4; Plan 5
-  merges via whichever PR number the controller opens next — not confirmed at the time this file was
-  written.
+  **Nothing on Plan 5 is outstanding.**
+- Repo public at **https://github.com/darsonl/litex-website**. Plans 1–5 merged via PR #1–#5.
+- Re-verified on merged `main` at `28fc138` on 2026-08-12: `npm test` → **230 passed / 16 files**,
+  `npm run build` → **24 pages**, and the squashed branch diffed **identical** to `main` before its
+  local branch was force-deleted (`-d` refuses a squash merge; that refusal is expected and is not
+  evidence of unmerged work).
 
 ### Plan roadmap — 8 total
 
@@ -64,7 +66,7 @@ the quality came from.
 | 2 | Product layer & spec table | ✅ merged (PR #2) |
 | 3 | Product photography & image pipeline | ✅ merged (PR #3) |
 | 4 | Site chrome & the technology section | ✅ merged (PR #4) |
-| 5 | `/company/` ×4 · `/downloads/` · `/legal/privacy/` | ✅ complete — **PR #5 open, not merged** |
+| 5 | `/company/` ×4 · `/downloads/` · `/legal/privacy/` | ✅ merged (PR #5, `28fc138`) |
 | 6 | `/news/` index + 7 posts | ← **next, not written** |
 | 7 | Contact + sample-request flow (Pages Function, Turnstile, KV) | not written |
 | 8 | Launch: `_redirects`, sitemap, analytics, Sveltia CMS, print stylesheet, Lighthouse/axe, broken-link check | not written |
@@ -223,6 +225,49 @@ product catalog links 404 in production with no test catching it.
 
 ---
 
+## Carried-forward minors from Plan 5's review ledger
+
+The Plan 5 SDD ledger recorded **15 deferred minors**, all triaged "fine to carry" by the final
+whole-branch review. The ledger itself was deleted after PR #5 merged, so the ones with a live
+trigger condition are preserved here. None is a bug; each is a decision that becomes wrong later.
+
+**Plan 6 should act on these three — its own scope is the trigger:**
+
+1. **`walk()` and `routeFile()` are duplicated verbatim** in `tests/chrome.test.ts` and
+   `tests/company.test.ts`. A `tests/news.test.ts` would be the third copy. Extract a shared test
+   helper in Plan 6 rather than pasting again.
+2. **`ArchiveFigure` and `ProductHero` share near-identical figure boilerplate** (wrapper CSS,
+   `:global(img)`, figcaption, width/height shape). The recorded trigger for refactoring was
+   "if a third figure component appears" — news post imagery may be it.
+3. **`ArchiveFigure size="full"` resolves its `widths` ladder to `[400, 800]`**, so an 800–1200px
+   source fills a ~960px slot at 800px. Inherited unchanged from `ProductHero`; today it affects
+   `factory-floor.jpg` only. Any full-width news image lands in the same ladder.
+
+**Plan 8 should act on these three:**
+
+4. The **dist-reading test strategy assumes `npm run build` ran immediately before `npm test`.**
+   A stale `dist/` can pass some assertions vacuously. Pre-existing, not worsened by Plan 5, but
+   it is a CI-ordering constraint the moment CI exists.
+5. `/legal/privacy/`'s **script guard checks only absolute `http(s)` `script[src]`** — it would miss
+   a protocol-relative URL or an inline third-party call. Cloudflare Web Analytics uses a full
+   `https` src, so Plan 8's actual change *is* covered; the guard is just narrower than it reads.
+6. The same page's **analytics guard asserts `toContain('no analytics')`**, which could pass on a
+   partially-rewritten page. The script-src assertion is the real blocker; this is redundancy.
+
+**No trigger, carry indefinitely:** `dirFor()` reimplemented with different signatures in
+`extract-images.mjs` and `provenance.test.ts` · `patents.ts` repeats 富鉅紡織科技股份有限公司 as a
+literal instead of importing `COMPANY.legalNameZh`, while commenting that it is "an exact match" ·
+`AWARD.dated` is styled `class="value"` beside true identifiers · the "does not assert a right
+currently in force" test only checks that the word "renewal" appears · the "never publishes the
+unattributable US patent certificate" test cannot fail until a `us-patent` slug exists (forward
+guard by design) · `scripts/sync-catalogs.mjs` throws a bare ENOENT if `archive/catalogs/` is
+missing · `humanSize()` has no direct unit test, so the MB/KB boundary is unpinned ·
+`about.astro:99` is a 113-char line against a ~78–90 char file norm · `about.astro:132–135`
+("looms built for exactly the widths a conductive tape needs") is interpretive framing rather than
+a sourced fact — noted because it sits on a page built on traceability.
+
+---
+
 ## Open questions for LiTex — carried forward and revised
 
 Ordered by how much damage the wrong answer does.
@@ -250,26 +295,27 @@ Ordered by how much damage the wrong answer does.
 
 ### Where things stand
 
-Plan 5 is **finished and pushed**, open as PR #5, **not merged**. Working tree clean, branch
-`plan-5-company-downloads-legal` at `c2cb3f3`. `npm run build` → 24 pages. `npm test` → 230
-passing across 16 files. Detector → `[]`.
+Plan 5 is **merged**. `main` is at `28fc138`, clean, pushed, with no branches outstanding.
+`npm run build` → 24 pages. `npm test` → 230 passing across 16 files. Detector → `[]`.
 
-The full execution record — every task, every review finding, every fix round, every deferred
-minor, and the parked residual — is in
-`.superpowers/sdd/2026-08-11-litex-company-downloads-legal/progress.md`. That directory is
-gitignored, so it exists only on this machine. Read it before re-litigating anything about Plan 5.
+The Plan 5 SDD ledger has been **deleted** — it was gitignored, so it existed only on one machine
+and is now gone for good. Its durable content was lifted into this file before deletion:
+"Carried-forward minors" holds the 15 deferred findings, and "Parked residual" holds the one
+open ruling. The committed plan document,
+`docs/superpowers/plans/2026-08-11-litex-company-downloads-legal.md`, and the squashed PR #5 diff
+are the remaining record. Do not go looking for `.superpowers/sdd/2026-08-11-*`; it is not there.
 
-### Do this first, in order
+### Do this first
 
-1. **Merge PR #5** (`gh pr merge 5 --squash --delete-branch`, or via the web UI), then
-   `git checkout main && git pull`. Nothing else in Plan 5 is outstanding.
-   - Note: `gh pr edit` and `gh pr merge` may fail with a **token scope error** (`read:org`
-     missing). Fall back to the REST API — `gh api --method PUT repos/darsonl/litex-website/pulls/5/merge`
-     — or merge in the browser. This is a token config issue, not a repo problem.
-2. **Delete the SDD workspace** once merged: `rm -rf .superpowers/sdd/2026-08-11-litex-company-downloads-legal`.
-   Git history is the record after that. Do not delete it before merging — this file cites it.
-3. **Write Plan 6** with `superpowers:writing-plans`. Scope, sources and house style are all
-   described above. Do not re-run brainstorming or the spec self-review.
+**Write Plan 6** with `superpowers:writing-plans`. Scope, sources and house style are all described
+above. Do not re-run brainstorming or the spec self-review, and do not re-derive anything under
+"Settled — do not re-raise".
+
+The `gh` token note, kept because it will recur on PR #6: `gh pr edit` and `gh pr merge` may fail
+with a **`read:org` scope error**. Fall back to the REST API
+(`gh api --method PUT repos/darsonl/litex-website/pulls/N/merge`) or the browser. It is a token
+config issue, not a repo problem. On this occasion `gh pr merge --squash --delete-branch` worked
+with no error.
 
 ### What NOT to redo
 
