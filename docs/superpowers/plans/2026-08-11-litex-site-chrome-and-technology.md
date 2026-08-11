@@ -53,7 +53,7 @@ Verified present and correctly described on 2026-08-11 by rendering each through
 
 | Asset | Actual content | Belongs to |
 |---|---|---|
-| `2018-company-introduction.pdf` p.2 xref 5 (1035×442) | US patent certificate (granted-patent cover, signed David J. Kappos, **number not legible**), TAITRONICS 優選獎 Quality Award dated 2014.9.29 for 非碳纖維電子發熱紡織品, SGS Test Report **CE/2013/52203** | `/company/certifications/`, `/company/patents-and-awards/` |
+| `2018-company-introduction.pdf` p.2 xref 5 (1035×442) | US patent certificate (granted-patent cover, signed David J. Kappos — **carries no number at all**, see open question 2), TAITRONICS 優選獎 Quality Award dated 2014.9.29 for 非碳纖維電子發熱紡織品, SGS Test Report **CE/2013/52203** | `/company/certifications/`, `/company/patents-and-awards/` |
 | same PDF p.1 xref 52 (989×692) | Loom with LiTex-branded tape, two framed certificates, a spool of woven tape | `/company/about/` |
 | same PDF p.1 xref 54 (1024×536) | Factory floor — creels, spools, machinery, three panels | `/company/about/` |
 | same PDF p.2 xref 8 (626×504) | Trade-show booth and three staff under a LITEX TEXTILE & TECH. CO., LTD. sign | `/company/about/` |
@@ -1459,7 +1459,11 @@ Verify each by running it, not by reading the code.
 ## Open questions for LiTex — do not guess these
 
 1. **The thermograph's test conditions** — input voltage, duration, ambient temperature, and what the colour scale maps to. Two thermograph images exist and they are the strongest evidence for "even and stable heating", but publishing a thermal image without its conditions asserts a measurable result that cannot be checked. Held out of `/technology/` until answered.
-2. **The US patent number.** `2018-company-introduction.pdf` p.2 carries a **granted** US patent certificate — the cover page, signed by David J. Kappos, USPTO Director 2009–2013. The number is not legible at the stored resolution. `archive/extracted-from-images.md` §2 records US 12/787,378 only as a *pending application*, so the grant is new information and the number must come from LiTex.
+2. **The US patent number — not recoverable from the archive at any resolution.** `2018-company-introduction.pdf` p.2 carries a **granted** US patent certificate, which is new information: `archive/extracted-from-images.md` §2 records US 12/787,378 only as a *pending application*.
+
+   **Do not spend time trying to read the number off the image.** Checked 2026-08-11 by cropping the panel and upscaling 4×: the certificate is the standard USPTO ribbon **cover page** — seal, generic grant boilerplate, Director's signature — and carries no number, title, inventor or date. Those appear on the facing page, which was never photographed. Every word of the cover is already legible; rescanning gains nothing. The two other patent images (`images/cmy-patent.jpg`, `images/patents-and-awards.jpg`) are also fully legible and both still say `US 12/787,378` *pending*.
+
+   Two routes to the number, neither of which is guessing: look up application **12/787,378** in USPTO Patent Center or Patent Public Search, or ask LiTex. The signature is **David J. Kappos**, USPTO Director August 2009 – February 2013, so the grant falls in that window — useful for confirming a candidate is the right patent. Confirm against two independent sources before publishing: a wrong number on a credibility page is the exact failure spec §0 exists to end.
 3. **Patent statuses generally.** Carried over: the TW and CN applications date from 2010–2011 and have since been granted or abandoned. Publishing a 15-year-old "pending" is worse than publishing nothing.
 4. **CuNi status.** Copper-nickel CMY was "coming soon" in 2018. `/technology/` currently says exactly that and flags it unconfirmed. Confirm whether it shipped.
 5. **Is the 2018 grade range still current?** The whole `/technology/` argument rests on the 1S–4S4Z range and its resistances. If grades have been added or dropped, the page is wrong.
