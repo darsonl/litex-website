@@ -1,0 +1,105 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import YarnStructureDiagram from '../../components/YarnStructureDiagram.astro';
+
+const SOURCE = '2018-non-carbon-electrical-heating-textile.pdf p.3, and images/cmy-structure1.jpg';
+
+const structures = [
+  {
+    label: '1S',
+    coverings: 1,
+    directions: ['S'] as const,
+    caption: 'One covering, wound in the S direction. The finest commercial grade at 0.27 mm uncoated.',
+  },
+  {
+    label: '1S1Z',
+    coverings: 2,
+    directions: ['S', 'Z'] as const,
+    caption: 'Two coverings wound in opposing directions, which balances the torque the first layer introduces.',
+  },
+  {
+    label: '2S2Z',
+    coverings: 4,
+    directions: ['S', 'S', 'Z', 'Z'] as const,
+    caption: 'Four coverings. Roughly a third of the resistance of 1S, and materially tougher.',
+  },
+];
+---
+<BaseLayout
+  title="Technology — how Conductive Metal Yarn is built | LiTex"
+  description="Conductive Metal Yarn is a metal layer coiled helically over a core polymer yarn. Covering count and S/Z direction set resistance and toughness."
+>
+  <h1>How Conductive Metal Yarn is built</h1>
+
+  <p class="lede">
+    A metal layer coiled helically around a core polymer yarn. How many times it is wound, and in
+    which direction, is the whole specification — it sets resistance, diameter and toughness
+    together.
+  </p>
+
+  <h2>Reading a grade name</h2>
+
+  <p>
+    A grade like <span class="value">010/N(K)30'*3/2S2Z</span> ends in its covering pattern. The
+    digits count coverings in each direction and the letters give the helical direction: <span
+    class="value">S</span> and <span class="value">Z</span> are opposite hands, named after the
+    middle stroke of each letter. So <span class="value">1S</span> is a single covering,{' '}
+    <span class="value">1S1Z</span> is two wound against each other, and{' '}
+    <span class="value">4S4Z</span> is eight.
+  </p>
+
+  <div class="structures">
+    {structures.map((s) => (
+      <YarnStructureDiagram
+        label={s.label}
+        coverings={s.coverings}
+        directions={s.directions}
+        caption={s.caption}
+      />
+    ))}
+  </div>
+
+  <h2>What more coverings buy</h2>
+
+  <p>
+    Across the published range — <span class="value">1S</span> through{' '}
+    <span class="value">4S4Z</span>, one covering to eight — resistance falls from about{' '}
+    <span class="value">4.4&nbsp;Ω/M</span> to about <span class="value">0.8&nbsp;Ω/M</span> while
+    toughness rises from the weakest grade to the strongest. Diameter rises with it, from{' '}
+    <span class="value">0.27&nbsp;mm</span> uncoated to <span class="value">0.65&nbsp;mm</span>.
+    Choosing a grade is choosing where on that curve an application sits.
+  </p>
+
+  <p>
+    Coverings are tinned copper. Coating options are <span class="value">PU</span> and{' '}
+    <span class="value">FEP&nbsp;(Teflon)</span>. A copper-nickel version was listed as coming soon
+    in the 2018 catalog; its current status is unconfirmed.
+  </p>
+
+  <p><a href="/products/conductive-metal-yarn/">See the full grade table with diameters and resistances →</a></p>
+
+  <h2>Why coiled rather than bundled</h2>
+
+  <p>
+    The coiled construction is what lets the yarn bend without the filament fracture that affects
+    brittle heating elements, and it is made ready to use on LiTex's own looms rather than
+    assembled by hand — which is what makes it mass manufacturable.{' '}
+    <a href="/technology/heating-element-comparison/">Compared against carbon fibre, heating film and steel fibre →</a>
+  </p>
+
+  <p class="note" data-source-note>
+    <small>Source: {SOURCE}. Figures are from the 2018 catalog and have not been re-confirmed with LiTex.</small>
+  </p>
+</BaseLayout>
+
+<style>
+  .lede { font-size: var(--t-20); color: var(--c-text-2); max-width: 58ch; }
+  p { max-width: 70ch; }
+  .structures {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+    gap: var(--s-4);
+    margin: var(--s-8) 0;
+  }
+  .note { color: var(--c-text-2); margin-top: var(--s-16); }
+</style>
