@@ -5,7 +5,8 @@ import { applicationSchema } from './schemas/application';
 
 const products = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/products' }),
-  schema: productSchema(reference),
+  // image comes from Astro's SchemaContext and resolves paths relative to the entry file.
+  schema: ({ image }) => productSchema({ reference, image }),
 });
 
 const applications = defineCollection({
