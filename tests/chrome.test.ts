@@ -123,3 +123,27 @@ describe('site footer', () => {
     expect(config, 'CONTACT_EMAIL has drifted from COMPANY.email').toContain(COMPANY.email);
   });
 });
+
+describe('homepage', () => {
+  it('offers both doors — by product and by application', () => {
+    const doc = docFor('index.html');
+    const hrefs = [...doc.querySelectorAll('[data-door]')].map((a) => a.getAttribute('href'));
+    expect(hrefs).toEqual(['/products/', '/applications/']);
+  });
+
+  it('states how much is behind each door, from the collections themselves', () => {
+    const doc = docFor('index.html');
+    const doors = [...doc.querySelectorAll('[data-door]')].map((a) => a.textContent ?? '');
+    expect(doors[0]).toContain('7');
+    expect(doors[1]).toContain('6');
+  });
+
+  it('says what LiTex actually makes, above the fold', () => {
+    const doc = docFor('index.html');
+    expect(doc.querySelector('h1')?.textContent).toContain('conductive');
+  });
+
+  it('names the founding year rather than leaving credibility to the footer alone', () => {
+    expect(docFor('index.html').body.textContent).toContain('1999');
+  });
+});
