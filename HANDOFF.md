@@ -1,43 +1,51 @@
 # Session handoff — LiTex website redesign
 
-**Written:** 2026-08-11 (end of session 4)
+**Written:** 2026-08-11 (end of session 6)
 **Reason:** Session running out of context. This file is the resume point.
 
 ---
 
 ## ▶ Do this first
 
-**Plans 1–4 are built, verified and merged.** Do not re-run brainstorming, the spec self-review,
-`/impeccable init`, or `writing-plans` for Plans 1–4 — all complete.
+**Plans 1–5 are built, verified and merged.** Do not re-run brainstorming, the spec self-review,
+`/impeccable init`, or `writing-plans` for Plans 1–5 — all complete.
 
-### → Start here: write Plan 5 with `superpowers:writing-plans`, then execute it
+### → Start here: write Plan 6 with `superpowers:writing-plans`, then execute it
 
-Plan 5 is **`/company/` hub + `/company/about/` + `/company/patents-and-awards/` +
-`/company/certifications/` + `/downloads/` + `/legal/privacy/`.**
+Plan 6 is **`/news/` index + 7 posts.**
 
 Read before writing it: this file, `PRODUCT.md`, and
-`docs/superpowers/specs/2026-08-10-litex-website-redesign-design.md` (§3 IA, §5 design system,
-§6 extracted content, §7 gaps). The three completed plans in `docs/superpowers/plans/` are worth
-skimming for house style — they are long, fully-specified, and every code block is real.
+`docs/superpowers/specs/2026-08-10-litex-website-redesign-design.md` (§3 IA, §6 extracted content,
+§7 gaps). The five completed plans in `docs/superpowers/plans/` are worth skimming for house
+style — they are long, fully-specified, and every code block is real.
 
-**Execution mode:** all four plans ran **inline** via `superpowers:executing-plans` — subagents are
-disabled and inline reuses context cheaply. Working pattern that has held for 24 tasks:
-branch → task → test → commit per task → PR → merge → delete branch.
+**Execution mode:** all five plans ran **inline** via `superpowers:executing-plans` — subagents are
+disabled and inline reuses context cheaply. Working pattern that has held for 32 tasks across five
+plans: branch → task → test → commit per task → PR → merge → delete branch. Plan 5 additionally ran
+a whole-branch review before merge (after all 8 implementation tasks were individually reviewed),
+which caught a cross-task drift no single-task review could see — see "What Plan 6 inherits" below
+for the fix. Worth repeating.
 
 ---
 
-## State as of 2026-08-11
+## State as of 2026-08-11 (end of session 6)
 
-- **`main` is at `573dbe2`, clean and pushed. Nothing in flight** — no open branch, no open PR.
-- Repo public at **https://github.com/darsonl/litex-website**. Plans 1–4 merged via PR #1–#4; all
-  four branches deleted, remote pruned.
-- `npm test` = **160 tests across 13 files**, all passing. `npm run build` exits 0, emitting
-  **18 pages**. Design detector returns `[]` for `src/components src/pages src/styles`.
-- dist imagery: 3110 KB total, largest asset 280 KB.
+- Plan 5's branch, `plan-5-company-downloads-legal`, is complete: all 9 tasks done, each reviewed
+  and fixed. Full account in
+  `.superpowers/sdd/2026-08-11-litex-company-downloads-legal/progress.md`. 20 commits ahead of
+  `main` (`0488e25`). **Not pushed or merged yet — the controller pushes, opens the PR, and merges
+  after this commit.**
+- `npm run build` exits 0, emitting **24 pages**. `npm test` = **226 tests across 16 files**, all
+  passing. Design detector returns `[]` for `src/components src/pages src/styles`.
+- `dist` totals **16 MB**, of which `dist/catalogs` is about **11 MB** — the six catalog PDFs,
+  served for the first time this plan.
+- Routes added this plan: `/company/`, `/company/about/`, `/company/patents-and-awards/`,
+  `/company/certifications/`, `/downloads/`, `/legal/privacy/`.
+- Repo public at **https://github.com/darsonl/litex-website**. Plans 1–4 merged via PR #1–#4; Plan 5
+  merges via whichever PR number the controller opens next — not confirmed at the time this file was
+  written.
 
-### Plan roadmap — now 8 total
-
-Plan 4 was scoped down (site had no navigation at all), which pushed the count from 6 to 8.
+### Plan roadmap — 8 total
 
 | Plan | Scope | State |
 |---|---|---|
@@ -45,44 +53,55 @@ Plan 4 was scoped down (site had no navigation at all), which pushed the count f
 | 2 | Product layer & spec table | ✅ merged (PR #2) |
 | 3 | Product photography & image pipeline | ✅ merged (PR #3) |
 | 4 | Site chrome & the technology section | ✅ merged (PR #4) |
-| 5 | **`/company/` ×4 · `/downloads/` · `/legal/privacy/`** | ← **next, not written** |
-| 6 | `/news/` index + 7 posts | not written |
+| 5 | `/company/` ×4 · `/downloads/` · `/legal/privacy/` | ✅ complete — controller to push/PR/merge |
+| 6 | `/news/` index + 7 posts | ← **next, not written** |
 | 7 | Contact + sample-request flow (Pages Function, Turnstile, KV) | not written |
 | 8 | Launch: `_redirects`, sitemap, analytics, Sveltia CMS, print stylesheet, Lighthouse/axe, broken-link check | not written |
 
 ---
 
-## What Plan 5 inherits from Plan 4 — use these, don't reinvent
+## What Plan 6 inherits from Plan 5 — use these, don't reinvent
 
 | Thing | Where | Note |
 |---|---|---|
-| Primary nav | `src/lib/nav.ts` | Add `/company/` and `/downloads/` here. `tests/chrome.test.ts` **fails if a chrome link has no built page behind it** — add the route first. |
-| Company facts | `src/lib/company.ts` | `COMPANY` + `CREDIBILITY`. A test fails if `COMPANY.email` drifts from `CONTACT_EMAIL` in `astro.config.mjs`. |
-| Chrome | `SiteNav.astro`, `SiteFooter.astro` | Mounted globally in `BaseLayout.astro`. |
-| Page container | `.page` in `global.css` | `max-width: 76rem`, plus h1/h2/h3 rhythm. |
-| Spec tables | `SpecTable.astro` | Takes `{ columns, rows }`; gives Copy-as-CSV + provenance note free. |
-| Tier 3 imagery guard | `tests/imagery.test.ts` | **Vacuous today, starts biting the moment `/company/` gets a photograph.** Every raster on `/company/` or `/technology/` must trace to a `provenance.json` entry with `aiGenerated: false`. |
-| Image extraction | `scripts/extract-images.mjs` + `extract-image.py` | Re-runnable, writes `src/assets/products/provenance.json`. Extend for `/company/` assets. |
+| Primary nav | `src/lib/nav.ts` | Add `/news/` here. `tests/chrome.test.ts` **fails if a chrome link has no built page behind it** — add the route first. |
+| Captioned archive photography | `src/components/ArchiveFigure.astro` | Props `{ image: ImageMetadata; alt: string; caption: string (required); size?: 'full'\|'half'\|'document'; loading?: 'eager'\|'lazy' }`. Never upscales a source — the `widths` ladder is capped under the narrowest source that uses each `size`. |
+| Contact block | `src/components/ContactBlock.astro` | Props `{ showLegalNameZh?: boolean }`, default `false`. Renders legal name, optional Chinese legal name, address lines, Tel, Fax, email, hours as `<p>` children inside one `<address data-contact-block>`. Used on `/company/about/`, `/company/` (with `showLegalNameZh`), and `/legal/privacy/`. It carries its own `.contact p { margin: 0; }` — see the toolchain-adjacent gotcha below for why that rule has to live inside the component. |
+| Two-group image extraction | `scripts/extract-images.mjs` + `extract-image.py`; `src/assets/{products,company}/provenance.json` | `SOURCES` entries carry an optional `group: 'products' \| 'company'`, default `'products'`. `tests/provenance.test.ts` walks both manifests and asserts no filename appears in both. Re-runnable; add a third group only if a third page family needs its own photography — a shared directory would make the per-slug assertions meaningless. |
+| Catalog delivery | `public/catalogs/` (gitignored), `scripts/sync-catalogs.mjs`, `src/data/catalog-files.json` (generated, committed) | `npm run build` is `node scripts/sync-catalogs.mjs && astro build` — an **inlined step, not an npm `prebuild` lifecycle hook** — so it survives `pnpm` or any runner that skips lifecycle hooks. It does **not** survive calling `npx astro build` directly; see the parked residual below. |
+| `data-source-note` vs `data-page-note` | `company/patents-and-awards.astro`, `company/certifications.astro` | `SpecTable` emits its own `[data-source-note]`. A second one on the same page would make that hook non-singular site-wide, so a page-level note that sits beside a `SpecTable` uses `[data-page-note]` instead. Keep the distinction if Plan 6 ever pairs a `SpecTable` with page-level prose. |
+| Forward-guard tests | `tests/legal.test.ts` | Two tests on `/legal/privacy/` — *"claims no analytics only while the site really runs none"* and *"describes no form while no form exists"* — are written to fail the moment Plan 7 ships a form or Plan 8 ships analytics. **Delete each one deliberately**, in the same commit that updates the page to describe the new reality. Do not silence or loosen them instead. |
 
 ---
 
-## Assets held for Plan 5 — verified 2026-08-11 by rendering each
+## Company photography extracted in Plan 5
 
-All in `archive/catalogs/2018-company-introduction.pdf`. **Decode via `fitz.Pixmap`, never
-`extract_image`** — see the toolchain memory for why.
+All six sourced from `archive/catalogs/2018-company-introduction.pdf` via the two-group extraction
+pipeline, verified 2026-08-11 by rendering and viewing each file.
 
-| xref | Size | Content | Page |
-|---|---|---|---|
-| p1 xref 52 | 989×692 | Loom with LiTex-branded tape, two framed certificates, spool of woven tape | `/company/about/` |
-| p1 xref 54 | 1024×536 | Factory floor — creels, spools, machinery | `/company/about/` |
-| p2 xref 8 | 626×504 | Trade-show booth and three staff under a LITEX sign | `/company/about/` |
-| p2 xref 5 | 1035×442 | US patent certificate · TAITRONICS award · SGS report | `/company/certifications/`, `/company/patents-and-awards/` |
-| p2 xref 6 · heating p1 xref 122 | 746×253 · 1310×462 | Heating textile + **thermograph** | `/technology/` — **held, see open questions** |
+| Slug | Shows | Used on |
+|---|---|---|
+| `premises` | The LiTex building photographed from street level, illuminated shopfront sign reading *LiTex* over *LED 紡織科技* | `/company/about/` |
+| `heritage-nameplates` | Two brushed-steel predecessor-company nameplates: 恆好貿易有限公司 / HEN HAO TRADING CO., LTD. and 台灣吉普織帶工業 / TAIWAN TULIP RIBBON & BRAIDS | `/company/about/` |
+| `factory-floor` | Creel rack, narrow-fabric loom, a row of covering machines | `/company/about/` |
+| `trade-show-stand` | Three staff under a sign reading LITEX TEXTILE & TECH. CO., LTD. | `/company/about/` |
+| `taitronics-award` | 2014 TAITRONICS Technology Innovation Awards certificate | `/company/patents-and-awards/` |
+| `sgs-test-report` | Cover of SGS Test Report `CE/2013/52203` | `/company/certifications/` |
 
-**TAITRONICS award, fully read:** 40th Taipei International Electronics Show, Technology Innovation
-Awards, **優選獎 / The Quality Award**, dated **2014.9.29**, for **非碳纖維電子發熱紡織品 /
-Non-Carbon Fiber Electrical Heating Textile**, to 富鉅紡織科技股份有限公司.
-**SGS report number: `CE/2013/52203`** (2013; scope not readable at stored resolution).
+**Correction to session 4's handoff, caught during Plan 5 planning:** the prior version of this file
+described p.1 xref 52 as *"a loom with LiTex-branded tape, two framed certificates, a spool of woven
+tape."* That is wrong on every count — there is no loom in it and there are no certificates in it.
+It is three panels: the LiTex building from street level with an illuminated shopfront sign; **two
+brushed-steel predecessor-company nameplates** reading 恆好貿易有限公司 / HEN HAO TRADING CO., LTD.
+and 台灣吉普織帶工業 / TAIWAN TULIP RIBBON & BRAIDS; and spools of metal filament beside woven tape.
+Taiwan Tulip Ribbon & Braids appears in **no archived HTML** — only in this photograph. The old
+wording is deleted from this file; do not reintroduce it.
+
+**Correction to the TAITRONICS date:** an earlier session recorded the certificate as "fully read"
+and dated `2014.9.29`. Re-examined at 14× lanczos this session, the day's final digit is roughly
+five pixels tall and is either a 6 or a 9 — unresolvable. That earlier "fully read" claim was
+overconfident. The site publishes **"September 2014"** (`AWARD.dated` in `src/data/patents.ts`) and
+nothing more precise. Do not restore a specific day without a better source image.
 
 ---
 
@@ -152,19 +171,46 @@ Full detail in the `litex-verified-toolchain` memory. The ones that bite hardest
 6. A local, gitignored waiver in `.impeccable/config.local.json` silences the `broken-image` rule
    inside `tests/imagery.test.ts` only (it false-positived on the `<img>`-matching regexes there).
    The rule still fires everywhere else — verified.
+7. **pymupdf's `Pixmap.copy(source, irect)` works in absolute coordinates.** A destination pixmap
+   created at `IRect(0, 0, w, h)` does not intersect a source region at a non-zero offset, so the
+   copy is empty and the result is a black rectangle. `scripts/extract-image.py` had this bug from
+   the start; it was invisible because its only caller (the RFID hero, Plan 3) cropped from `(0,0)`,
+   where the bug can't show. Fixed in Plan 5 Task 1 by creating the destination pixmap at the crop
+   origin and resetting its origin afterward. A black frame is otherwise a completely valid JPEG of
+   the correct dimensions with a valid provenance entry — nothing about it looks wrong until you
+   open it. It is now caught structurally: `tests/provenance.test.ts` computes bytes-per-pixel for
+   every shipped image and fails anything too uniform to be a photograph.
 
 ---
 
-## Open questions for LiTex — do not guess these
+## Parked residual — Plan 8 must handle this
 
-1. **TWM545145 renewal status.** Its sibling lapsed for non-payment; this is the claim currently on
-   every page. Highest priority.
-2. **The thermograph's test conditions** — voltage, duration, ambient temperature, colour scale.
-   Held out of `/technology/` until answered; publishing it as evidence of a measurable claim
-   without conditions invites the exact diligence failure this redesign exists to fix.
-3. **What the USPTO certificate actually is**, given 12/787,378 was abandoned.
-4. **SGS `CE/2013/52203` is from 2013** and its scope is unreadable. Is there anything newer?
-5. **CuNi status** — "coming soon" in 2018; `/technology/` currently says exactly that.
-6. **Is the 2018 grade range (1S–4S4Z) still current?** The whole `/technology/` argument rests on it.
-7. **Re-shoot `wired-conductive-tape`** (600×341 is genuinely the largest in the archive).
-8. Carried over: EMI `(c)` column and `(ø)` units; the stainless steel yarn table's owning product.
+The Plan 5 final whole-branch review found that `npx astro build` on a cold checkout, where
+`public/catalogs/` was never populated, still ships a build with an unpopulated `public/catalogs/`.
+`npx` bypasses `package.json` scripts entirely, so the inlined `node scripts/sync-catalogs.mjs &&
+astro build` in `npm run build` never runs — there is no way to reach the sync step from
+`package.json` alone. No CI config exists in this repo yet, so nothing currently triggers this path,
+and it does not block merging Plan 5. **Plan 8 must set the Cloudflare Pages build command to
+`npm run build`, not `npx astro build` or the Cloudflare default**, or the six downloads and five
+product catalog links 404 in production with no test catching it.
+
+---
+
+## Open questions for LiTex — carried forward and revised
+
+Ordered by how much damage the wrong answer does.
+
+1. **Is SGS report `CE/2013/52203` issued to LiTex or to Hen Hao Trading?** The addressee block on the photographed cover appears to read `… TRADING CO., LTD.`, which is not LiTex's name in either language, and Hen Hao is at the same address. Not legible enough to publish, legible enough to matter: `/company/certifications/` now points buyers at this report, and a buyer who requests it and receives a document in another company's name has found a problem the site created. **Ask before launch.**
+2. **TWM545145 renewal status.** Unchanged, still the highest-value answer. Its sibling lapsed for non-payment; this is the claim in the footer of every page. A confirmation would let the credibility bar say something stronger than "TW UTILITY MODEL".
+3. **What is the SGS report's scope?** Not readable at the stored resolution — the site currently says so out loud. The full report closes the largest hole in `/company/certifications/`, and spec §7 item 5 rates it High.
+4. **The thermograph's test conditions** — voltage, duration, ambient temperature, colour scale. Held out of `/technology/` for a third plan running.
+5. **What the USPTO certificate actually is**, given 12/787,378 was abandoned. It is now deliberately unpublished, so this is no longer blocking anything — but if it turns out to be a granted patent under a different number, that is a real asset currently missing from the site.
+6. **Are CN 201485574U, TW 099146482 and CN 201120008487.x still live?** `/company/patents-and-awards/` prints "Not verified" against all three. LiTex can answer this in a sentence and the page improves immediately.
+6b. **Which of the older filings were made by Fu-Biau Hsu (許富標) personally rather than by the company?** The register check found individual applicants on the older family but did not enumerate which. The page says "some" because that is the precision the evidence supports; naming them would be better, and only LiTex can.
+7. **Company facts for `/company/about/`** — headcount, floor area, production capacity, factory locations. The page deliberately states none of these. Spec §7 item 13.
+8. **Should `/legal/privacy/` be reviewed by LiTex's counsel?** The page states only verifiable properties of the site and makes no promise the site cannot keep, but it is a legal document published in LiTex's name in a market where such documents matter. Flag it; do not block launch on it.
+9. **CuNi status** — "coming soon" in 2018; `/technology/` still says exactly that.
+10. **Is the 2018 grade range (1S–4S4Z) still current?** The whole `/technology/` argument rests on it.
+11. **Are the 2018 catalogs still the current set?** `/downloads/` now serves all six and says plainly that they are eight years old. Spec §7 item 15.
+12. **Re-shoot `wired-conductive-tape`** (600×341 is genuinely the largest in the archive).
+13. Carried over: EMI `(c)` column and `(ø)` units; the stainless steel yarn table's owning product.

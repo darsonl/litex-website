@@ -97,6 +97,7 @@ Plan 3 established that a plan's "verified" claims about *images* deserve re-che
 | `scripts/sync-catalogs.mjs` | Copy the 6 catalog PDFs into `public/catalogs/`, record their byte sizes |
 | `src/assets/company/*.jpg` + `provenance.json` | Generated. Company photography and its provenance |
 | `src/components/ArchiveFigure.astro` | A captioned archive photograph at one of three widths, never upscaled |
+| `src/components/ContactBlock.astro` | The company contact address, shared by every page that needs it instead of each inlining its own `<address>` |
 | `src/lib/company.ts` | **Modified** — fax, and the credibility-to-evidence map |
 | `src/lib/nav.ts` | **Modified** — `/company/` (Task 6), `/downloads/` (Task 7) |
 | `src/components/SiteFooter.astro` | **Modified** — Browse list rendered from `NAV`; legal line |
@@ -562,19 +563,22 @@ git commit -m "fix: correct the pymupdf crop and extract company photography"
 
 ---
 
-### Task 2: `ArchiveFigure` — a captioned photograph that is never upscaled
+### Task 2: `ArchiveFigure` and `ContactBlock` — a captioned photograph, and a shared contact address
 
-Four pages need the same figure, and three of the six images are small: the certificate crops are 297 and 293 pixels wide. Astro's `<Picture>` will happily generate a 1200px variant of a 293px source, and CSS will happily stretch it — both produce a blurrier, heavier certificate than the original. The component makes "never wider than the source" structural instead of remembered.
+Four pages need the same captioned-photograph figure, and three of the six images are small: the certificate crops are 297 and 293 pixels wide. Astro's `<Picture>` will happily generate a 1200px variant of a 293px source, and CSS will happily stretch it — both produce a blurrier, heavier certificate than the original. `ArchiveFigure` makes "never wider than the source" structural instead of remembered.
+
+Three pages (`/company/about/`, the `/company/` hub, and `/legal/privacy/`) also need the company's contact address, and it is near-identical markup each time. Rather than let Tasks 3, 6 and 8 each inline their own `<address>`, `ContactBlock` extracts it once here — pre-flight ruling made before Task 1 started, once the near-duplication across those three tasks was spotted in the plan draft.
 
 **Files:**
-- Create: `src/components/ArchiveFigure.astro`
-- Test: none of its own — it is exercised by every company-page test from Task 3 onward, and by `tests/imagery.test.ts`, which already asserts alt text, modern formats and the 300 KB ceiling across the whole build.
+- Create: `src/components/ArchiveFigure.astro`, `src/components/ContactBlock.astro`
+- Test: neither has a test of its own — both are exercised by every company/legal-page test from Task 3 onward, and `ArchiveFigure` additionally by `tests/imagery.test.ts`, which already asserts alt text, modern formats and the 300 KB ceiling across the whole build.
 
 **Interfaces:**
 - Produces: `ArchiveFigure.astro` with props
   `{ image: ImageMetadata; alt: string; caption: string; size?: 'full' | 'half' | 'document'; loading?: 'eager' | 'lazy' }`.
   `caption` is **required** — an archive photograph with no stated origin is the thing spec §5 exists to prevent. Default `size` is `'full'`, default `loading` is `'lazy'`.
 - Produces: markup `<figure data-archive-figure>` containing one `<picture>` and one `<figcaption>`.
+- Produces: `ContactBlock.astro` with props `{ showLegalNameZh?: boolean }`, default `false`. Renders, inside one `<address class="contact" data-contact-block>`, in this order: legal name, the Chinese legal name if `showLegalNameZh` is true, the address lines, Tel, Fax, email, and hours. Each line is a `<p>`, not a `<span>` — a flex column of `<p>` elements needs its own `.contact p { margin: 0; }` rule, because flex-item margins do not collapse the way block-level margins do and the UA default `1em` margin on `<p>` otherwise produces roughly 36px gaps between lines instead of the intended 4px.
 
 - [ ] **Step 1: Create the component**
 
@@ -660,19 +664,53 @@ const height = Math.round((image.height / image.width) * width);
 </style>
 ```
 
-- [ ] **Step 2: Confirm it compiles and changes nothing yet**
+- [ ] **Step 2: Create `ContactBlock.astro`**
+
+```astro
+---
+import { COMPANY } from '../lib/company';
+
+interface Props {
+  showLegalNameZh?: boolean;
+}
+
+const { showLegalNameZh = false } = Astro.props;
+---
+<address class="contact" data-contact-block>
+  <p>{COMPANY.legalName}</p>
+  {showLegalNameZh && <p>{COMPANY.legalNameZh}</p>}
+  {COMPANY.addressLines.map((line) => <p>{line}</p>)}
+  <p>Tel <a class="value" href={COMPANY.phoneHref}>{COMPANY.phone}</a></p>
+  <p>Fax <span class="value">{COMPANY.fax}</span></p>
+  <p><a class="value" href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></p>
+  <p>{COMPANY.hours}</p>
+</address>
+
+<style>
+  .contact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-1);
+    font-style: normal;
+    color: var(--c-text-2);
+  }
+  .contact p { margin: 0; }
+</style>
+```
+
+- [ ] **Step 3: Confirm both compile and change nothing yet**
 
 Run: `npm run build && npm test`
-Expected: build exits 0 with 18 pages, all tests pass. An unimported component is compiled but emits nothing.
+Expected: build exits 0 with 18 pages, all tests pass. Unimported components are compiled but emit nothing.
 
 Run: `node .claude/skills/impeccable/scripts/detect.mjs --json src/components src/pages src/styles`
 Expected: `[]`
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add src/components/ArchiveFigure.astro
-git commit -m "feat: add ArchiveFigure for captioned archive photography"
+git add src/components/ArchiveFigure.astro src/components/ContactBlock.astro
+git commit -m "feat: add ArchiveFigure and ContactBlock"
 ```
 
 ---
@@ -787,6 +825,7 @@ Expected: FAIL — `ENOENT` on `dist/company/about/index.html`.
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArchiveFigure from '../../components/ArchiveFigure.astro';
+import ContactBlock from '../../components/ContactBlock.astro';
 import { COMPANY } from '../../lib/company';
 import premises from '../../assets/company/premises.jpg';
 import nameplates from '../../assets/company/heritage-nameplates.jpg';
@@ -877,14 +916,7 @@ const CATALOG = '2018-company-introduction.pdf';
     />
   </div>
 
-  <address class="contact">
-    <span>{COMPANY.legalName}</span>
-    {COMPANY.addressLines.map((line) => <span>{line}</span>)}
-    <span>Tel <a class="value" href={COMPANY.phoneHref}>{COMPANY.phone}</a></span>
-    <span>Fax <span class="value">{COMPANY.fax}</span></span>
-    <span><a class="value" href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></span>
-    <span>{COMPANY.hours}</span>
-  </address>
+  <ContactBlock />
 
   <p>
     LiTex has exhibited at Techtextil in Frankfurt (2017), the Wire Show in Düsseldorf (2018) and
@@ -919,14 +951,6 @@ const CATALOG = '2018-company-introduction.pdf';
     display: flex;
     flex-wrap: wrap;
     gap: var(--s-6);
-  }
-  .contact {
-    display: flex;
-    flex-direction: column;
-    gap: var(--s-1);
-    font-style: normal;
-    color: var(--c-text-2);
-    margin: var(--s-8) 0;
   }
   .note { color: var(--c-text-2); margin-top: var(--s-16); }
 </style>
@@ -1710,6 +1734,7 @@ export const CREDIBILITY_EVIDENCE: Readonly<Record<string, string>> = {
 ```astro
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContactBlock from '../../components/ContactBlock.astro';
 import { COMPANY, CREDIBILITY, CREDIBILITY_EVIDENCE } from '../../lib/company';
 
 const SECTIONS = [
@@ -1758,15 +1783,7 @@ const SECTIONS = [
 
   <h2>Contact of record</h2>
 
-  <address class="contact">
-    <span>{COMPANY.legalName}</span>
-    <span>{COMPANY.legalNameZh}</span>
-    {COMPANY.addressLines.map((line) => <span>{line}</span>)}
-    <span>Tel <a class="value" href={COMPANY.phoneHref}>{COMPANY.phone}</a></span>
-    <span>Fax <span class="value">{COMPANY.fax}</span></span>
-    <span><a class="value" href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></span>
-    <span>{COMPANY.hours}</span>
-  </address>
+  <ContactBlock showLegalNameZh />
 </BaseLayout>
 
 <style>
@@ -1803,13 +1820,6 @@ const SECTIONS = [
   .card:hover { border-color: var(--c-copper); }
   .card h2 { margin: 0 0 var(--s-2); font-size: var(--t-20); color: var(--c-copper); }
   .card p { margin: 0; color: var(--c-text-2); font-size: var(--t-14); }
-  .contact {
-    display: flex;
-    flex-direction: column;
-    gap: var(--s-1);
-    font-style: normal;
-    color: var(--c-text-2);
-  }
 </style>
 ```
 
@@ -2415,6 +2425,7 @@ Expected: FAIL — `ENOENT` on `dist/legal/privacy/index.html`.
 ```astro
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContactBlock from '../../components/ContactBlock.astro';
 import { COMPANY } from '../../lib/company';
 
 /**
@@ -2440,12 +2451,7 @@ const UPDATED = '2026-08-11';
 
   <h2>Who is responsible</h2>
 
-  <address class="contact">
-    <span>{COMPANY.legalName}</span>
-    {COMPANY.addressLines.map((line) => <span>{line}</span>)}
-    <span><a class="value" href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></span>
-    <span><a class="value" href={COMPANY.phoneHref}>{COMPANY.phone}</a></span>
-  </address>
+  <ContactBlock />
 
   <h2>What this website does</h2>
 
@@ -2518,14 +2524,6 @@ const UPDATED = '2026-08-11';
   p, li { max-width: 70ch; }
   ul { padding-left: var(--s-6); }
   li { margin-bottom: var(--s-3); }
-  .contact {
-    display: flex;
-    flex-direction: column;
-    gap: var(--s-1);
-    font-style: normal;
-    color: var(--c-text-2);
-    margin: var(--s-6) 0;
-  }
   .quoted {
     border-left: 2px solid var(--c-line);
     padding-left: var(--s-6);
