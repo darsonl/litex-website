@@ -23,7 +23,7 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
  * because they are governed differently: tests/provenance.test.ts asserts one
  * image per product slug, and a factory photograph is not a product.
  */
-const GROUPS = ['products', 'company'];
+const GROUPS = ['products', 'company', 'news'];
 const dirFor = (group) => `${ROOT}src/assets/${group}`;
 
 /**
@@ -141,6 +141,16 @@ const SOURCES = [
     page: 2, xref: 5,
     crop: { w: 293, h: 442, x: 737, y: 0 },
     note: 'Catalog p.2, right panel: the cover of SGS Test Report CE/2013/52203, showing a photographed fabric sample. The addressee block and the test scope are not legible at this resolution',
+  },
+  // --- News photography. The May 2020 announcement had no text: this photograph was the
+  // whole post. It is a different frame from the product hero (which shows five diameters
+  // laid out on white) and shows the braid structure far better, so it is kept separate
+  // rather than reused.
+  {
+    group: 'news',
+    slug: 'new-braided-self-curling-tube',
+    copyFrom: 'archive/images/img_4818.jpg',
+    note: 'Archived post image, May 2020: macro of black braided sleeving filling the frame, showing the herringbone braid and the overlapping edge that lets the tube curl closed',
   },
 ];
 

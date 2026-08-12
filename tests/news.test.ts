@@ -119,4 +119,20 @@ describe('news posts', () => {
     );
     expect(offenders, `dead link restored in:\n${offenders.join('\n')}`).toEqual([]);
   });
+
+  it('gives every post a body: prose, a figure, or both', () => {
+    for (const slug of SLUGS) {
+      const doc = docFor(routeFile(`/news/${slug}/`));
+      const hasProse = (doc.querySelector('[data-prose]')?.textContent ?? '').trim().length > 0;
+      const hasFigure = doc.querySelector('[data-archive-figure]') !== null;
+      expect(hasProse || hasFigure, `${slug} renders an empty post`).toBe(true);
+    }
+  });
+
+  it('captions the one photograph, and sources it to LiTex', () => {
+    const doc = docFor(routeFile('/news/new-braided-self-curling-tube/'));
+    const figure = doc.querySelector('[data-archive-figure]');
+    expect(figure, 'the May 2020 post lost its photograph').not.toBeNull();
+    expect(figure!.querySelector('figcaption')?.textContent ?? '').toContain('LiTex');
+  });
 });

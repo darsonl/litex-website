@@ -6,4 +6,8 @@ sourceUrl: 'https://litextextile.wordpress.com/2020/05/20/new-braided-self-curli
 sourceNote: 'Reproduced from LiTex’s previous site. The original post had no text — a photograph linking to the product page was the whole announcement.'
 relatedProducts:
   - braided-self-curling-tube
+image:
+  src: '../../assets/news/new-braided-self-curling-tube.jpg'
+  alt: 'Macro photograph of black braided sleeving filling the frame, showing the herringbone braid pattern and the overlapping edge that lets the tube curl closed around a cable'
+  caption: 'Braided self-curling tube, photographed by LiTex for the May 2020 announcement.'
 ---

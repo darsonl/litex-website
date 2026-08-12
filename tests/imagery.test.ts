@@ -15,7 +15,7 @@ const imageFiles = distFiles.filter((f) => /\.(avif|webp|jpe?g|png|gif|svg)$/i.t
  * groups share no filename, so a flat lookup is unambiguous.
  */
 function allProvenance(): Record<string, { aiGenerated: boolean }> {
-  return ['products', 'company'].reduce(
+  return ['products', 'company', 'news'].reduce(
     (all, group) => ({
       ...all,
       ...JSON.parse(readFileSync(join(SRC, `assets/${group}/provenance.json`), 'utf8')),
@@ -92,7 +92,7 @@ describe('Tier 3 sections — real photography only', () => {
   // This stopped being vacuous in Plan 5: /company/ now ships six photographs,
   // including two certificate crops. Every one must trace to a manifest entry that
   // declares itself real.
-  const TIER_3 = ['technology', 'company'];
+  const TIER_3 = ['technology', 'company', 'news'];
 
   const manifest = allProvenance();
 
