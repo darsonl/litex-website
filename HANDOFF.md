@@ -48,8 +48,20 @@ Budget for the review loop. It is where the quality came from, in both plans now
 ## State as of 2026-08-12 (end of session 7)
 
 - **Plan 6's branch, `plan-6-news-section`, is complete and unmerged.** All 8 tasks done, each
-  reviewed, five with a fix round. **13 commits ahead of `main`**, HEAD `3f09127` before this
-  documentation commit. Working tree clean.
+  reviewed, five with a fix round. Then a **whole-branch review on the most capable model
+  returned "ready with fixes"** — 2 Important, 5 Minor, all seven fixed in one wave and
+  confirmed by a scoped re-review, which returned **ready**. **16 commits ahead of `main`**,
+  HEAD `9aa51e4`. Working tree clean.
+- **The whole-branch review earned its place**, and its best catch is a warning for future
+  plans: Task 6's fix round removed an unverifiable claim from the braid photograph's alt
+  text and *introduced a different one in the same sentence* — it said the tube crossed the
+  frame "diagonally" when it runs horizontally; the braid **pattern** is what is diagonal.
+  Every per-task re-review checked that the retracted claim was gone. None re-read the rest
+  of the sentence. **When a fix rewrites a factual sentence, re-verify the whole sentence.**
+  The same review also found the retracted claim still alive in `scripts/extract-images.mjs`'s
+  provenance note, where it would have walked back onto the page the next time anyone drafted
+  alt text from the manifest — a per-task review could not have seen that, because the note
+  and the alt were written in different tasks.
 - `main` is at **`9d0e164`** ("docs: write Plan 6"), which sits on top of **`ee93b71`** and Plan 5's
   squash merge **`28fc138`** (PR #5).
 - `npm run build` exits 0, emitting **32 pages**. `npm test` = **284 tests across 18 files**, all
