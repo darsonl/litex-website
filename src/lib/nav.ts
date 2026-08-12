@@ -13,4 +13,5 @@ export const NAV: readonly NavItem[] = [
   { href: '/technology/', label: 'Technology' },
   { href: '/downloads/', label: 'Downloads' },
   { href: '/company/', label: 'Company' },
+  { href: '/news/', label: 'News' },
 ];
