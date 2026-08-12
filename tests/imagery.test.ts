@@ -1,17 +1,10 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
+import { DIST, walk } from './helpers/dist';
 
-const DIST = fileURLToPath(new URL('../dist', import.meta.url));
 const SRC = fileURLToPath(new URL('../src', import.meta.url));
-
-function walk(dir: string): string[] {
-  return readdirSync(dir).flatMap((entry) => {
-    const full = join(dir, entry);
-    return statSync(full).isDirectory() ? walk(full) : [full];
-  });
-}
 
 const distFiles = walk(DIST);
 const htmlFiles = distFiles.filter((f) => f.endsWith('.html'));

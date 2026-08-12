@@ -1,13 +1,5 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
-import { parseHTML } from 'linkedom';
-
-function docFor(relativePath: string) {
-  return parseHTML(
-    readFileSync(fileURLToPath(new URL(`../dist/${relativePath}`, import.meta.url)), 'utf8'),
-  ).document;
-}
+import { docFor } from './helpers/dist';
 
 describe('technology index', () => {
   it('generates the route with a single h1 and its canonical', () => {
