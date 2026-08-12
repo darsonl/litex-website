@@ -188,6 +188,32 @@ it fails under exactly the diligence a serious buyer applies.
 a 410 tells search engines to drop the URL. Redirecting junk to the homepage dilutes
 relevance signals.
 
+**How the seven news rows were built — decided 2026-08-12, implemented in Plan 6.** All seven
+`/news/<slug>/` routes exist at exactly the slugs above. Four decisions were taken after reading
+all ten archived posts, and are recorded here so they are not rediscovered and reopened:
+
+1. **`test-post-blah` has real content and is killed anyway.** Its title is *"LiTex Attending
+   Wearable Expo"* and its body is genuine prose — the junk is the slug, not the post. It is still
+   sentenced to 410 because it pre-announces the very expo that `/news/wearable-expo/`
+   (2017-02-23) thanks visitors for, so nothing of substance is lost. There is no eighth post to
+   recover. Do not revisit this row.
+2. **No third-party event imagery is republished.** Six of the seven posts' only images are trade
+   show organizers' marks (Messe Frankfurt, Wearable Expo, Messe Düsseldorf) or a screenshot of a
+   third-party blog. LiTex's usage grant covers its own photography, not those. `/news/` ships
+   exactly one photograph, LiTex's own.
+3. **The 2017 TechTextil blog article is not linked.** `techtextil-blog.com` now serves a
+   certificate for `*.messefrankfurt.com`, so the original link throws a TLS warning. The path is
+   recorded as plain text in that post's `sourceNote`; a Wayback capture (2022-05-19) exists but
+   was never content-verified, so nothing is linked.
+4. **Titles are normalized, two typos corrected, and nothing claims to be verbatim.** Every
+   archived title carried U+00A0 (WordPress widow-prevention), normalized to a normal space;
+   U+2019 apostrophes are preserved. Two grammatical errors in `featured-on-techtextil-blog` are
+   corrected and disclosed in its `sourceNote`.
+
+`/news/` is framed as an **archive with a computed date range**, not a live feed — which is what
+makes the gap since January 2022 honest rather than the "dormant company" signal of §0 problem 5.
+It does not close the gap; see §7 item 14.
+
 > ⚠️ **Migration risk, outside the build.** Issuing real 301s *from* `litextextile.wordpress.com`
 > requires WordPress.com's paid Site Redirect upgrade — the free plan cannot do it. Without it,
 > the old subdomain retains its ranking and passes none of it to the new domain. This is a paid
