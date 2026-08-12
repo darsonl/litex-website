@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync } from 'node:fs';
+import { join, relative } from 'node:path';
 import { DIST, allHtmlFiles, docFor, routeFile } from './helpers/dist';
 
 describe('/news/ index', () => {
@@ -105,13 +105,17 @@ describe('news posts', () => {
     expect(hrefs).toContain('https://www.wire.de/');
   });
 
-  // techtextil-blog.com now serves a certificate for *.messefrankfurt.com, so linking it
-  // sends a buyer to a TLS warning. Decision 3 — it stays unlinked until someone verifies
-  // a replacement URL. Checked across the whole build, not just the one post, because the
-  // tempting place to "helpfully" restore it later is a source note or the index.
-  it('publishes no link to the dead TechTextil blog anywhere in the build', () => {
+  // techtextil-blog.com now serves a certificate for *.messefrankfurt.com, so an <a href>
+  // pointing at it would send a buyer straight to a TLS warning — that's the actual risk,
+  // not the domain appearing as plain text (the featured-on-techtextil-blog source note
+  // names the exact dead path on purpose, so a reader can find it again). Checked across
+  // the whole build, not just the one post, because the tempting place to "helpfully"
+  // restore the link is the index or a different post's source note.
+  it('never links to the dead TechTextil blog anywhere in the build', () => {
     const offenders = allHtmlFiles().filter((file) =>
-      readFileSync(file, 'utf8').includes('techtextil-blog.com'),
+      [...docFor(relative(DIST, file)).querySelectorAll('a')].some((a) =>
+        a.getAttribute('href')?.includes('techtextil-blog.com'),
+      ),
     );
     expect(offenders, `dead link restored in:\n${offenders.join('\n')}`).toEqual([]);
   });
