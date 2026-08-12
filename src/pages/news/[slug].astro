@@ -5,6 +5,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArchiveFigure from '../../components/ArchiveFigure.astro';
 import { mustResolve } from '../../lib/references';
 import { displayDate, isoDate, byPublishedDesc } from '../../lib/dates';
+import { newsJsonLd } from '../../lib/jsonld';
 
 export async function getStaticPaths() {
   const posts = await getCollection('news');
@@ -21,6 +22,13 @@ const related = await Promise.all(
     mustResolve(await getEntry(ref), ref, `news/${post.id}`),
   ),
 );
+
+const jsonLd = newsJsonLd({
+  title: post.data.title,
+  description: post.data.summary,
+  url: new URL(Astro.url.pathname, Astro.site).href,
+  publishedAt: post.data.publishedAt,
+});
 ---
 <BaseLayout
   title={`${post.data.title} — LiTex Textile & Technology`}
@@ -69,6 +77,8 @@ const related = await Promise.all(
       </small>
     </p>
   </article>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 </BaseLayout>
 
 <style>

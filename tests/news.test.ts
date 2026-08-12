@@ -135,4 +135,15 @@ describe('news posts', () => {
     expect(figure, 'the May 2020 post lost its photograph').not.toBeNull();
     expect(figure!.querySelector('figcaption')?.textContent ?? '').toContain('LiTex');
   });
+
+  it('emits valid BlogPosting JSON-LD on every post', () => {
+    for (const slug of SLUGS) {
+      const raw = docFor(routeFile(`/news/${slug}/`))
+        .querySelector('script[type="application/ld+json"]')?.textContent ?? '';
+      const ld = JSON.parse(raw);
+      expect(ld['@type'], `${slug}`).toBe('BlogPosting');
+      expect(ld.datePublished, `${slug}`).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+08:00$/);
+      expect(ld.url, `${slug}`).toBe(`https://litex.com.tw/news/${slug}/`);
+    }
+  });
 });

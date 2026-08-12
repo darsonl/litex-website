@@ -44,3 +44,25 @@ export function productJsonLd(input: {
 
   return ld;
 }
+
+/**
+ * schema.org BlogPosting for a republished announcement. Deliberately emits no
+ * `dateModified`: the posts are reproduced, not revised, and claiming a modification date
+ * would assert editorial activity that never happened.
+ */
+export function newsJsonLd(input: {
+  title: string;
+  description: string;
+  url: string;
+  publishedAt: string;
+}): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: input.title,
+    description: input.description,
+    url: input.url,
+    datePublished: input.publishedAt,
+    publisher: MANUFACTURER,
+  };
+}
