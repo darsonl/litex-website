@@ -42,18 +42,25 @@ export async function verifyTurnstile(
     const res = await fetchImpl(TURNSTILE_VERIFY, { method: 'POST', body });
     if (!res.ok) return false;
     return ((await res.json()) as { success?: boolean }).success === true;
-  } catch {
+  } catch (error) {
+    // No trace of a Turnstile outage otherwise: the visitor just sees "could not verify".
+    // Log the error only — never request headers, which is where an IP would live.
+    console.error('Turnstile verification request failed:', error);
     return false;
   }
 }
 
 type EnquiryRecord = { formType: FormType; values: Record<string, string>; receivedAt: string };
 
+/** Header-safe: a `subject` becomes a mail header downstream, so interior CR/LF must not survive. */
+const oneLine = (s: string): string => s.replace(/[\r\n]+/g, ' ');
+
 export async function deliver(env: Env, record: EnquiryRecord, fetchImpl: typeof fetch): Promise<boolean> {
   const lines = Object.entries(record.values).map(([k, v]) => `${k}: ${v}`).join('\n');
+  const company = oneLine(record.values.company ?? 'unknown company');
   const subject = record.formType === 'sample'
-    ? `Sample request — ${record.values.company ?? 'unknown company'}`
-    : `Enquiry — ${record.values.company ?? 'unknown company'}`;
+    ? `Sample request — ${company}`
+    : `Enquiry — ${company}`;
 
   try {
     const res = await fetchImpl(RESEND_ENDPOINT, {
@@ -71,7 +78,10 @@ export async function deliver(env: Env, record: EnquiryRecord, fetchImpl: typeof
       }),
     });
     return res.ok;
-  } catch {
+  } catch (error) {
+    // Silence here reads to LiTex as "no enquiries today" instead of "Resend is down".
+    // Log the error only — never request headers, which is where an IP would live.
+    console.error('Resend delivery request failed:', error);
     return false;
   }
 }
@@ -96,6 +106,20 @@ function errorHtml(errors: Record<string, string>, contactEmail: string): string
 <a href="mailto:${contactEmail}">${contactEmail}</a> directly.</p></body></html>`;
 }
 
+/**
+ * The shared shape for all three 400s: bad form type, failed Turnstile, or failed
+ * validation — each is field errors and nothing was stored. Deliberately NOT used for the
+ * 503 "failed" outcome below: Decision 4 keeps `rejected` and `failed` distinct, and
+ * `failed` carries a `message`, not an `errors` map, so it stays written out explicitly.
+ */
+function reject(request: Request, errors: Record<string, string>, contactEmail: string): Response {
+  return wantsJson(request)
+    ? Response.json({ outcome: 'rejected', errors, contactEmail }, { status: 400 })
+    : new Response(errorHtml(errors, contactEmail), {
+        status: 400, headers: { 'content-type': 'text/html; charset=utf-8' },
+      });
+}
+
 export async function onRequestPost(context: {
   request: Request;
   env: Env;
@@ -106,8 +130,16 @@ export async function onRequestPost(context: {
   const fetchImpl = context.fetchImpl ?? fetch;
   const contactEmail = env.ENQUIRY_TO;
 
-  const form = await request.formData();
-  const raw = Object.fromEntries([...form.entries()].map(([k, v]) => [k, String(v)]));
+  // A body formData() cannot parse (wrong content-type, truncated multipart, ...) must
+  // not escape as an unhandled rejection — that would surface to the visitor as an
+  // opaque 500 instead of an honest, correctable rejection.
+  let raw: Record<string, string>;
+  try {
+    const form = await request.formData();
+    raw = Object.fromEntries([...form.entries()].map(([k, v]) => [k, String(v)]));
+  } catch {
+    return reject(request, { body: 'We could not read that submission.' }, contactEmail);
+  }
 
   // A filled honeypot is a bot. Return the same shape a success returns: an error would
   // tell it what to change. Nothing is stored and no upstream is called.
@@ -119,33 +151,23 @@ export async function onRequestPost(context: {
 
   const formType = raw.formType as FormType;
   if (!FORM_TYPES.includes(formType)) {
-    const errors = { formType: 'Unknown form.' };
-    return wantsJson(request)
-      ? Response.json({ outcome: 'rejected', errors, contactEmail }, { status: 400 })
-      : new Response(errorHtml(errors, contactEmail), {
-          status: 400, headers: { 'content-type': 'text/html; charset=utf-8' },
-        });
+    return reject(request, { formType: 'Unknown form.' }, contactEmail);
   }
 
   const passed = await verifyTurnstile(
     env.TURNSTILE_SECRET, raw['cf-turnstile-response'] ?? '', fetchImpl,
   );
   if (!passed) {
-    const errors = { turnstile: 'We could not verify that you are human. Please try again.' };
-    return wantsJson(request)
-      ? Response.json({ outcome: 'rejected', errors, contactEmail }, { status: 400 })
-      : new Response(errorHtml(errors, contactEmail), {
-          status: 400, headers: { 'content-type': 'text/html; charset=utf-8' },
-        });
+    return reject(
+      request,
+      { turnstile: 'We could not verify that you are human. Please try again.' },
+      contactEmail,
+    );
   }
 
   const { ok, values, errors } = validateEnquiry(formType, raw);
   if (!ok) {
-    return wantsJson(request)
-      ? Response.json({ outcome: 'rejected', errors, contactEmail }, { status: 400 })
-      : new Response(errorHtml(errors, contactEmail), {
-          status: 400, headers: { 'content-type': 'text/html; charset=utf-8' },
-        });
+    return reject(request, errors, contactEmail);
   }
 
   const record: EnquiryRecord = { formType, values, receivedAt: new Date().toISOString() };

@@ -99,6 +99,54 @@ describe('POST /api/submit — happy path', () => {
   });
 });
 
+describe('POST /api/submit — outbound request payloads', () => {
+  // Decision 5 has a transmit half, not just a storage half: the privacy notice
+  // (Task 4) promises the IP is never sent to Turnstile either, not only that it is
+  // absent from the KV record. This inspects the actual siteverify request body.
+  it('sends only secret and response to Turnstile — never remoteip', async () => {
+    const env = envDouble();
+    const fetchImpl = happyFetch();
+    await onRequestPost({ request: formRequest(goodFields), env, fetchImpl } as never);
+
+    const call = fetchImpl.mock.calls.find(([url]) => String(url).includes('siteverify'));
+    expect(call).toBeTruthy();
+    const params = call![1]?.body as URLSearchParams;
+    expect(new Set(params.keys())).toEqual(new Set(['secret', 'response']));
+    expect(params.get('secret')).toBe(env.TURNSTILE_SECRET);
+    expect(params.get('response')).toBe(goodFields['cf-turnstile-response']);
+  });
+
+  it('sends to, from, reply_to and subject to Resend', async () => {
+    const env = envDouble();
+    const fetchImpl = happyFetch();
+    await onRequestPost({ request: formRequest(goodFields), env, fetchImpl } as never);
+
+    const call = fetchImpl.mock.calls.find(([url]) => String(url).includes('api.resend.com'));
+    expect(call).toBeTruthy();
+    const payload = JSON.parse(call![1]?.body as string);
+    expect(payload.to).toBe(env.ENQUIRY_TO);
+    expect(payload.from).toBe(env.ENQUIRY_FROM);
+    expect(payload.reply_to).toBe(goodFields.email);
+    expect(payload.subject).toBeTruthy();
+  });
+
+  // A company value carrying CR/LF must not smuggle extra header lines into the outbound
+  // email — subject becomes a mail header downstream and that is not a control this repo owns.
+  it('strips CR/LF from company before it reaches the email subject', async () => {
+    const env = envDouble();
+    const fetchImpl = happyFetch();
+    await onRequestPost({
+      request: formRequest({ ...goodFields, company: 'Buyer GmbH\r\nBcc: evil@example.com' }),
+      env, fetchImpl,
+    } as never);
+
+    const call = fetchImpl.mock.calls.find(([url]) => String(url).includes('api.resend.com'));
+    const payload = JSON.parse(call![1]?.body as string);
+    expect(payload.subject).not.toMatch(/[\r\n]/);
+    expect(payload.subject).toContain('Buyer GmbH Bcc: evil@example.com');
+  });
+});
+
 describe('POST /api/submit — the failure that matters', () => {
   // Spec §4: a silently dropped RFQ is a lost customer who believes they were ignored.
   it('still stores the submission when delivery fails, and says so honestly', async () => {
@@ -180,6 +228,26 @@ describe('POST /api/submit — rejection', () => {
       env, fetchImpl,
     } as never);
     expect(res.status).toBe(200);
+    expect(env.SUBMISSIONS.put).not.toHaveBeenCalled();
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  // The cheapest thing a stranger can send: a body formData() cannot parse at all
+  // (wrong content-type here). This must come back as an honest rejection, not an
+  // unhandled rejection surfacing as an opaque 500.
+  it('rejects a body that formData() cannot parse, without crashing or storing', async () => {
+    const env = envDouble();
+    const fetchImpl = happyFetch();
+    const request = new Request('https://litex.com.tw/api/submit', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify({ formType: 'contact' }),
+    });
+    const res = await onRequestPost({ request, env, fetchImpl } as never);
+    const body = await res.json();
+    expect(res.status).toBe(400);
+    expect(body.outcome).toBe('rejected');
+    expect(body.errors.body).toBeTruthy();
     expect(env.SUBMISSIONS.put).not.toHaveBeenCalled();
     expect(fetchImpl).not.toHaveBeenCalled();
   });
