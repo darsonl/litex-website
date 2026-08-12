@@ -22,6 +22,15 @@ describe('displayDate', () => {
   it('refuses a value it cannot read rather than rendering something wrong', () => {
     expect(() => displayDate('26 February 2018')).toThrow(/ISO 8601/);
   });
+
+  it('refuses an impossible calendar date', () => {
+    expect(() => displayDate('2018-02-31T15:15:53+08:00')).toThrow('is not a valid calendar date');
+    expect(() => displayDate('2018-13-01T15:15:53+08:00')).toThrow('is not a valid calendar date');
+  });
+
+  it('accepts a valid leap day', () => {
+    expect(displayDate('2016-02-29T12:00:00+08:00')).toBe('February 29, 2016');
+  });
 });
 
 describe('isoDate and publishedYear', () => {

@@ -26,7 +26,26 @@ function fields(publishedAt: string): { year: number; month: number; day: number
         'Expected ISO 8601 with an offset, e.g. 2017-02-23T14:47:55+08:00.',
     );
   }
-  return { year: Number(match[1]), month: Number(match[2]), day: Number(match[3]) };
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+
+  // Validate the date is a real calendar date by checking if Date.UTC round-trips.
+  // JavaScript's Date silently rolls over invalid dates (e.g. Feb 31 → Mar 3), so we
+  // detect that by comparing parsed fields against what the date reports back.
+  const utcTime = Date.UTC(year, month - 1, day);
+  const checkDate = new Date(utcTime);
+
+  if (
+    checkDate.getUTCFullYear() !== year ||
+    checkDate.getUTCMonth() !== month - 1 ||
+    checkDate.getUTCDate() !== day
+  ) {
+    throw new Error(`"${publishedAt}" is not a valid calendar date.`);
+  }
+
+  return { year, month, day };
 }
 
 export function displayDate(publishedAt: string): string {
