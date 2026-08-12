@@ -7,17 +7,38 @@
 
 ## ▶ Do this first
 
-**Plans 1–6 are built, verified and merged.** Do not re-run brainstorming, the spec self-review,
-`/impeccable init`, or `writing-plans` for Plans 1–6 — all complete.
+**Plans 1–6 are built, verified and merged. Plan 7 is WRITTEN but not started.** Do not re-run
+brainstorming, the spec self-review, `/impeccable init`, or `writing-plans` for any of them.
 
-### → Start here: write Plan 7 with `superpowers:writing-plans`
+### → Start here: execute Plan 7
 
-Plan 7 is **the contact page + sample-request flow** (Cloudflare Pages Function, Turnstile, KV).
+**`docs/superpowers/plans/2026-08-12-litex-contact-and-sample-flow.md`** — the contact page and
+sample-request flow (Cloudflare Pages Function, Turnstile, KV, Resend). Seven tasks. Written and
+self-reviewed 2026-08-12; **no task has been started and no branch exists yet.**
 
-Read before writing it: this file, `PRODUCT.md`, and
-`docs/superpowers/specs/2026-08-10-litex-website-redesign-design.md` (§3 IA, §4 "Contact form —
-failure modes", §7 gaps). The six completed plans in `docs/superpowers/plans/` are worth skimming
-for house style — they are long, fully-specified, and every code block is real.
+Run it with `superpowers:subagent-driven-development`, from a new branch off `main`
+(`plan-7-contact-and-sample`). `main` is clean at **`cea382a`**.
+
+**Read the plan's own front matter before dispatching anything** — it carries five decisions taken
+with the human, a section explaining why the Turnstile script deliberately has no SRI hash, and a
+⚠ section on the two forward guards in `tests/legal.test.ts`. All three exist to stop an implementer
+"fixing" something that is already correct.
+
+Its three riskiest facts, all verified against live docs on 2026-08-12 rather than written from
+memory — **re-verify before trusting them if much time has passed**:
+
+- **MailChannels' free Cloudflare integration ended 2024-06-30.** Every blog post and Stack Overflow
+  answer describing that path is dead. Delivery goes through **Resend**.
+- **`send_email` is a Workers-only binding and is unavailable to Pages Functions.** The
+  Cloudflare-only design would need a second deployable plus a service binding, and Email Routing
+  additionally needs LiTex to click a verification link.
+- Turnstile's documented **test keys** (secret `1x0000…AA` always passes, `2x0000…AA` always fails)
+  are what make the function testable without a Cloudflare account.
+
+**Nothing in Plan 7 can be verified end-to-end**, because hosting does not exist until Plan 8. The
+function is covered by unit tests against a mocked environment, and Plan 7 Task 7 produces
+`docs/deployment.md` for Plan 8 to execute. That limitation is stated in the plan; do not let a
+reviewer treat it as an oversight.
 
 **Execution mode:** Plans 1–4 ran **inline** via `superpowers:executing-plans`. **Plans 5 and 6 ran
 subagent-driven** via `superpowers:subagent-driven-development` — a fresh implementer per task, a
@@ -103,7 +124,7 @@ posts. The correct fix is LiTex supplying news since 2022 — see the open quest
 | 4 | Site chrome & the technology section | ✅ merged (PR #4) |
 | 5 | `/company/` ×4 · `/downloads/` · `/legal/privacy/` | ✅ merged (PR #5, `28fc138`) |
 | 6 | `/news/` index + 7 posts | ✅ merged (PR #6, `bafff91`) |
-| 7 | Contact + sample-request flow (Pages Function, Turnstile, KV) | ← **next, not written** |
+| 7 | Contact + sample-request flow (Pages Function, Turnstile, KV, Resend) | 📝 **written, not started** — `docs/superpowers/plans/2026-08-12-litex-contact-and-sample-flow.md` |
 | 8 | Launch: `_redirects`, sitemap, analytics, Sveltia CMS, print stylesheet, Lighthouse/axe, broken-link check | not written |
 
 ---
@@ -461,9 +482,13 @@ Ordered by how much damage the wrong answer does.
 
 ### Where things stand
 
-Plan 6 is **merged**. `main` is at **`bafff91`** (PR #6, squashed), clean and pushed, with no
-branches outstanding. On `main`: `npm run build` → **32 pages**, `npm test` → **284 passing across
-18 files**, detector → no findings.
+Plan 6 is **merged** (PR #6, squashed as `bafff91`). **Plan 7 is written and committed but not
+started.** `main` is at **`cea382a`**, clean and pushed, with no branches outstanding and nothing
+in flight. On `main`: `npm run build` → **32 pages**, `npm test` → **284 passing across 18 files**,
+detector → no findings.
+
+Plan 7 will take the site to **35 pages** — `/contact/`, `/request-a-sample/` and `/enquiry-sent/` —
+and adds the first `functions/` directory and the first JavaScript this site has ever shipped.
 
 The Plan 6 SDD ledger has been **deleted**, as Plan 5's was. Everything durable in it was lifted
 into this file first: the four news decisions and the two human rulings are under "Settled", the new
@@ -474,8 +499,16 @@ squash, and two report-arithmetic slips with no code impact. Do not go looking f
 
 ### Do this first
 
-**Write Plan 7** with `superpowers:writing-plans`, then execute it subagent-driven. Scope, sources
-and house style are described above. Nothing from Plan 6 is outstanding.
+**Execute Plan 7** — it is already written. Branch off `main` as `plan-7-contact-and-sample` and run
+`superpowers:subagent-driven-development` against
+`docs/superpowers/plans/2026-08-12-litex-contact-and-sample-flow.md`. Do **not** re-write it, and do
+not re-run `writing-plans`. Nothing from Plan 6 is outstanding.
+
+Expected shape of that run, so a deviation is noticeable: 7 tasks, ending at **35 pages** with the
+whole suite green. Task 4 is the one to watch — it ships the first form, which makes **both**
+forward guards in `tests/legal.test.ts` fire, and it resolves them in the same task. Seeing those
+two failures before the fix is the evidence the guards were real; the plan asks the implementer to
+record both messages.
 
 Do not re-run brainstorming or the spec self-review, and do not re-derive anything under
 "Settled — do not re-raise".
