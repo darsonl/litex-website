@@ -1,17 +1,16 @@
 # Session handoff — LiTex website redesign
 
-**Written:** 2026-08-11, last updated 2026-08-12 (end of session 7)
+**Written:** 2026-08-11, last updated 2026-08-12 (end of session 7, after PR #6 merged)
 **Reason:** Session running out of context. This file is the resume point.
 
 ---
 
 ## ▶ Do this first
 
-**Plans 1–5 are built, verified and merged. Plan 6 is built and verified on its branch.** Do not
-re-run brainstorming, the spec self-review, `/impeccable init`, or `writing-plans` for Plans 1–6 —
-all complete.
+**Plans 1–6 are built, verified and merged.** Do not re-run brainstorming, the spec self-review,
+`/impeccable init`, or `writing-plans` for Plans 1–6 — all complete.
 
-### → Start here: merge Plan 6's branch, then write Plan 7 with `superpowers:writing-plans`
+### → Start here: write Plan 7 with `superpowers:writing-plans`
 
 Plan 7 is **the contact page + sample-request flow** (Cloudflare Pages Function, Turnstile, KV).
 
@@ -47,11 +46,20 @@ Budget for the review loop. It is where the quality came from, in both plans now
 
 ## State as of 2026-08-12 (end of session 7)
 
-- **Plan 6's branch, `plan-6-news-section`, is complete and unmerged.** All 8 tasks done, each
-  reviewed, five with a fix round. Then a **whole-branch review on the most capable model
-  returned "ready with fixes"** — 2 Important, 5 Minor, all seven fixed in one wave and
-  confirmed by a scoped re-review, which returned **ready**. **16 commits ahead of `main`**,
-  HEAD `9aa51e4`. Working tree clean.
+- **Plan 6 is MERGED.** Squash-merged 2026-08-12 as **PR #6 → `bafff91`**; both the remote and
+  local branches are deleted. All 8 tasks were done and reviewed, five with a fix round, then a
+  **whole-branch review on the most capable model returned "ready with fixes"** — 2 Important,
+  5 Minor, all seven fixed in one wave and confirmed by a scoped re-review, which returned
+  **ready**. Re-verified on merged `main`: 32 pages, 284 tests, and the squashed branch diffed
+  **identical** to `main` before its local branch was force-deleted.
+  - Note for next time: `git branch -d` **refuses** after a squash merge, because the branch's
+    commits are not ancestors of `main`. Diff the branch against `main` to prove the content
+    landed, then `-D`. The refusal is not evidence of unmerged work.
+- **The Plan 6 SDD ledger has been deleted** — it was gitignored and existed only on one
+  machine. Everything durable from it was lifted into this file first: the carried-forward
+  minors, the toolchain gotchas, and the review lessons below. Do not go looking for
+  `.superpowers/sdd/2026-08-12-*`; it is gone. The committed plan and the PR #6 diff are the
+  remaining record.
 - **The whole-branch review earned its place**, and its best catch is a warning for future
   plans: Task 6's fix round removed an unverifiable claim from the braid photograph's alt
   text and *introduced a different one in the same sentence* — it said the tube crossed the
@@ -94,7 +102,7 @@ posts. The correct fix is LiTex supplying news since 2022 — see the open quest
 | 3 | Product photography & image pipeline | ✅ merged (PR #3) |
 | 4 | Site chrome & the technology section | ✅ merged (PR #4) |
 | 5 | `/company/` ×4 · `/downloads/` · `/legal/privacy/` | ✅ merged (PR #5, `28fc138`) |
-| 6 | `/news/` index + 7 posts | ✅ built & verified on `plan-6-news-section`, **not yet merged** |
+| 6 | `/news/` index + 7 posts | ✅ merged (PR #6, `bafff91`) |
 | 7 | Contact + sample-request flow (Pages Function, Turnstile, KV) | ← **next, not written** |
 | 8 | Launch: `_redirects`, sitemap, analytics, Sveltia CMS, print stylesheet, Lighthouse/axe, broken-link check | not written |
 
@@ -453,34 +461,31 @@ Ordered by how much damage the wrong answer does.
 
 ### Where things stand
 
-Plan 6 is **built, verified and unmerged** on `plan-6-news-section`. `main` is at `9d0e164`.
-On the branch: `npm run build` → **32 pages**, `npm test` → **284 passing across 18 files**, detector
-→ no findings.
+Plan 6 is **merged**. `main` is at **`bafff91`** (PR #6, squashed), clean and pushed, with no
+branches outstanding. On `main`: `npm run build` → **32 pages**, `npm test` → **284 passing across
+18 files**, detector → no findings.
 
-The Plan 6 SDD ledger at `.superpowers/sdd/2026-08-12-litex-news-section/` is **gitignored and will
-be deleted when this plan merges** — as Plan 5's was. Everything durable in it was lifted into this
-file first: the four news decisions and the two human rulings are under "Settled", the new deferred
-findings are under "Carried-forward minors", and the two date-handling traps are toolchain gotchas 8
-and 9. What was left behind was bookkeeping only: per-task commit SHAs that die with the squash, and
-two report-arithmetic slips with no code impact. Do not go looking for `.superpowers/sdd/2026-08-11-*`
-either; that one is already gone.
+The Plan 6 SDD ledger has been **deleted**, as Plan 5's was. Everything durable in it was lifted
+into this file first: the four news decisions and the two human rulings are under "Settled", the new
+deferred findings are under "Carried-forward minors", and the two date-handling traps are toolchain
+gotchas 8 and 9. What was left behind was bookkeeping only: per-task commit SHAs that die with the
+squash, and two report-arithmetic slips with no code impact. Do not go looking for
+`.superpowers/sdd/2026-08-11-*` or `.superpowers/sdd/2026-08-12-*`; both are gone.
 
 ### Do this first
 
-1. **Merge Plan 6** — open PR #6 from `plan-6-news-section`, squash-merge, delete the branch, then
-   re-verify on `main` (32 pages, 284 tests).
-2. **Write Plan 7** with `superpowers:writing-plans`. Scope, sources and house style are described
-   above.
+**Write Plan 7** with `superpowers:writing-plans`, then execute it subagent-driven. Scope, sources
+and house style are described above. Nothing from Plan 6 is outstanding.
 
 Do not re-run brainstorming or the spec self-review, and do not re-derive anything under
 "Settled — do not re-raise".
 
-The `gh` token note, kept because it will recur on PR #6: `gh pr edit` and `gh pr merge` may fail
+The `gh` token note, kept because it will recur on PR #7: `gh pr edit` and `gh pr merge` may fail
 with a **`read:org` scope error**. Fall back to the REST API
 (`gh api --method PUT repos/darsonl/litex-website/pulls/N/merge`) or the browser. It is a token
-config issue, not a repo problem. On PR #5, `gh pr merge --squash --delete-branch` worked with no
-error. Note that `git branch -d` **refuses a squash merge**; that refusal is expected and is not
-evidence of unmerged work.
+config issue, not a repo problem. On PR #5 **and PR #6**, `gh pr merge --squash --delete-branch`
+worked with no error. Note that `git branch -d` **refuses a squash merge**; that refusal is expected
+and is not evidence of unmerged work.
 
 ### What NOT to redo
 
