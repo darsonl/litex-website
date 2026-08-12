@@ -150,7 +150,7 @@ const SOURCES = [
     group: 'news',
     slug: 'new-braided-self-curling-tube',
     copyFrom: 'archive/images/img_4818.jpg',
-    note: 'Archived post image, May 2020: macro of black braided sleeving filling the frame, showing the herringbone braid and the overlapping edge that lets the tube curl closed',
+    note: 'Archived post image, May 2020: macro of a black braided tube running horizontally across the frame, showing the diagonal herringbone braid of crossing filament bundles against an out-of-focus pale background',
   },
 ];
 

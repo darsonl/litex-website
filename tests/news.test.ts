@@ -94,7 +94,7 @@ describe('news posts', () => {
   it('offers a way back to the index from every post', () => {
     for (const slug of SLUGS) {
       const doc = docFor(routeFile(`/news/${slug}/`));
-      const hrefs = [...doc.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+      const hrefs = [...doc.querySelectorAll('.breadcrumb a')].map((a) => a.getAttribute('href'));
       expect(hrefs, `${slug} is a dead end`).toContain('/news/');
     }
   });
