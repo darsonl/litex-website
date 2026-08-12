@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  FORM_TYPES, FIELDS, fieldsFor, validateEnquiry, HONEYPOT_FIELD,
+  FORM_TYPES, fieldsFor, validateEnquiry, HONEYPOT_FIELD,
 } from '../src/lib/enquiry';
 
 const validContact = {

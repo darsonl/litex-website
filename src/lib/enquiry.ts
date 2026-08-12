@@ -1,7 +1,7 @@
 /**
  * The one definition of what the two enquiry forms ask for.
  *
- * The Astro pages render their inputs from FIELDS and the Pages Function validates
+ * The Astro pages render their inputs from fieldsFor() and the Pages Function validates
  * against the same list, so a field cannot exist on the page and be unknown to the
  * server, or vice versa. Spec §4's whole argument for the form is that a buyer's
  * enquiry arrives complete; a drifting field list is how that quietly stops being true.
