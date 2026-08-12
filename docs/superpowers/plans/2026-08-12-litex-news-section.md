@@ -594,6 +594,12 @@ visit us if you happen to be in the area!
 
 `src/content/news/new-braided-self-curling-tube.md` — **body is empty on purpose.** The image is the post.
 
+> ⚠️ **This file carries no `image:` block yet.** The photograph does not exist until Task 6,
+> and a schema `image()` pointing at a missing file fails the Astro build. Write exactly what
+> is below; Task 6 appends the image. Between now and Task 6 this post renders as a heading,
+> a date and a source note — which is why the "every post has a body" assertion belongs to
+> Task 6, not Task 5. Do not add it early.
+
 ```markdown
 ---
 title: 'New Braided Self-curling Tube Item!'
@@ -603,17 +609,8 @@ sourceUrl: 'https://litextextile.wordpress.com/2020/05/20/new-braided-self-curli
 sourceNote: 'Reproduced from LiTex’s previous site. The original post had no text — a photograph linking to the product page was the whole announcement.'
 relatedProducts:
   - braided-self-curling-tube
-image:
-  src: '../../assets/news/new-braided-self-curling-tube.jpg'
-  alt: 'Macro photograph of black braided sleeving filling the frame, showing the herringbone braid pattern and the overlapping edge that lets the tube curl closed around a cable'
-  caption: 'Braided self-curling tube, photographed by LiTex for the May 2020 announcement.'
 ---
 ```
-
-> The `image` block is added in **Task 6**, once the asset exists. Astro fails to resolve a
-> schema `image()` pointing at a missing file, so writing it now breaks the build. Create
-> this file with everything **above** `image:` in Task 3 and add the three image lines in
-> Task 6.
 
 `src/content/news/tokyo-wearable-expo-2022.md`
 
@@ -920,17 +917,6 @@ describe('news posts', () => {
     }
   });
 
-  // The May 2020 post had no text at all — a photograph was the whole announcement. A
-  // post that renders as a bare heading is indistinguishable from a broken page.
-  it('gives every post a body: prose, a figure, or both', () => {
-    for (const slug of SLUGS) {
-      const doc = docFor(routeFile(`/news/${slug}/`));
-      const hasProse = (doc.querySelector('[data-prose]')?.textContent ?? '').trim().length > 0;
-      const hasFigure = doc.querySelector('[data-archive-figure]') !== null;
-      expect(hasProse || hasFigure, `${slug} renders an empty post`).toBe(true);
-    }
-  });
-
   it('links a post to the product it announces', () => {
     const doc = docFor(routeFile('/news/copper-nickel-1s1z/'));
     const hrefs = [...doc.querySelectorAll('[data-related] a')].map((a) => a.getAttribute('href'));
@@ -1174,19 +1160,43 @@ image:
   caption: 'Braided self-curling tube, photographed by LiTex for the May 2020 announcement.'
 ```
 
-- [ ] **Step 6: Build and run everything**
+- [ ] **Step 6: Add the assertion that only becomes true now**
+
+The May 2020 post had no text at all — the photograph was the whole announcement. Until this
+task it rendered as a bare heading, which is indistinguishable from a broken page. Append to
+`tests/news.test.ts`, inside the existing `describe('news posts', ...)`:
+
+```ts
+  it('gives every post a body: prose, a figure, or both', () => {
+    for (const slug of SLUGS) {
+      const doc = docFor(routeFile(`/news/${slug}/`));
+      const hasProse = (doc.querySelector('[data-prose]')?.textContent ?? '').trim().length > 0;
+      const hasFigure = doc.querySelector('[data-archive-figure]') !== null;
+      expect(hasProse || hasFigure, `${slug} renders an empty post`).toBe(true);
+    }
+  });
+
+  it('captions the one photograph, and sources it to LiTex', () => {
+    const doc = docFor(routeFile('/news/new-braided-self-curling-tube/'));
+    const figure = doc.querySelector('[data-archive-figure]');
+    expect(figure, 'the May 2020 post lost its photograph').not.toBeNull();
+    expect(figure!.querySelector('figcaption')?.textContent ?? '').toContain('LiTex');
+  });
+```
+
+- [ ] **Step 7: Build and run everything**
 
 Run: `npm run build && npm test`
 Expected: PASS. Still 32 pages. `dist` gains avif/webp variants of the macro, all comfortably under the 300 KB cap (measured: 1200px webp is 137 KB).
 
-- [ ] **Step 7: Verify the Tier 3 guard actually covers `/news/`**
+- [ ] **Step 8: Verify the Tier 3 guard actually covers `/news/`**
 
 Temporarily set `"aiGenerated": true` on the news entry in `src/assets/news/provenance.json`, run `npx vitest run tests/imagery.test.ts`, and confirm it **FAILS** with a Tier 3 violation. Restore it (or re-run the extraction script) and confirm green.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-git add scripts/extract-images.mjs src/assets/news src/content/news/new-braided-self-curling-tube.md tests/provenance.test.ts tests/imagery.test.ts
+git add scripts/extract-images.mjs src/assets/news src/content/news/new-braided-self-curling-tube.md tests/provenance.test.ts tests/imagery.test.ts tests/news.test.ts
 git commit -m "feat: ship LiTex's own braid macro as the May 2020 post's content"
 ```
 
