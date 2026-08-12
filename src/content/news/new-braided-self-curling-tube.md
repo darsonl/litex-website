@@ -8,6 +8,6 @@ relatedProducts:
   - braided-self-curling-tube
 image:
   src: '../../assets/news/new-braided-self-curling-tube.jpg'
-  alt: 'Macro photograph of black braided sleeving filling the frame, showing the herringbone braid pattern and the overlapping edge that lets the tube curl closed around a cable'
+  alt: 'Macro photograph of a black braided tube crossing the frame diagonally, showing the herringbone pattern of crossing filament bundles and the small diamond-shaped gaps between them, against an out-of-focus pale background'
   caption: 'Braided self-curling tube, photographed by LiTex for the May 2020 announcement.'
 ---
