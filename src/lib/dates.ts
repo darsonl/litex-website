@@ -16,7 +16,8 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ] as const;
 
-const STORED = /^(\d{4})-(\d{2})-(\d{2})T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/;
+/** The stored timestamp format: ISO 8601 with an offset, e.g. 2017-02-23T14:47:55+08:00. */
+export const STORED = /^(\d{4})-(\d{2})-(\d{2})T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/;
 
 function fields(publishedAt: string): { year: number; month: number; day: number } {
   const match = STORED.exec(publishedAt);
@@ -46,6 +47,20 @@ function fields(publishedAt: string): { year: number; month: number; day: number
   }
 
   return { year, month, day };
+}
+
+/**
+ * True only when `value` is both well-formed (STORED) and a real calendar date. This is
+ * the predicate schemas should call instead of re-deriving calendar validity themselves —
+ * this module already owns parsing the stored timestamp format; it owns validating it too.
+ */
+export function isStoredTimestamp(value: string): boolean {
+  try {
+    fields(value);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function displayDate(publishedAt: string): string {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { displayDate, isoDate, publishedYear, byPublishedDesc } from '../src/lib/dates';
+import { displayDate, isoDate, publishedYear, byPublishedDesc, isStoredTimestamp } from '../src/lib/dates';
 
 describe('displayDate', () => {
   it('formats a stored timestamp as a long date', () => {
@@ -40,6 +40,25 @@ describe('isoDate and publishedYear', () => {
 
   it('yields the calendar year for grouping', () => {
     expect(publishedYear('2017-06-26T13:39:06+08:00')).toBe(2017);
+  });
+});
+
+describe('isStoredTimestamp', () => {
+  // The predicate news.ts's schema calls instead of re-deriving calendar validity itself.
+  it('accepts a valid stored timestamp', () => {
+    expect(isStoredTimestamp('2017-02-23T14:47:55+08:00')).toBe(true);
+  });
+
+  it('rejects a malformed timestamp', () => {
+    expect(isStoredTimestamp('26 February 2018')).toBe(false);
+  });
+
+  it('rejects an impossible calendar date', () => {
+    expect(isStoredTimestamp('2018-02-31T15:15:53+08:00')).toBe(false);
+  });
+
+  it('accepts a genuine leap day', () => {
+    expect(isStoredTimestamp('2016-02-29T12:00:00+08:00')).toBe(true);
   });
 });
 
