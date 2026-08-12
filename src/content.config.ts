@@ -2,6 +2,7 @@ import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { productSchema } from './schemas/product';
 import { applicationSchema } from './schemas/application';
+import { newsSchema } from './schemas/news';
 
 const products = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/products' }),
@@ -14,4 +15,9 @@ const applications = defineCollection({
   schema: applicationSchema(reference),
 });
 
-export const collections = { products, applications };
+const news = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/news' }),
+  schema: ({ image }) => newsSchema({ reference, image }),
+});
+
+export const collections = { products, applications, news };
