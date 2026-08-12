@@ -42,43 +42,78 @@ describe('privacy notice', () => {
 });
 
 describe('privacy notice stays true as the site grows', () => {
-  // These two guards exist to be deleted, deliberately, by the plan that makes them
-  // false. A privacy notice that quietly stops describing the site is worse than one
-  // that was never written.
+  // These guards exist to fail the moment the page stops describing the site. A privacy
+  // notice that quietly stops being true is worse than one that was never written.
 
-  // Plan 8 adds Cloudflare Web Analytics. When it does, update the page to describe
-  // it and remove this test in the same commit.
-  //
-  // The privacy page claims "Fonts, images, stylesheets and scripts are all served
-  // from this domain". Images are covered site-wide by tests/imagery.test.ts and fonts
-  // by tests/fonts.test.ts; stylesheets were previously checked on the homepage only
-  // (tests/build.test.ts). The selector below is widened to link[rel="stylesheet"] and
-  // link[rel="preconnect"], site-wide, so this guard covers the sentence the page
-  // actually publishes rather than just its "no analytics" clause.
-  it('claims no analytics only while the site really runs none', () => {
-    const external = new Set<string>();
+  // Rewritten in Plan 7. The site now loads exactly one third-party resource — the
+  // Turnstile widget, on the pages that carry a form — and /legal/privacy/ discloses it.
+  // The guard's job is unchanged: an UNDISCLOSED third party must fail. Plan 8 adds the
+  // Cloudflare Web Analytics script to this list and updates the page in the same commit.
+  const DISCLOSED = new Set([
+    'https://challenges.cloudflare.com/turnstile/v0/api.js',
+  ]);
+
+  it('loads no third-party resource the privacy notice does not disclose', () => {
+    const undisclosed = new Set<string>();
+
     for (const file of walk(DIST).filter((f) => f.endsWith('.html'))) {
       const doc = parseHTML(readFileSync(file, 'utf8')).document;
       for (const el of [
         ...doc.querySelectorAll('script[src], link[rel="stylesheet"], link[rel="preconnect"]'),
       ]) {
         const url = el.getAttribute('src') ?? el.getAttribute('href') ?? '';
-        if (/^https?:\/\//.test(url)) external.add(url);
+        if (/^https?:\/\//.test(url) && !DISCLOSED.has(url)) undisclosed.add(url);
       }
     }
+
+    // Scanning the HTML alone is not enough, and this was demonstrated rather than
+    // assumed: a plain <script src="https://..."> in a .astro file does NOT reach dist/
+    // as an absolute URL. Astro processes it into a local module whose whole body is
+    // `import "https://.../tracker.js"` — the browser still makes the third-party
+    // request, but no HTML attribute names it. Turnstile only stays visible above
+    // because EnquiryForm.astro marks it is:inline. So the emitted JS is swept too.
+    for (const file of walk(DIST).filter((f) => f.endsWith('.js'))) {
+      const js = readFileSync(file, 'utf8');
+      for (const [, url] of js.matchAll(/(?:^|[\s;{(])(?:import|from)\s*["'](https?:\/\/[^"']+)["']/g)) {
+        if (!DISCLOSED.has(url)) undisclosed.add(url);
+      }
+    }
+
     expect(
-      [...external],
-      'the site now loads a third-party script, stylesheet or preconnect — update /legal/privacy/',
+      [...undisclosed],
+      'an undisclosed third-party resource is now loaded — update /legal/privacy/',
     ).toEqual([]);
+  });
+
+  // Deliberately matched on the script element, not on the raw text of the file:
+  // /legal/privacy/ has to NAME challenges.cloudflare.com in order to disclose it, and a
+  // page that discloses the widget is exactly not a page that loads it. Only /contact/
+  // exists today, so the count is 1; /request-a-sample/ raises it to 2 in the commit
+  // that adds the page.
+  it('loads Turnstile only on the pages that have a form', () => {
+    const withTurnstile = walk(DIST)
+      .filter((f) => f.endsWith('.html'))
+      .filter((f) =>
+        parseHTML(readFileSync(f, 'utf8'))
+          .document.querySelector('script[src*="challenges.cloudflare.com"]'),
+      );
+    expect(withTurnstile).toHaveLength(1);
+    expect(withTurnstile.every((f) => /contact/.test(f))).toBe(true);
+  });
+
+  // Carried over from the guard rewritten above, which asserted this alongside the
+  // external-resource sweep. The claim is unchanged and still true, so it must not be
+  // lost with the sweep it used to travel with. Plan 8 changes the page and this line.
+  it('claims no analytics only while the site really runs none', () => {
     expect(docFor('legal/privacy/index.html').body.textContent).toContain('no analytics');
   });
 
-  // Plan 7 adds the contact form and the Pages Function behind it. When it does, the
-  // page must describe what happens to a submission, and this test goes.
-  it('describes no form while no form exists', () => {
-    const forms = walk(DIST)
-      .filter((f) => f.endsWith('.html'))
-      .filter((f) => parseHTML(readFileSync(f, 'utf8')).document.querySelector('form'));
-    expect(forms, 'a form now exists — update /legal/privacy/ to describe it').toEqual([]);
+  it('describes the form now that one exists', () => {
+    const text = docFor('legal/privacy/index.html').body.textContent ?? '';
+    expect(text).toContain('Turnstile');
+    expect(text).toContain('180 days');
+    // The no-IP promise is enforced against the function in tests/submit.test.ts,
+    // which is what makes it safe for the page to state.
+    expect(text.toLowerCase()).toContain('ip address');
   });
 });
