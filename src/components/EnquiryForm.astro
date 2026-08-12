@@ -35,7 +35,7 @@ const fields = fieldsFor(formType);
   {fields.map((field) => (
     <p class="field">
       <label for={`${formType}-${field.name}`}>
-        {field.label}
+        {field.label}{' '}
         {field.required && <span class="req" aria-hidden="true">*</span>}
         {!field.required && <span class="opt">(optional)</span>}
       </label>
