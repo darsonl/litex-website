@@ -10,7 +10,7 @@ type Entry = {
   dimensions: string;
 };
 
-const GROUPS = ['products', 'company'] as const;
+const GROUPS = ['products', 'company', 'news'] as const;
 
 function dirFor(group: string): string {
   return fileURLToPath(new URL(`../src/assets/${group}`, import.meta.url));
@@ -34,6 +34,7 @@ const EXPECTED: Record<string, string[]> = {
     'premises', 'heritage-nameplates', 'factory-floor', 'trade-show-stand',
     'taitronics-award', 'sgs-test-report',
   ],
+  news: ['new-braided-self-curling-tube'],
 };
 
 /** First bytes of the formats Astro's sharp can actually decode. */

@@ -1,29 +1,11 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { parseHTML } from 'linkedom';
+import { DIST, allHtmlFiles, docFor, routeFile } from './helpers/dist';
 
-const DIST = fileURLToPath(new URL('../dist', import.meta.url));
-
-function walk(dir: string): string[] {
-  return readdirSync(dir).flatMap((entry) => {
-    const full = join(dir, entry);
-    return statSync(full).isDirectory() ? walk(full) : [full];
-  });
-}
-
-const htmlFiles = walk(DIST).filter((f) => f.endsWith('.html'));
-
-function docFor(relativePath: string) {
-  return parseHTML(readFileSync(join(DIST, relativePath), 'utf8')).document;
-}
-
-/** Maps an internal href to the file Astro's build.format:'directory' emits for it. */
-function routeFile(href: string): string {
-  const clean = href.replace(/^\//, '').replace(/\/$/, '');
-  return clean === '' ? 'index.html' : `${clean}/index.html`;
-}
+const htmlFiles = allHtmlFiles();
 
 describe('site chrome', () => {
   it('puts a masthead on every generated page', () => {

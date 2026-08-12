@@ -1,0 +1,108 @@
+---
+// src/pages/news/[slug].astro
+import { getCollection, getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArchiveFigure from '../../components/ArchiveFigure.astro';
+import { mustResolve } from '../../lib/references';
+import { displayDate, isoDate } from '../../lib/dates';
+import { newsJsonLd } from '../../lib/jsonld';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('news');
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+// A broken reference renders blank instead of failing the build (Astro 7.2.0), so every
+// related product is resolved through the guard.
+const related = await Promise.all(
+  post.data.relatedProducts.map(async (ref) =>
+    mustResolve(await getEntry(ref), ref, `news/${post.id}`),
+  ),
+);
+
+const jsonLd = newsJsonLd({
+  title: post.data.title,
+  description: post.data.summary,
+  url: new URL(Astro.url.pathname, Astro.site).href,
+  publishedAt: post.data.publishedAt,
+});
+---
+<BaseLayout
+  title={`${post.data.title} — LiTex Textile & Technology`}
+  description={post.data.summary}
+>
+  <p class="breadcrumb"><a href="/news/">← All news</a></p>
+
+  <article>
+    <time datetime={isoDate(post.data.publishedAt)}>{displayDate(post.data.publishedAt)}</time>
+    <h1>{post.data.title}</h1>
+
+    {post.body?.trim() && <div class="prose" data-prose><Content /></div>}
+
+    {post.data.image && (
+      <ArchiveFigure
+        image={post.data.image.src}
+        alt={post.data.image.alt}
+        caption={post.data.image.caption}
+      />
+    )}
+
+    {post.data.externalLinks.length > 0 && (
+      <section data-external-links>
+        <h2>Link{post.data.externalLinks.length === 1 ? '' : 's'}</h2>
+        <ul class="links">
+          {post.data.externalLinks.map((link) => (
+            <li><a href={link.href}>{link.label}</a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {related.length > 0 && (
+      <section data-related>
+        <h2>Related product{related.length === 1 ? '' : 's'}</h2>
+        <ul class="links">
+          {related.map((product) => (
+            <li><a href={`/products/${product.id}/`}>{product.data.name}</a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <p class="provenance" data-source-note>
+      <small>
+        Published {displayDate(post.data.publishedAt)} at{' '}
+        <a href={post.data.sourceUrl}>{post.data.sourceUrl}</a>.{' '}
+        {post.data.sourceNote}
+      </small>
+    </p>
+  </article>
+
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+</BaseLayout>
+
+<style>
+  .breadcrumb { font-size: var(--t-14); }
+  article > time {
+    display: block;
+    font-size: var(--t-12);
+    color: var(--c-text-2);
+    margin-bottom: var(--s-2);
+  }
+  .prose { max-width: 70ch; }
+  .prose :global(p:first-child) { margin-top: 0; }
+  .links { list-style: none; padding: 0; margin: var(--s-4) 0 0; }
+  .links li + li { margin-top: var(--s-2); }
+  .provenance {
+    color: var(--c-text-2);
+    margin-top: var(--s-12);
+    padding-top: var(--s-4);
+    border-top: 1px solid var(--c-line);
+    max-width: 70ch;
+    /* The source URL is long and unbreakable; without this it overflows on a phone. */
+    overflow-wrap: anywhere;
+  }
+</style>

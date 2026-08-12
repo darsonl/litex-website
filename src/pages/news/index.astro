@@ -1,0 +1,68 @@
+---
+// src/pages/news/index.astro
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { displayDate, isoDate, publishedYear, byPublishedDesc } from '../../lib/dates';
+
+const posts = (await getCollection('news'))
+  .sort((a, b) => byPublishedDesc(a.data.publishedAt, b.data.publishedAt));
+
+// Computed, never written down: an archive that names a range it no longer covers is
+// exactly the kind of stale claim this section is trying not to make.
+const years = posts.map((p) => publishedYear(p.data.publishedAt));
+const first = Math.min(...years);
+const last = Math.max(...years);
+
+const grouped = [...new Set(years)].map((year) => ({
+  year,
+  posts: posts.filter((p) => publishedYear(p.data.publishedAt) === year),
+}));
+---
+<BaseLayout
+  title="News — LiTex Textile & Technology"
+  description={`Announcements LiTex published between ${first} and ${last}, reproduced from its previous site.`}
+>
+  <h1>News</h1>
+
+  <p class="intro" data-archive-note>
+    An archive of the announcements LiTex published between {first} and {last}, reproduced
+    from the company’s previous site with their original dates. Nothing here has been
+    rewritten or brought up to date, so read every statement as of the date it carries.
+    Current specifications live on the{' '}
+    <a href="/products/">product pages</a>.
+  </p>
+
+  {grouped.map(({ year, posts: yearPosts }) => (
+    <section class="year">
+      <h2 data-news-year>{year}</h2>
+      <ul class="list" data-news-list>
+        {yearPosts.map((post) => (
+          <li>
+            <time datetime={isoDate(post.data.publishedAt)}>
+              {displayDate(post.data.publishedAt)}
+            </time>
+            <a href={`/news/${post.id}/`}>{post.data.title}</a>
+            <p class="summary" data-summary>{post.data.summary}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</BaseLayout>
+
+<style>
+  .intro { color: var(--c-text-2); max-width: 60ch; }
+  .year h2 { margin-bottom: var(--s-2); }
+  .list { list-style: none; padding: 0; margin: 0; }
+  .list li {
+    border-top: 1px solid var(--c-line);
+    padding: var(--s-4) 0;
+  }
+  .list time {
+    display: block;
+    font-size: var(--t-12);
+    color: var(--c-text-2);
+  }
+  .list a { font-size: var(--t-20); }
+  .summary { color: var(--c-text-2); font-size: var(--t-14); margin: var(--s-2) 0 0; max-width: 70ch; }
+</style>

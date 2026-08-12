@@ -1,7 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { z } from 'astro/zod';
+import { readFileSync, readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { productSchema } from '../src/schemas/product';
 import { applicationSchema } from '../src/schemas/application';
+import { newsSchema } from '../src/schemas/news';
 
 /** Stands in for Astro's reference(); shape matches what Astro produces. */
 const referenceStub = () => z.object({ collection: z.string(), id: z.string() }).or(z.string());
@@ -135,5 +139,96 @@ describe('applicationSchema', () => {
       summary: 'Invented end-use with no support.',
     });
     expect(r.success).toBe(false);
+  });
+});
+
+const news = newsSchema({ reference: referenceStub, image: imageStub });
+
+const validPost = {
+  title: 'Dusseldorf Wire Show',
+  publishedAt: '2018-02-26T15:15:53+08:00',
+  summary: 'LiTex attended the Düsseldorf wire show for the first time in 2018.',
+  sourceUrl: 'https://litextextile.wordpress.com/2018/02/26/dusseldorf-wire-show/',
+  sourceNote: 'Reproduced from LiTex’s previous site.',
+};
+
+describe('newsSchema', () => {
+  it('accepts a post carrying its date, summary and provenance', () => {
+    const r = news.safeParse(validPost);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.relatedProducts).toEqual([]);
+      expect(r.data.externalLinks).toEqual([]);
+    }
+  });
+
+  // YAML parses an unquoted 2018-02-26T15:15:53+08:00 into a Date, not a string. Quoting
+  // it in the front matter is what keeps it a string, so the schema must reject a Date
+  // loudly rather than let one reach the formatter.
+  it('rejects a timestamp that arrived as a Date rather than a quoted string', () => {
+    const r = news.safeParse({ ...validPost, publishedAt: new Date('2018-02-26') });
+    expect(r.success).toBe(false);
+  });
+
+  it('rejects a timestamp with no offset, which would be ambiguous', () => {
+    expect(news.safeParse({ ...validPost, publishedAt: '2018-02-26T15:15:53' }).success).toBe(false);
+  });
+
+  it('rejects a date that does not exist', () => {
+    expect(news.safeParse({ ...validPost, publishedAt: '2018-02-31T15:15:53+08:00' }).success)
+      .toBe(false);
+  });
+
+  it('requires provenance, because every post is a republication', () => {
+    const { sourceUrl, ...noUrl } = validPost;
+    expect(news.safeParse(noUrl).success).toBe(false);
+    const { sourceNote, ...noNote } = validPost;
+    expect(news.safeParse(noNote).success).toBe(false);
+  });
+
+  it('holds the summary to the meta-description budget', () => {
+    expect(news.safeParse({ ...validPost, summary: 'x'.repeat(161) }).success).toBe(false);
+  });
+
+  it('refuses AI imagery — /news/ ships product photography, which is Tier 3', () => {
+    const r = news.safeParse({
+      ...validPost,
+      image: { src: 'x.jpg', alt: 'A braided sleeve', caption: 'Source', aiGenerated: true },
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) expect(JSON.stringify(r.error.issues)).toContain('Tier 3');
+  });
+
+  it('requires a caption on any image, so a reader is told what they are looking at', () => {
+    const r = news.safeParse({ ...validPost, image: { src: 'x.jpg', alt: 'A braided sleeve' } });
+    expect(r.success).toBe(false);
+  });
+});
+
+describe('news entries as authored', () => {
+  const dir = fileURLToPath(new URL('../src/content/news', import.meta.url));
+  const files = readdirSync(dir).filter((f) => f.endsWith('.md'));
+
+  it('publishes exactly the seven posts spec §3 keeps', () => {
+    expect(files.map((f) => f.replace(/\.md$/, '')).sort()).toEqual([
+      'copper-nickel-1s1z', 'dusseldorf-wire-show', 'featured-on-techtextil-blog',
+      'new-braided-self-curling-tube', 'techtextil-frankfurt', 'tokyo-wearable-expo-2022',
+      'wearable-expo',
+    ]);
+  });
+
+  // Six of the seven archived titles contain U+00A0, WordPress's widow-prevention. It is
+  // invisible in an editor and in a browser, breaks text search, and wraps wrong.
+  it('carries no non-breaking space transcribed in from WordPress', () => {
+    for (const file of files) {
+      const text = readFileSync(join(dir, file), 'utf8');
+      expect(text.includes(' '), `${file} still holds a U+00A0`).toBe(false);
+    }
+  });
+
+  // test-post-blah is deliberately dead (spec §3, 410 Gone). Its content is real but is
+  // superseded by wearable-expo; if it ever reappears that was a decision, not a drift.
+  it('does not resurrect the killed test post', () => {
+    expect(files.some((f) => f.includes('test-post'))).toBe(false);
   });
 });

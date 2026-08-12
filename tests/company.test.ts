@@ -1,29 +1,9 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { parseHTML } from 'linkedom';
-
-function docFor(relativePath: string) {
-  return parseHTML(
-    readFileSync(fileURLToPath(new URL(`../dist/${relativePath}`, import.meta.url)), 'utf8'),
-  ).document;
-}
-
-const DIST = fileURLToPath(new URL('../dist', import.meta.url));
-
-function walk(dir: string): string[] {
-  return readdirSync(dir).flatMap((entry) => {
-    const full = join(dir, entry);
-    return statSync(full).isDirectory() ? walk(full) : [full];
-  });
-}
-
-/** Maps an internal href to the file Astro's build.format:'directory' emits for it. */
-function routeFile(href: string): string {
-  const clean = href.replace(/^\//, '').replace(/\/$/, '');
-  return clean === '' ? 'index.html' : `${clean}/index.html`;
-}
+import { DIST, walk, docFor, routeFile } from './helpers/dist';
 
 describe('company — about', () => {
   it('generates the route with a single h1 and its canonical', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { productJsonLd, MANUFACTURER } from '../src/lib/jsonld';
+import { productJsonLd, newsJsonLd, MANUFACTURER } from '../src/lib/jsonld';
 
 const base = {
   name: 'Conductive Metal Yarn',
@@ -55,5 +55,30 @@ describe('productJsonLd', () => {
 
   it('produces an object that survives JSON serialization', () => {
     expect(() => JSON.stringify(productJsonLd(base))).not.toThrow();
+  });
+});
+
+describe('newsJsonLd', () => {
+  const ld = newsJsonLd({
+    title: 'Dusseldorf Wire Show',
+    description: 'LiTex attended the Düsseldorf wire show for the first time in 2018.',
+    url: 'https://litex.com.tw/news/dusseldorf-wire-show/',
+    publishedAt: '2018-02-26T15:15:53+08:00',
+  });
+
+  it('describes the post as a BlogPosting published by LiTex', () => {
+    expect(ld['@type']).toBe('BlogPosting');
+    expect(ld.headline).toBe('Dusseldorf Wire Show');
+    expect(ld.publisher).toEqual(MANUFACTURER);
+  });
+
+  // The stored offset is part of the fact. Emitting a UTC-normalized instant would state
+  // a different local date than the page shows.
+  it('emits the timestamp exactly as stored, offset included', () => {
+    expect(ld.datePublished).toBe('2018-02-26T15:15:53+08:00');
+  });
+
+  it('makes no claim about modification, because nothing has been revised', () => {
+    expect(ld).not.toHaveProperty('dateModified');
   });
 });

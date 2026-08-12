@@ -1,21 +1,7 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
 import { parseHTML } from 'linkedom';
-
-const DIST = fileURLToPath(new URL('../dist', import.meta.url));
-
-function walk(dir: string): string[] {
-  return readdirSync(dir).flatMap((entry) => {
-    const full = join(dir, entry);
-    return statSync(full).isDirectory() ? walk(full) : [full];
-  });
-}
-
-function docFor(relativePath: string) {
-  return parseHTML(readFileSync(join(DIST, relativePath), 'utf8')).document;
-}
+import { DIST, walk, docFor } from './helpers/dist';
 
 describe('privacy notice', () => {
   it('generates the route with a single h1 and its canonical', () => {

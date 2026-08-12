@@ -1,17 +1,10 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
+import { DIST, walk } from './helpers/dist';
 
-const DIST = fileURLToPath(new URL('../dist', import.meta.url));
 const SRC = fileURLToPath(new URL('../src', import.meta.url));
-
-function walk(dir: string): string[] {
-  return readdirSync(dir).flatMap((entry) => {
-    const full = join(dir, entry);
-    return statSync(full).isDirectory() ? walk(full) : [full];
-  });
-}
 
 const distFiles = walk(DIST);
 const htmlFiles = distFiles.filter((f) => f.endsWith('.html'));
@@ -22,7 +15,7 @@ const imageFiles = distFiles.filter((f) => /\.(avif|webp|jpe?g|png|gif|svg)$/i.t
  * groups share no filename, so a flat lookup is unambiguous.
  */
 function allProvenance(): Record<string, { aiGenerated: boolean }> {
-  return ['products', 'company'].reduce(
+  return ['products', 'company', 'news'].reduce(
     (all, group) => ({
       ...all,
       ...JSON.parse(readFileSync(join(SRC, `assets/${group}/provenance.json`), 'utf8')),
@@ -99,7 +92,7 @@ describe('Tier 3 sections — real photography only', () => {
   // This stopped being vacuous in Plan 5: /company/ now ships six photographs,
   // including two certificate crops. Every one must trace to a manifest entry that
   // declares itself real.
-  const TIER_3 = ['technology', 'company'];
+  const TIER_3 = ['technology', 'company', 'news'];
 
   const manifest = allProvenance();
 

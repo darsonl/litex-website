@@ -1,15 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, beforeAll } from 'vitest';
-import { parseHTML } from 'linkedom';
-
-function docFor(relativePath: string) {
-  const html = readFileSync(
-    fileURLToPath(new URL(`../dist/${relativePath}`, import.meta.url)),
-    'utf8',
-  );
-  return parseHTML(html).document;
-}
+import { docFor } from './helpers/dist';
 
 describe('built home page', () => {
   let doc: ReturnType<typeof docFor>;
