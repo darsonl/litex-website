@@ -318,6 +318,21 @@ build is structurally slow, which is what the budget was for.
 `litex-website.pages.dev`; the custom domain adds a Cloudflare zone in front, and the numbers should
 be confirmed rather than assumed to carry over.
 
+#### Re-run 2026-08-14, after the homepage gained images — still 100 across the board
+
+The scores above were measured on the **old, image-free** homepage. The redesign then added three
+photographs, one of them above the fold and full width on a phone, which is exactly the change that
+moves **LCP** and **CLS** — so the earlier result could not be assumed to carry over. Re-run by hand
+after PRs #17, #19 and #20 landed: **still 100 on all four categories.**
+
+That is worth more than the original run. It says the eager-loaded lede figure is not costing LCP
+and that nothing is shifting during load — which is what `ArchiveFigure` emitting intrinsic
+dimensions, and Astro building fixed-width AVIF/WebP variants, are for. Cropping and repainting the
+composites also cut real bytes: the lede figure went from a 1062×562 composite to a 506×359 crop.
+
+*The device preset for this re-run was not recorded. If it was Desktop, one Mobile run is still
+worth doing — mobile is where the throttle bites and where the lede figure is full width.*
+
 ## 6c. Enquiry pipeline — proven end-to-end 2026-08-14
 
 Parts B, C-secret and E were completed in the dashboard and the latest deployment retried. **A real
