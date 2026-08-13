@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import SiteNav from '../components/SiteNav.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import { COMPANY } from '../lib/company';
 
 /**
  * Cloudflare Web Analytics site token for litex.com.tw, issued 2026-08-13.
@@ -30,6 +31,15 @@ interface Props {
 }
 
 const { title, description, noindex = false } = Astro.props;
+
+/**
+ * Declared once and used twice — as <link rel="canonical"> and as the address printed
+ * on paper. They must be the same string: a printed sheet carrying a URL that is not
+ * the page's own canonical address sends the reader somewhere else, and that failure
+ * is invisible on screen. tests/print.test.ts asserts the two agree by reading the
+ * canonical link off the page and looking for it in the printed text.
+ */
+const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 <html lang="en">
   <head>
@@ -37,13 +47,47 @@ const { title, description, noindex = false } = Astro.props;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     {noindex && <meta name="robots" content="noindex" />}
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to main content</a>
+
+    <!--
+      The letterhead, for paper only.
+
+      global.css hides the masthead and the footer in print media, on purpose — a
+      navigation bar and a column of links are noise on a printed sheet. But PRODUCT.md
+      requires the opposite of three specific facts: "Spec pages must survive being
+      printed and attached to an internal document, carrying wordmark, canonical URL and
+      contact details." Hiding the chrome removed exactly those three, leaving an
+      anonymous sheet of paper in a procurement thread. This reinstates them in a form
+      that suits paper instead of a screen.
+
+      It sits ahead of <main> so it lands on the first sheet, where a letterhead belongs,
+      and so it survives a reader printing only page 1.
+
+      display:none on screen also keeps it out of the accessibility tree, so it is not
+      read twice to anyone using a screen reader.
+    -->
+    <div class="print-colophon" data-print-colophon>
+      <p class="mark">
+        <span class="name">LiTex</span>
+        <span class="sub">Textile &amp; Technology</span>
+      </p>
+      <p class="who">
+        <span>{COMPANY.legalName}</span>
+        <span>{COMPANY.addressLines.join(', ')}</span>
+      </p>
+      <p class="reach">
+        <a href={COMPANY.phoneHref}>{COMPANY.phone}</a>
+        <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>
+      </p>
+      <p class="source">{canonical.href}</p>
+    </div>
+
     <SiteNav />
     <main id="main" class="page">
       <slot />
@@ -69,3 +113,51 @@ const { title, description, noindex = false } = Astro.props;
     ></script>
   </body>
 </html>
+
+<style>
+  /* Screen readers and sighted visitors both get nothing: this block is for paper. */
+  .print-colophon { display: none; }
+
+  @media print {
+    .print-colophon {
+      display: block;
+      margin-bottom: var(--s-8);
+      padding-bottom: var(--s-4);
+      border-bottom: 1px solid var(--c-line);
+    }
+    .print-colophon p { margin: 0; }
+
+    .mark {
+      display: flex;
+      align-items: baseline;
+      gap: var(--s-3);
+      margin-bottom: var(--s-2) !important;
+    }
+    .name { font-size: var(--t-20); font-weight: 600; }
+    .sub {
+      font-family: var(--font-mono);
+      font-size: var(--t-10);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    /* One address, one way to reach a person, one URL — set small and tight so the
+       letterhead costs a few lines rather than a third of the first sheet. */
+    .who, .reach, .source {
+      font-family: var(--font-mono);
+      font-size: var(--t-10);
+      color: var(--c-text-2);
+    }
+    .who span + span::before { content: ' · '; }
+    .reach a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .reach a + a::before { content: ' · '; }
+
+    /* The traceable address. Left unlinked deliberately — it is the page the reader is
+       already holding, so a link would go nowhere useful; what they need is to be able
+       to type it. break-all keeps a long product URL from running off the sheet. */
+    .source { word-break: break-all; }
+  }
+</style>

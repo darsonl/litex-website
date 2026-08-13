@@ -318,6 +318,38 @@ build is structurally slow, which is what the budget was for.
 `litex-website.pages.dev`; the custom domain adds a Cloudflare zone in front, and the numbers should
 be confirmed rather than assumed to carry over.
 
+## 6c. Enquiry pipeline — proven end-to-end 2026-08-14
+
+Parts B, C-secret and E were completed in the dashboard and the latest deployment retried. **A real
+enquiry was then submitted through `https://litex-website.pages.dev/contact/` in an ordinary
+browser, and landed on `/enquiry-sent/?delivery=pending`.**
+
+That single observation is decisive, because `functions/api/submit.ts` can only reach the `stored`
+outcome by passing through every earlier gate:
+
+| Reaching `?delivery=pending` proves | Because |
+|---|---|
+| `TURNSTILE_SECRET` is set and correct | `verifyTurnstile` returned true; a wrong or missing secret gets `success: false` from siteverify and returns the 400 rejection instead |
+| The KV binding resolves and the write succeeded | `env.SUBMISSIONS.put()` did not throw; if it had, the function returns 503 "We could not record your enquiry" |
+| `ENQUIRY_TO` is set | Independently confirmed — a probe POST echoed `sales@litex.com.tw` in `contactEmail` |
+| Delivery honestly reported failure | `deliver()` returned false because `RESEND_API_KEY` is absent, and the endpoint said so rather than showing a false success |
+
+The record is in KV namespace `litex-enquiries`, keyed `enquiry:<iso>:<uuid>`, with a 180-day TTL.
+
+**Why this could not be automated.** Turnstile in Managed mode serves an interactive challenge to a
+headless browser — that is the control working as designed, not a defect, and it must not be worked
+around. Probing from outside cannot substitute: a wrong secret and an invalid token produce
+byte-identical 400s, so **only a human submitting the real form settles it**. Two things *were*
+verified without a token, and are worth keeping: the served sitekey is the production
+`0x4AAAAAAEOqzFlvFS397MkG` rather than the always-passes test key, and `litex-website.pages.dev` is
+on the widget's hostname allowlist — the widget renders a genuine challenge rather than an error box.
+
+⚠ **Retrying a deployment rebuilds the same commit.** It is the correct way to pick up new bindings
+and variables (setup part E4) but it ships no new code. Confirmed the same day: after the retry, the
+live HTML still lacked markers from the unmerged `homepage-redesign` branch.
+
+---
+
 ## 7. Still open after this list
 
 **Infrastructure not yet done** — Plan 8 finishing means the *repo* is ready, not that the site is
@@ -325,17 +357,14 @@ launched. `docs/cloudflare-setup.md` is the click-by-click walkthrough and track
 
 | Part | What | State |
 |---|---|---|
-| B | KV namespace bound as `SUBMISSIONS` | ❌ |
-| C | `TURNSTILE_SECRET` (widget and sitekey are done) | ❌ |
-| E | The four Pages variables/secrets | ❌ |
+| B | KV namespace bound as `SUBMISSIONS` | ✅ **done and proven 2026-08-14** — see §6c |
+| C | `TURNSTILE_SECRET` (widget and sitekey are done) | ✅ **done and proven 2026-08-14** — see §6c |
+| E | The Pages variables/secrets | ✅ **done** for the three that do not need Resend; `RESEND_API_KEY` is absent by design until D |
 | D | **Resend domain verification** for `send.litex.com.tw` (§4) | ❌ **blocked** — no registrar access to `litex.com.tw` yet |
 | F | Custom domain / nameserver move (§6) | ❌ deliberately last |
 
-**B + the C secret + E is the fastest path to proving the enquiry pipeline, and none of the three
-needs Resend.** With those done, a submission writes a real KV record and returns the honest
-queued-delivery message — delivery fails without a Resend key, so the endpoint reports
-`outcome: 'stored'` rather than a false success. That is the never-lose-a-submission guarantee
-demonstrated against real infrastructure, and it is the most valuable thing still unproven.
+**The enquiry pipeline is no longer the most valuable unproven thing — it is proven.** See §6c. What
+remains is delivery, which is Resend, which is blocked on registrar access.
 
 **Also unresolved:**
 

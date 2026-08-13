@@ -8,6 +8,19 @@ You need about an hour, plus DNS propagation waiting time. **Do Parts A–E now.
 domain) is a separate decision on a separate day** — it is the only step that can break LiTex's
 existing company email, and nothing else depends on it.
 
+> ## ✅ Status as of 2026-08-14
+>
+> **Parts A, B, C and E are DONE**, and the enquiry pipeline is **proven end-to-end**: a real
+> submission through the live form reached `/enquiry-sent/?delivery=pending`, which is only
+> reachable by passing Turnstile *and* completing the KV write. The record is in the
+> `litex-enquiries` namespace. Full reasoning in `docs/deployment.md` §6c.
+>
+> **Only D and F remain.** D (Resend) is **blocked** on registrar access to `litex.com.tw`, and F
+> (the nameserver move) is deliberately last. Until D is done, submissions are stored and the
+> visitor is told delivery is pending — which is the honest behaviour, not a bug.
+>
+> Ticked boxes below are done. **Do not redo them.**
+
 > **Never paste a secret key or API key into a chat, a commit, or an issue.** The only value from
 > this process that is safe to share is the Turnstile **sitekey** (it is public by design and ships
 > in the HTML). The Turnstile *secret* key and the Resend API key go straight into the Cloudflare
@@ -50,9 +63,9 @@ on its own day.
 
 ## Part A — Create the Pages project
 
-- [ ] **A1.** Sign up at [dash.cloudflare.com](https://dash.cloudflare.com) (free plan is enough).
-- [ ] **A2.** In the sidebar, go to **Workers & Pages**.
-- [ ] **A3.** Select **Create application** → the **Pages** tab → **Connect to Git**.
+- [x] **A1.** Sign up at [dash.cloudflare.com](https://dash.cloudflare.com) (free plan is enough).
+- [x] **A2.** In the sidebar, go to **Workers & Pages**.
+- [x] **A3.** Select **Create application** → the **Pages** tab → **Connect to Git**.
 
 > ### ⚠ Make sure you are in the Pages flow, not the Workers flow
 >
@@ -73,8 +86,8 @@ on its own day.
 > If your account genuinely offers no Pages option, stop and flag it — that is a real decision (it
 > would mean rewriting `functions/api/submit.ts` as a Worker `fetch` handler), not a navigation
 > problem. See `docs/deployment.md` §1.
-- [ ] **A4.** Sign in with GitHub. Choose **`darsonl/litex-website`**. Select **Install & Authorize**, then **Begin setup**.
-- [ ] **A5.** On *Set up builds and deployments*, enter:
+- [x] **A4.** Sign in with GitHub. Choose **`darsonl/litex-website`**. Select **Install & Authorize**, then **Begin setup**.
+- [x] **A5.** On *Set up builds and deployments*, enter:
 
 | Field | Value |
 |---|---|
@@ -96,7 +109,7 @@ on its own day.
 > Cloudflare clones the repo, runs the build in its own container, publishes `dist`, and compiles
 > `functions/` itself. See `docs/deployment.md` §1 for the full comparison.
 
-- [ ] **A6.** Open **Environment variables (optional)** and add **one** now:
+- [x] **A6.** Open **Environment variables (optional)** and add **one** now:
 
 | Name | Value |
 |---|---|
@@ -109,7 +122,7 @@ on its own day.
   of them.
 
   Then select **Save and Deploy**.
-- [ ] **A7.** Wait for the build. **Expect success, 35 pages.** Open the `*.pages.dev` URL and click around.
+- [x] **A7.** Wait for the build. **Expect success, 35 pages.** Open the `*.pages.dev` URL and click around.
 
 **What works and what does not, at this point:** every page renders. Both forms render. Submitting
 one **fails**, because the function has no KV binding and no secrets yet. That is expected — you are
@@ -119,25 +132,25 @@ about to add them.
 
 ## Part B — KV namespace (where submissions are stored)
 
-- [ ] **B1.** In the sidebar, open **Storage & Databases** → **KV**. (Direct link: `dash.cloudflare.com/?to=/:account/workers/kv/namespaces`.)
-- [ ] **B2.** Select **Create instance**. Name it **`litex-enquiries`**. Select **Create**.
-- [ ] **B3.** Go back to **Workers & Pages** → your **litex-website** project → **Settings** → **Bindings** → **Add** → **KV namespace**.
-- [ ] **B4.** Set:
+- [x] **B1.** In the sidebar, open **Storage & Databases** → **KV**. (Direct link: `dash.cloudflare.com/?to=/:account/workers/kv/namespaces`.)
+- [x] **B2.** Select **Create instance**. Name it **`litex-enquiries`**. Select **Create**.
+- [x] **B3.** Go back to **Workers & Pages** → your **litex-website** project → **Settings** → **Bindings** → **Add** → **KV namespace**.
+- [x] **B4.** Set:
   - **Variable name:** **`SUBMISSIONS`** — this exact string. The function reads `env.SUBMISSIONS`; any other name and every submission fails.
   - **KV namespace:** `litex-enquiries`
-- [ ] **B5.** Save. **Add the same binding for the Preview environment too**, or preview deploys will fail at runtime in a way that looks like a code bug.
+- [x] **B5.** Save. **Add the same binding for the Preview environment too**, or preview deploys will fail at runtime in a way that looks like a code bug.
 
 ---
 
 ## Part C — Turnstile (the anti-spam widget)
 
-- [ ] **C1.** In the sidebar, go to **Turnstile** → **Add widget**.
-- [ ] **C2.** Fill in:
+- [x] **C1.** In the sidebar, go to **Turnstile** → **Add widget**.
+- [x] **C2.** Fill in:
   - **Widget name:** `LiTex enquiry forms`
   - **Hostnames:** add **`litex.com.tw`** *and* **`litex-website.pages.dev`** — without the second one the widget will not run on your test deploys.
   - **Widget mode:** **Managed**
-- [ ] **C3.** Select **Create**. Copy both keys. **The secret key is shown once — store it in a password manager now.**
-- [ ] **C4.** The **sitekey** is public and goes in the code. Send it to me, or edit it yourself in `src/components/EnquiryForm.astro` line 16, replacing the default `1x00000000000000000000AA`.
+- [x] **C3.** Select **Create**. Copy both keys. **The secret key is shown once — store it in a password manager now.**
+- [x] **C4.** The **sitekey** is public and goes in the code. Send it to me, or edit it yourself in `src/components/EnquiryForm.astro` line 16, replacing the default `1x00000000000000000000AA`.
 
 > **Why this matters more than it looks:** `1x00000000000000000000AA` is Cloudflare's documented
 > *always-passes test key*. If it ships to production the forms keep working perfectly — the widget
@@ -179,8 +192,8 @@ MX record set to **DNS only (grey cloud)**, never proxied.)
 
 ## Part E — Wire the secrets into Pages
 
-- [ ] **E1.** **Workers & Pages** → **litex-website** → **Settings** → **Variables and Secrets**. (Older dashboards label this **Environment variables** — same place.)
-- [ ] **E2.** Add all four. Use **Encrypt** on the two marked secret:
+- [x] **E1.** **Workers & Pages** → **litex-website** → **Settings** → **Variables and Secrets**. (Older dashboards label this **Environment variables** — same place.)
+- [x] **E2.** Add all four. Use **Encrypt** on the two marked secret:
 
 | Name | Value | Encrypt? |
 |---|---|---|
@@ -189,8 +202,8 @@ MX record set to **DNS only (grey cloud)**, never proxied.)
 | `ENQUIRY_TO` | `sales@litex.com.tw` | No |
 | `ENQUIRY_FROM` | your choice from decision 1, e.g. `LiTex Website <website@send.litex.com.tw>` | No |
 
-- [ ] **E3.** Set them for **Production and Preview** both.
-- [ ] **E4.** **Redeploy.** Bindings and variables only take effect on a new deployment — Deployments → the latest one → **Retry deployment**.
+- [x] **E3.** Set them for **Production and Preview** both.
+- [x] **E4.** **Redeploy.** Bindings and variables only take effect on a new deployment — Deployments → the latest one → **Retry deployment**.
 
 ---
 

@@ -5,6 +5,93 @@
 
 ---
 
+## ▶▶ SESSION 12 RESUME POINT — homepage redesign branch, finished and ready to merge
+
+**Branch `homepage-redesign` holds two commits. It is NOT merged and has no PR.** Session 10 ran
+`/impeccable critique` on the homepage and rebuilt it; **the user reviewed that in a browser and
+approved the direction ("looks good")**. Session 11 finished the three shared-chrome fixes that were
+deliberately held back so one page could be reviewed before 36 were touched. **All three are done.**
+
+### → Do this next
+
+**The branch is verified and ready. Open a PR and merge it.** Then the ranking in "Do this first"
+below still stands: finishing Cloudflare (parts B + C-secret + E) is worth more than starting Plan 9.
+
+Worth doing at some point, not blocking: **re-run `/impeccable critique` on the homepage** to see
+the score move off 25/40, now that both P0s and the two mobile P2s are closed.
+
+### What is done — session 11, shared chrome
+
+Verified: **392 passing across 25 files** (was 373/23 — two new test files), 36 pages,
+`npm run test:a11y` 11 passing, detector clean.
+
+1. **P0 print, FIXED.** `BaseLayout` now carries a print-only letterhead — wordmark, legal name,
+   address, phone, email, and the page's own canonical URL — shown only in print media and
+   `display: none` on screen, so it never reaches the accessibility tree either. The canonical URL
+   is declared once in the layout and used twice, as `<link rel="canonical">` and as the printed
+   address, because a sheet carrying a URL that is not its own canonical address sends the reader
+   somewhere else and nothing on screen would ever show it.
+   `tests/print.test.ts` renders three pages under print media emulation and reads `innerText`.
+2. **Nav collapses below 40rem.** `<details>`/`<summary>`, no JavaScript — navigation is the last
+   chrome that should be able to fail to a blank state, and the test opens it with JS disabled.
+   Masthead at 390px went **153.59px → under 96px**; menu items from 20px to ≥44px tall. Desktop is
+   the original row of seven, unchanged. Current section still marked by colour *and* a rule — a
+   left rule on mobile, the original underline on desktop.
+3. **Credibility strip.** Separator moved from `li + li::before` to `li:not(:last-child)::after`, so
+   a wrap can only ever leave a separator at the END of a line, where it reads as continuation.
+   Size 10px → 12px: it carries the buyer's whole qualification checklist.
+
+### ⚠ Two traps found doing it — both will bite again
+
+- **`content-visibility` defeats every naive visibility check.** Chromium hides a closed
+  `<details>`'s contents with `content-visibility: hidden` on the `::details-content` pseudo-element,
+  which skips PAINTING but still answers layout queries. A link inside the **closed** menu reports a
+  44px bounding box, a non-null `offsetParent`, **and its text appears in
+  `document.body.innerText`**. Two assertions in the first draft of `tests/responsive.test.ts`
+  passed before the feature existed — this repo's own gotcha 12, caught by probing rather than by
+  reasoning. **`Element.checkVisibility()` is the only check that discriminates**, verified against
+  closed-on-phone, opened-on-phone and CSS-reopened-on-desktop. Note `innerText` *does* respect
+  `display: none`, which is why `tests/print.test.ts` can rely on it — the two files use different
+  checks on purpose.
+- **Keeping `<details>` open on desktop needs TWO separate rules**, never a selector list:
+  `.menu::details-content { content-visibility: visible }` for Chromium 131+, and
+  `.menu > nav { display: block }` for engines before it. Written as one list, an engine that does
+  not recognise the pseudo-element would discard both. Same lesson as the `:has()` note already in
+  the print block of `global.css`.
+
+### What was done — session 10, homepage only (`src/pages/index.astro`)
+
+- 3 images added, all existing rights-cleared archive material: the CMY micrograph beside the lede,
+  the factory strip, and the trade-show staff photo **placed last, so the page ends on people
+  rather than a legal colophon**.
+- A 5-cell grade ladder (`1S ~4.4` → `4S4Z ~0.8 Ω/M`). **The numbers are read from the content
+  collection via `mustResolve`, never restated** — hardcoding them would create a second source of
+  truth that drifts from the product page.
+- Structure: was 1 `h1` / 0 `<section>`; now 1 `h1` / 4 `h2` / 4 `<section>`.
+- A closing contact band that **names the MOQ gap out loud** instead of leaving it silent.
+- `h1` given `clamp()` — 230px tall at 390px, now 97px. Mobile above-the-fold went from "menu,
+  headline, empty box edge" to headline + lede + the full micrograph.
+- Door hover given a transition (was a hard snap); eyebrows removed (craft-floor ban).
+
+### Open decision, still not made — ASK, do not just do it
+
+**The catalog's white page ground bleeds into two images**, most visible in the micrograph on
+mobile. Honest provenance, but jarring on a near-black page. Cropping each to its dominant panel
+means new assets, new `provenance.json` entries and it touches `tests/provenance.test.ts`. **Ask
+before doing it.**
+
+### The critique itself
+
+`.impeccable/critique/2026-08-13T11-59-34Z__src-pages-index-astro.md` — **gitignored**, local only.
+Homepage scored **25/40 (Acceptable)**, 2 P0 and 3 P1. `/impeccable polish` reads it directly.
+Re-run `/impeccable critique` after the chrome fixes to see the score move.
+
+⚠ **Also found: `detect.mjs` URL-scan mode prints `Error: puppeteer is required`, then prints `[]`
+and exits 0.** A failed scan is indistinguishable from a clean one by exit code — this repo's own
+gotcha 12. Nothing depends on it yet; anything that ever does would pass silently forever.
+
+---
+
 ## ▶ Do this first
 
 **Plans 1–8 are ALL merged.** Do not re-run brainstorming, the spec self-review, `/impeccable init`,
@@ -28,17 +115,15 @@ subagent-driven. Its scope was fixed by decision on 2026-08-13:
 **Run `npx playwright install chromium` before `npm test` on a fresh checkout**, or the suite fails
 with a missing-executable error rather than a test failure.
 
-#### ⚠ But the highest-value work is not Plan 9 — it is finishing Cloudflare
+#### ✅ Cloudflare B + C-secret + E are DONE and the enquiry pipeline is PROVEN (2026-08-14)
 
-**The site is still on `litex-website.pages.dev`.** Plan 8 finishing means the **repo** is ready for
-launch; it does **not** mean the site is launched. Parts B, C-secret, D, E and F of
-`docs/cloudflare-setup.md` remain — see the setup table below.
+This section used to say finishing Cloudflare outranked Plan 9. It did, and it is done. A real
+submission through the live form reached `/enquiry-sent/?delivery=pending` — see the setup table
+below and `docs/deployment.md` §6c.
 
-**B (KV) + the C secret + E (variables) is the fastest path to proving the enquiry pipeline, and
-none of the three needs Resend.** With those done, submitting a form writes a real KV record and
-returns the honest queued-delivery message, because delivery fails without a Resend key and the
-endpoint reports `outcome: 'stored'` rather than a false success. **That is the single most valuable
-thing in this whole system still unproven**, and it is worth doing before a line of Plan 9.
+**The site is still on `litex-website.pages.dev`.** What remains is **D (Resend — blocked, no
+registrar access)** and **F (the custom domain / nameserver move, deliberately last)**. Neither is
+startable today, which makes **Plan 9 the next real work** once `homepage-redesign` is merged.
 
 ### ⚠ Three things about Plan 8 that will bite if forgotten
 
@@ -81,11 +166,17 @@ tracks which parts are finished.
 | Part | State |
 |---|---|
 | A — Pages project, Git integration, build command | ✅ done, verified in production |
-| B — KV namespace bound as `SUBMISSIONS` | ❌ not done |
-| C — Turnstile widget | ✅ created; sitekey committed. **Secret not yet set.** |
+| B — KV namespace bound as `SUBMISSIONS` | ✅ **done and PROVEN 2026-08-14** — `docs/deployment.md` §6c |
+| C — Turnstile widget | ✅ widget, sitekey **and secret** — all proven 2026-08-14 |
 | D — Resend domain `send.litex.com.tw` | ❌ **blocked** — no registrar access yet |
-| E — the four Pages variables/secrets | ⚠ **partly done** — `ENQUIRY_TO` is confirmed set (a live probe echoed `sales@litex.com.tw`). The other three are unverified; a Turnstile rejection does **not** prove `TURNSTILE_SECRET` is missing. |
+| E — the Pages variables/secrets | ✅ **done** for the three that do not need Resend; `RESEND_API_KEY` absent by design until D |
 | F — custom domain / nameserver move | ❌ deliberately last |
+
+**The enquiry pipeline is proven end-to-end.** A real submission through the live form on 2026-08-14
+landed on `/enquiry-sent/?delivery=pending` — which is only reachable by passing Turnstile *and*
+completing the KV write, since a failed `put()` returns 503 instead. The full reasoning, and why no
+automated check could have established it, is `docs/deployment.md` §6c. What remains is **delivery**,
+which is Resend, which is blocked on registrar access.
 | G — Web Analytics | ✅ site added; token committed in `BaseLayout.astro` |
 
 **The fastest path to proving the enquiry pipeline is B + the C secret + E — none of which need
