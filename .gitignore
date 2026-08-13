@@ -31,3 +31,8 @@ Thumbs.db
 
 # Impeccable local state
 .impeccable/config.local.json
+
+# Critique snapshots are a local backlog, not a repo artifact. /impeccable polish
+# reads them to pick up priority issues without a copy-paste; they record one
+# machine's run at one moment and would otherwise churn on every critique.
+.impeccable/critique/

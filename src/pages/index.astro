@@ -1,22 +1,52 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ArchiveFigure from '../components/ArchiveFigure.astro';
 import { COMPANY } from '../lib/company';
+import { mustResolve } from '../lib/references';
+import yarnImage from '../assets/products/conductive-metal-yarn.jpg';
+import factoryImage from '../assets/company/factory-floor.jpg';
+import staffImage from '../assets/company/trade-show-stand.jpg';
 
 const products = await getCollection('products');
 const applications = await getCollection('applications');
 
+/**
+ * The grade ladder is READ from the product entry, never restated here. Copying
+ * "~4.4" into this file would create a second source of truth that drifts silently
+ * the first time LiTex corrects a value — and the homepage is the page a buyer
+ * quotes from. mustResolve() because a broken reference renders as nothing at all
+ * (see src/lib/references.ts).
+ */
+const cmy = mustResolve(
+  await getEntry('products', 'conductive-metal-yarn'),
+  'conductive-metal-yarn',
+  'src/pages/index.astro',
+);
+
+/**
+ * Item strings read "010/N(K)30'*3/1S1Z"; the part after the final slash is the
+ * covering notation, which is the axis this section is about. Derived rather than
+ * transcribed for the same reason as above.
+ */
+const grades = cmy.data.specTable.rows.map((row) => ({
+  grade: String(row.item).split('/').pop(),
+  resistance: String(row.resistance),
+  coverings: String(row.coverings),
+}));
+
+const resistanceUnit =
+  cmy.data.specTable.columns.find((c) => c.key === 'resistance')?.unit ?? '';
+
 const doors = [
   {
     href: '/products/',
-    eyebrow: 'By product',
     title: 'Start from the material',
     count: `${products.length} products`,
     body: 'Conductive metal yarn, heating textile, EMI shielding tube, RFID and conductive tape. Every page publishes its specifications as data, with the source document named.',
   },
   {
     href: '/applications/',
-    eyebrow: 'By application',
     title: 'Start from what you are building',
     count: `${applications.length} applications`,
     body: 'Heated apparel, automotive interiors, therapeutic heating, cable protection, smart textiles and industrial woven metal — each listing the products that serve it.',
@@ -27,32 +57,184 @@ const doors = [
   title="LiTex Textile & Technology — conductive metal yarn and heating textile"
   description="LiTex weaves conductive elements into textile. Conductive Metal Yarn, electrical heating textile, EMI shielding and RFID tape, manufactured in Taiwan since 1999."
 >
-  <h1>We specialize in weaving conductive elements into textile.</h1>
+  <div class="opening">
+    <div class="opening-text">
+      <h1>We specialize in weaving conductive elements into textile.</h1>
+      <p class="lede">
+        A metal layer coiled over a core polymer yarn, made on looms rather than by hand — which is
+        what makes it manufacturable at volume. Woven in Taiwan since {COMPANY.foundedYear}.
+      </p>
+    </div>
 
-  <p class="lede">
-    A metal layer coiled over a core polymer yarn, made on looms rather than by hand — which is
-    what makes it manufacturable at volume. Woven in Taiwan since {COMPANY.foundedYear}.
-  </p>
-
-  <div class="doors">
-    {doors.map((door) => (
-      <a class="door" href={door.href} data-door>
-        <span class="eyebrow value">{door.eyebrow}</span>
-        <span class="title">{door.title}</span>
-        <span class="body">{door.body}</span>
-        <span class="count value">{door.count} →</span>
-      </a>
-    ))}
+    <ArchiveFigure
+      image={yarnImage}
+      alt={cmy.data.heroImage.alt}
+      caption="Conductive Metal Yarn: the spool, the coil around the core, and the cut end under an electron microscope. 2018 catalog."
+      size="full"
+      loading="eager"
+    />
   </div>
+
+  <section aria-labelledby="grades-heading">
+    <h2 id="grades-heading">Resistance is set by covering count</h2>
+    <p class="section-lede">
+      More coverings lower the resistance and increase toughness. That trade is the specification —
+      it is chosen per order, not fixed.
+    </p>
+
+    <ol class="grades">
+      {grades.map((g) => (
+        <li>
+          <span class="grade value">{g.grade}</span>
+          <span class="ohms value">{g.resistance}</span>
+          <span class="unit">{resistanceUnit}</span>
+        </li>
+      ))}
+    </ol>
+
+    <p class="note">
+      Tinned copper coverings on a core yarn, PU or FEP coating.{' '}
+      <a href="/products/conductive-metal-yarn/">Full table with diameters and tolerances →</a>
+    </p>
+  </section>
+
+  <section aria-labelledby="start-heading">
+    <h2 id="start-heading">Where to start</h2>
+    <div class="doors">
+      {doors.map((door) => (
+        <a class="door" href={door.href} data-door>
+          <span class="title">{door.title}</span>
+          <span class="body">{door.body}</span>
+          <span class="count value">{door.count} →</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section aria-labelledby="works-heading">
+    <h2 id="works-heading">Weaving since {COMPANY.foundedYear}</h2>
+    <p class="section-lede">
+      LiTex began as a spinoff of {COMPANY.parentCompany}, a narrow-fabrics manufacturer — so the
+      weaving competence is inherited rather than improvised. The conductive yarn runs on the same
+      class of machinery.
+    </p>
+
+    {/* Capped at the source's own 1000px. The .page column is 1216px wide, so an
+        uncapped `full` figure stretched this 1000px photograph to 1166px — visibly
+        upscaling a photograph, which no `widths` ladder can fix because the pixels
+        do not exist. Measured in the browser, not assumed. */}
+    <div class="figure-cap">
+      <ArchiveFigure
+        image={factoryImage}
+        alt="Three factory photographs: a creel rack of bobbins, a narrow-fabric loom running striped webbing over its rollers, and a long row of covering machines under a shed roof"
+        caption="Creel rack, narrow-fabric loom, and a row of covering machines. 2018 company introduction."
+        size="full"
+      />
+    </div>
+  </section>
+
+  <section class="closing" aria-labelledby="enquiry-heading">
+    <div class="closing-text">
+      <h2 id="enquiry-heading">Ask for a sample, or a quote</h2>
+      <p class="section-lede">
+        The office is in Taipei, {COMPANY.hours} (UTC+8). Enquiries go to{' '}
+        <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>, and the forms below record every
+        submission before attempting delivery, so nothing is lost if mail fails.
+      </p>
+
+      {/* Naming the gap rather than leaving it silent. PRODUCT.md treats visible
+          honest gaps as a principle, and MOQ is the first thing a buyer looks for —
+          unexplained silence reads as evasion. Do not replace this with a number
+          until LiTex publishes one. */}
+      <p class="note">
+        Minimum order quantity, lead times and sample policy are not stated in LiTex's published
+        material, so this site does not state them either. An enquiry is how to get them.
+      </p>
+
+      <p class="actions">
+        <a class="action primary" href="/request-a-sample/">Request a sample</a>
+        <a class="action" href="/downloads/">Download the 2018 catalogs</a>
+      </p>
+    </div>
+
+    <ArchiveFigure
+      image={staffImage}
+      alt="Three LiTex staff in branded polo shirts standing in an exhibition stand under a sign reading LITEX TEXTILE & TECH. CO., LTD."
+      caption="LiTex at a trade exhibition. 2018 company introduction."
+      size="half"
+    />
+  </section>
 </BaseLayout>
 
 <style>
+  /* The h1 was a fixed 40px, which ran to five lines and 230px tall on a 390px
+     screen — pushing the first real content below the fold. */
+  h1 {
+    font-size: clamp(1.75rem, 6.5vw, var(--t-40));
+  }
+
+  .opening {
+    display: grid;
+    gap: var(--s-6);
+    align-items: start;
+    margin-bottom: var(--s-16);
+  }
   .lede {
     font-size: var(--t-20);
     color: var(--c-text-2);
     max-width: 58ch;
-    margin: 0 0 var(--s-16);
+    margin: 0;
   }
+  .section-lede {
+    color: var(--c-text-2);
+    max-width: 62ch;
+  }
+
+  /* The grade ladder. Mono throughout because every cell is a measured value —
+     the one place the type system says monospace is earned. */
+  .grades {
+    list-style: none;
+    margin: var(--s-6) 0 var(--s-4);
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+    gap: 1px;
+    background: var(--c-line);
+    border: 1px solid var(--c-line);
+  }
+  .grades li {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-1);
+    padding: var(--s-4);
+    background: var(--c-raised);
+  }
+  .grade {
+    font-size: var(--t-12);
+    letter-spacing: 0.08em;
+    color: var(--c-text-2);
+  }
+  .ohms {
+    font-size: var(--t-26);
+    line-height: 1.1;
+    color: var(--c-copper);
+  }
+  .unit {
+    font-size: var(--t-10);
+    letter-spacing: 0.12em;
+    color: var(--c-text-2);
+  }
+
+  .note {
+    font-size: var(--t-14);
+    color: var(--c-text-2);
+  }
+
+  /* 60rem, not a round 1000px: ArchiveFigure declares `sizes: 60rem` for its `full`
+     size, so the browser fetches a 960px variant and any wider container upscales it.
+     The cap must match the component's own contract, not the source's dimensions. */
+  .figure-cap { max-width: 60rem; }
+
   .doors {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
@@ -67,17 +249,64 @@ const doors = [
     border: 1px solid var(--c-line);
     text-decoration: none;
     color: var(--c-text-1);
+    /* Was a hard snap on a 248px card — the page's only interactive feedback. */
+    transition: border-color 140ms ease-out, background-color 140ms ease-out;
   }
-  .door:hover { border-color: var(--c-copper); }
-  .eyebrow {
-    font-size: var(--t-10);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--c-copper);
+  .door:hover {
+    border-color: var(--c-copper);
+    background: color-mix(in srgb, var(--c-copper) 5%, var(--c-raised));
   }
-  .title { font-size: var(--t-26); line-height: 1.2; }
+  .title { font-size: var(--t-20); line-height: 1.2; }
   .body { color: var(--c-text-2); font-size: var(--t-14); }
   /* auto pushes the CTA to the card floor, so both doors' arrows align even though
      one has a line more body copy than the other. */
   .count { font-size: var(--t-12); color: var(--c-copper); margin-top: auto; padding-top: var(--s-4); }
+
+  .closing {
+    display: grid;
+    gap: var(--s-6);
+    align-items: start;
+    margin-top: var(--s-16);
+    padding-top: var(--s-8);
+    border-top: 1px solid var(--c-line);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+    margin-top: var(--s-6);
+  }
+  .action {
+    /* 44px min height: these are the page's primary targets and the critique
+       measured every other link on the page under it. */
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: var(--s-2) var(--s-6);
+    border: 1px solid var(--c-line);
+    text-decoration: none;
+    transition: border-color 140ms ease-out, background-color 140ms ease-out;
+  }
+  .action:hover { border-color: var(--c-copper); }
+  .action.primary {
+    border-color: var(--c-copper);
+    background: color-mix(in srgb, var(--c-copper) 12%, var(--c-raised));
+    color: var(--c-text-1);
+  }
+  .action.primary:hover {
+    background: color-mix(in srgb, var(--c-copper) 20%, var(--c-raised));
+  }
+
+  /* Two-column only where there is room for the text to keep a readable measure
+     beside a figure. Below this the figures stack under their prose. */
+  @media (min-width: 56rem) {
+    .opening {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s-12);
+    }
+    .closing {
+      grid-template-columns: 1fr auto;
+      gap: var(--s-12);
+    }
+  }
 </style>

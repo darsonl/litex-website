@@ -5,6 +5,63 @@
 
 ---
 
+## ▶▶ SESSION 11 RESUME POINT — homepage redesign, in flight
+
+**Branch `homepage-redesign` holds one commit. It is NOT merged and has no PR.** Session 10 ran
+`/impeccable critique` on the homepage, then began acting on the findings. Ran out of budget
+mid-rollout. **The user reviewed the result in a browser and approved the direction ("looks good").**
+
+### What is done — homepage only (`src/pages/index.astro`)
+
+Verified: **373/373 tests**, 36 pages, detector clean, spacing sweep clean, no overflow at 390px,
+no image upscaled.
+
+- 3 images added, all existing rights-cleared archive material: the CMY micrograph beside the lede,
+  the factory strip, and the trade-show staff photo **placed last, so the page ends on people
+  rather than a legal colophon**.
+- A 5-cell grade ladder (`1S ~4.4` → `4S4Z ~0.8 Ω/M`). **The numbers are read from the content
+  collection via `mustResolve`, never restated** — hardcoding them would create a second source of
+  truth that drifts from the product page.
+- Structure: was 1 `h1` / 0 `<section>`; now 1 `h1` / 4 `h2` / 4 `<section>`.
+- A closing contact band that **names the MOQ gap out loud** instead of leaving it silent.
+- `h1` given `clamp()` — 230px tall at 390px, now 97px. Mobile above-the-fold went from "menu,
+  headline, empty box edge" to headline + lede + the full micrograph.
+- Door hover given a transition (was a hard snap); eyebrows removed (craft-floor ban).
+
+### → Do this next: the three SHARED-CHROME fixes, deliberately held back
+
+The user asked to see one page before touching 36. They have now seen it and approved. These are
+site-wide by construction and could not be previewed on one page:
+
+1. **P0 — print strips the wordmark, canonical URL and contact details.** `@media print` in
+   `global.css` hides `header[data-masthead]` and `footer[data-sitefooter]` and **nothing reinstates
+   them**. PRODUCT.md requires all three on a printed page. Fix in `BaseLayout` as a print-only
+   block, plus a test so it cannot silently regress. It slipped because Task 5 checked print on a
+   spec page and `/contact/` — the two pages where the loss is least visible.
+2. **Nav eats 153px on mobile**, 7 links over two rows, links 20px tall. `SiteNav`. Collapse below
+   ~640px.
+3. **Footer credibility strip** is 10px and `li + li::before` puts the separator *before* each item,
+   so wrapped lines start with a hanging interpunct. `SiteFooter`.
+
+### Open decision, not yet made
+
+**The catalog's white page ground bleeds into two images**, most visible in the micrograph on
+mobile. Honest provenance, but jarring on a near-black page. Cropping each to its dominant panel
+means new assets, new `provenance.json` entries and it touches `tests/provenance.test.ts`. **Ask
+before doing it.**
+
+### The critique itself
+
+`.impeccable/critique/2026-08-13T11-59-34Z__src-pages-index-astro.md` — **gitignored**, local only.
+Homepage scored **25/40 (Acceptable)**, 2 P0 and 3 P1. `/impeccable polish` reads it directly.
+Re-run `/impeccable critique` after the chrome fixes to see the score move.
+
+⚠ **Also found: `detect.mjs` URL-scan mode prints `Error: puppeteer is required`, then prints `[]`
+and exits 0.** A failed scan is indistinguishable from a clean one by exit code — this repo's own
+gotcha 12. Nothing depends on it yet; anything that ever does would pass silently forever.
+
+---
+
 ## ▶ Do this first
 
 **Plans 1–8 are ALL merged.** Do not re-run brainstorming, the spec self-review, `/impeccable init`,
