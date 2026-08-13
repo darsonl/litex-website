@@ -7,10 +7,11 @@
 
 ## ▶▶ SESSION 13 RESUME POINT — everything merged; Plan 9 is the next work
 
-**`main` is at `abec8f5`, clean, nothing in flight.** PR #17 squash-merged the homepage rebuild and
-the three shared-chrome fixes; the `homepage-redesign` branch is deleted. **Cloudflare parts A, B,
-C and E are done and the enquiry pipeline is PROVEN end-to-end** — a real submission reached
-`/enquiry-sent/?delivery=pending`, recorded in `docs/deployment.md` §6c.
+**`main` is at `30a62ce`, clean, nothing in flight.** PR #17 squash-merged the homepage rebuild and
+the three shared-chrome fixes; PR #19 cropped the lede figure off the catalog's page ground. Both
+feature branches are deleted. **Cloudflare parts A, B, C and E are done and the enquiry pipeline is
+PROVEN end-to-end** — a real submission reached `/enquiry-sent/?delivery=pending`, recorded in
+`docs/deployment.md` §6c.
 
 ### → Do this next: write Plan 9
 
@@ -31,7 +32,7 @@ Two cheap things worth doing before that:
 
 ### What is done — session 11, shared chrome
 
-Verified: **392 passing across 25 files** (was 373/23 — two new test files), 36 pages,
+Verified: **393 passing across 25 files** (was 373/23 — three new test files), 36 pages,
 `npm run test:a11y` 11 passing, detector clean.
 
 1. **P0 print, FIXED.** `BaseLayout` now carries a print-only letterhead — wordmark, legal name,
@@ -82,12 +83,29 @@ Verified: **392 passing across 25 files** (was 373/23 — two new test files), 3
   headline, empty box edge" to headline + lede + the full micrograph.
 - Door hover given a transition (was a hard snap); eyebrows removed (craft-floor ban).
 
-### Open decision, still not made — ASK, do not just do it
+### ✅ The white-page-ground decision is CLOSED (PR #19, `30a62ce`)
 
-**The catalog's white page ground bleeds into two images**, most visible in the micrograph on
-mobile. Honest provenance, but jarring on a near-black page. Cropping each to its dominant panel
-means new assets, new `provenance.json` entries and it touches `tests/provenance.test.ts`. **Ask
-before doing it.**
+The homepage lede figure was the catalog's three-panel composite, measured at **34% near-white**.
+It is now **cropped to the SEM micrograph alone** — `src/assets/products/cmy-cross-section.jpg`,
+`506×359`, native resolution, no upscaling.
+
+Resolution did not decide it: the macro panel is `508×354`, within a hair. The micrograph is
+grayscale on a mid-gray plate so it sits against the page instead of fighting the copper accent, it
+carries the instrument's own scale bar and ×300, and it shows what the lede actually claims — a
+metal layer over a polymer core.
+
+- **The product page keeps the whole composite.** There the caption explains all three panels and
+  the white reads as the document it came from. Do not "finish the job" by cropping it too.
+- **`archive/images/cmy-structure1.jpg` is NOT a better source.** It looks like one at 936×609, but
+  it is a slide holding the same two images placed *smaller* (~370×252 and ~433×312). Checked, so
+  nobody has to check again.
+- **The EMI thumbnail does not need this.** An earlier note here implied two images had the problem;
+  measured, `emi-shielding-woven-tube.jpg` is only **6.4%** near-white. Nothing to do.
+- **A guard now exists** in `tests/imagery.test.ts`: no homepage figure may exceed a quarter
+  near-white. ⚠ **Deliberately scoped to the homepage** — `sgs-test-report.jpg` is 74.5% near-white
+  and `taitronics-award.jpg` 74.3%, because they are photographs **of documents**, where paper is
+  supposed to be white. **Do not promote this to a site-wide rule**; it would either fail those two
+  or have to be loosened until it caught nothing.
 
 ### The critique itself
 
