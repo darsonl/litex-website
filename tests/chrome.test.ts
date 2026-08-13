@@ -89,6 +89,22 @@ describe('site footer', () => {
     }
   });
 
+  // Corrected by LiTex 2026-08-13: Bangka Blvd. is the OFFICE; manufacturing happens in
+  // other parts of Taiwan. The homepage and the /company/ hub both said "Taipei", which
+  // read as a factory location to anyone assessing supply chain or country of origin.
+  //
+  // This bans the collocation, not the word — the postal address, the "Taipei is UTC+8"
+  // note on /contact/, the office hours and the TAITRONICS show name are all legitimately
+  // Taipei and must keep working.
+  it('never claims anything is manufactured in Taipei', () => {
+    const MADE_IN_TAIPEI = /(woven|manufactur\w*|made|produced|weaving)\s+in\s+Taipei/i;
+    for (const file of htmlFiles) {
+      const html = readFileSync(file, 'utf8');
+      const match = html.match(MADE_IN_TAIPEI);
+      expect(match?.[0], `${file} places manufacturing in Taipei`).toBeUndefined();
+    }
+  });
+
   it('publishes the real contact details, on every page', () => {
     for (const file of htmlFiles) {
       const html = readFileSync(file, 'utf8');
