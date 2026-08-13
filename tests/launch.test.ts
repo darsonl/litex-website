@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { DIST, allHtmlFiles, docFor, routeFile } from './helpers/dist';
+import { DIST, allHtmlFiles, docFor, routeFile, walk } from './helpers/dist';
 
 describe('404 handling', () => {
   // Cloudflare Pages treats a build output with no root 404.html as a single-page app
@@ -205,5 +205,46 @@ describe('favicon', () => {
     for (const file of allHtmlFiles()) {
       expect(readFileSync(file, 'utf8'), `${file} has no favicon link`).toContain('rel="icon"');
     }
+  });
+});
+
+describe('print stylesheet', () => {
+  const bundledCss = () =>
+    walk(join(DIST, '_astro'))
+      .filter((f) => f.endsWith('.css'))
+      .map((f) => readFileSync(f, 'utf8'))
+      .join('\n');
+
+  it('ships print rules in the built CSS', () => {
+    expect(bundledCss(), 'no @media print rules reached the build').toContain('@media print');
+  });
+
+  // The plan specified header[data-sitenav]. The real attribute is data-masthead —
+  // verified against src/components/SiteNav.astro and the built HTML. A print rule
+  // hiding a selector that matches nothing fails silently and would only ever be
+  // noticed by someone holding the paper, so the attributes are pinned here.
+  it('hides chrome using the attributes the chrome actually has', () => {
+    const css = bundledCss();
+    expect(css, 'masthead would still print').toContain('data-masthead');
+    expect(css, 'footer would still print').toContain('data-sitefooter');
+  });
+
+  it('still carries those hooks in the built HTML', () => {
+    const doc = docFor('index.html');
+    expect(doc.querySelector('header[data-masthead]')).toBeTruthy();
+    expect(doc.querySelector('footer[data-sitefooter]')).toBeTruthy();
+  });
+
+  // Hiding the form alone strands "Send an enquiry" above an empty column on
+  // /contact/. Confirmed by rendering the page in print media and looking at it.
+  // Note the minifier removes the space inside the combinator.
+  it('hides the section a hidden form would otherwise leave headed and empty', () => {
+    expect(bundledCss()).toContain('section:has(>form.enquiry)');
+  });
+
+  // A green status pill is an indistinct grey blob on an office laser printer.
+  it('re-points the status colours for paper', () => {
+    const css = bundledCss();
+    expect(css, 'the in-production green survives into print').toContain('--c-in-production:#000');
   });
 });
