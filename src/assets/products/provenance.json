@@ -80,5 +80,21 @@
     "note": "Archived product page image: five diameters of black braided sleeve laid side by side on a white surface",
     "aiGenerated": false,
     "extracted": "2026-08-11"
+  },
+  "cmy-cross-section.jpg": {
+    "source": "archive/catalogs/2018-non-carbon-electrical-heating-textile.pdf",
+    "page": 3,
+    "xref": 11,
+    "crop": {
+      "w": 506,
+      "h": 359,
+      "x": 556,
+      "y": 203
+    },
+    "dimensions": "506x359",
+    "reducedFrom": null,
+    "note": "Catalog p.3, third panel only: an SEM micrograph of a cut CMY end at x300, labelled 'outer layer: micro metal' and 'Core: polymer yarn', carrying the instrument's own scale bar at 100um. Cropped out of the three-panel composite so the catalog's white page ground is not shipped as if it were photograph.",
+    "aiGenerated": false,
+    "extracted": "2026-08-14"
   }
 }

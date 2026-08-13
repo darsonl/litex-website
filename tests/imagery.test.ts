@@ -24,6 +24,57 @@ function allProvenance(): Record<string, { aiGenerated: boolean }> {
   );
 }
 
+/**
+ * The front door ships no catalog page ground.
+ *
+ * The images in archive/ were lifted out of PDF catalogs, and several are composites: two
+ * or three small photographs floating in the white of the page they were laid out on.
+ * Dropped onto a near-black page that white is not provenance, it is a slab — most
+ * obviously on a phone, where the lede figure is full width.
+ *
+ * Deliberately scoped to the homepage rather than applied site-wide. Measured across every
+ * shipped asset on 2026-08-14: `sgs-test-report.jpg` is 74.5% near-white and
+ * `taitronics-award.jpg` 74.3%, because they are photographs OF DOCUMENTS — paper is
+ * supposed to be white, and a global rule would either fail them or be set so loose it
+ * caught nothing. The homepage is where the composite actually hurt.
+ */
+describe('the homepage ships photographs, not catalog page ground', () => {
+  it('keeps every homepage figure under a quarter blank page', async () => {
+    const sharp = (await import('sharp')).default;
+    const html = readFileSync(join(DIST, 'index.html'), 'utf8');
+
+    // The `src` attribute, not a srcset entry: it is the single fallback the browser uses
+    // when it understands neither avif nor webp, and it is unambiguous to resolve.
+    const srcs = [...html.matchAll(/<figure[^>]*data-archive-figure[\s\S]*?<img[^>]*\ssrc="([^"]+)"/g)]
+      .map((m) => m[1]);
+
+    // Without this the loop below would pass by iterating over nothing — the exact
+    // failure mode this repo keeps finding. Three figures were added to the homepage in
+    // the redesign; if that changes deliberately, change this number deliberately.
+    expect(srcs.length, 'no homepage figures were found, so nothing was measured').toBe(3);
+
+    const measured: { src: string; white: string }[] = [];
+    for (const src of srcs) {
+      const file = join(DIST, src.split('/').join(sep));
+      const { data, info } = await sharp(file).raw().toBuffer({ resolveWithObject: true });
+      let near = 0;
+      for (let i = 0; i < info.width * info.height; i++) {
+        const o = i * info.channels;
+        if (data[o] >= 242 && data[o + 1] >= 242 && data[o + 2] >= 242) near++;
+      }
+      const pct = (100 * near) / (info.width * info.height);
+      if (pct >= 25) measured.push({ src, white: `${pct.toFixed(1)}%` });
+    }
+
+    // 25% sits above the honest headroom and below the defect. The three-panel CMY
+    // composite measured 33.8%; the factory strip, which is also a composite but a
+    // tightly packed one, measures 14.3% and is fine. Both numbers were read off the
+    // build, not guessed.
+    expect(measured, `homepage figures that are mostly blank page:\n${JSON.stringify(measured, null, 2)}`)
+      .toEqual([]);
+  });
+});
+
 describe('imagery policy', () => {
   it('never ships the Pexels stock photo anywhere in the build', () => {
     const offenders = distFiles.filter((f) => f.toLowerCase().includes('pexels'));
