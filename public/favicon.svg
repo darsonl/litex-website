@@ -1,0 +1,27 @@
+<!--
+  LiTex favicon.
+
+  An "L" in the site's copper (the c-copper token, #C87941) on its near-black ground
+  (c-base, #0A0C0D). Drawn as a path rather than <text> so it does not depend on
+  Archivo — or any font — being installed on the viewer's machine. Archivo is
+  self-hosted for the page and is not available to a favicon.
+
+  Note: the token names are written here WITHOUT their leading double hyphen on
+  purpose. A double hyphen is illegal inside an XML comment, so writing the CSS custom
+  property names in full makes this file invalid SVG — sharp refuses it outright with
+  "Double hyphen within comment", and scripts/make-favicon.mjs cannot rasterise it.
+
+  There is no LiTex logo anywhere in archive/: the only logo files there belong to
+  trade-show organisers (Wearable Expo, Messe Frankfurt), which LiTex's usage grant
+  does not cover. This is therefore deliberately a typographic device drawn from the
+  site's own wordmark and palette, not an invented brand mark.
+
+  Geometry: the glyph spans x 16 to 48 and y 12 to 52, so it is centred on the 64x64
+  canvas in both axes. Stem 11 units, foot 9 — heavier than a text "L" would be,
+  because at 16px the whole mark is only about 10px tall and a hairline stroke
+  disappears.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="LiTex">
+  <rect width="64" height="64" rx="12" fill="#0A0C0D"/>
+  <path d="M16 12h11v31h21v9H16z" fill="#C87941"/>
+</svg>

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { DIST, docFor, routeFile } from './helpers/dist';
+import { DIST, allHtmlFiles, docFor, routeFile } from './helpers/dist';
 
 describe('404 handling', () => {
   // Cloudflare Pages treats a build output with no root 404.html as a single-page app
@@ -172,5 +172,38 @@ describe('discoverability', () => {
     const robots = readFileSync(join(DIST, 'robots.txt'), 'utf8');
     expect(robots).toContain('Sitemap: https://litex.com.tw/sitemap-index.xml');
     expect(robots).toContain('User-agent: *');
+  });
+});
+
+describe('favicon', () => {
+  it('ships an SVG icon and a touch icon', () => {
+    expect(existsSync(join(DIST, 'favicon.svg'))).toBe(true);
+    expect(existsSync(join(DIST, 'apple-touch-icon.png'))).toBe(true);
+  });
+
+  it("uses the site's own copper, not an arbitrary colour", () => {
+    expect(readFileSync(join(DIST, 'favicon.svg'), 'utf8')).toContain('#C87941');
+  });
+
+  // Drawn as paths deliberately: an SVG favicon containing a text element renders in
+  // whatever font the viewer happens to have installed, which is not a design decision
+  // anyone made. Archivo is self-hosted for the page and unavailable to a favicon.
+  //
+  // Comments are stripped before the check. The file documents why it contains no text
+  // element, and that explanation itself contains the banned string — a containment ban
+  // cannot tell markup from prose about markup. Third time this pattern has bitten in
+  // this plan (see the _redirects header comment and the 404 homepage check): when a
+  // guard bans a string, strip or parse away the places the string may legitimately be
+  // discussed, and assert against what the machine actually reads.
+  it('depends on no font being installed', () => {
+    const markup = readFileSync(join(DIST, 'favicon.svg'), 'utf8')
+      .replace(/<!--[\s\S]*?-->/g, '');
+    expect(markup).not.toContain('<text');
+  });
+
+  it('is linked from every page', () => {
+    for (const file of allHtmlFiles()) {
+      expect(readFileSync(file, 'utf8'), `${file} has no favicon link`).toContain('rel="icon"');
+    }
   });
 });

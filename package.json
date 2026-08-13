@@ -10,6 +10,7 @@
     "dev": "astro dev",
     "build": "node scripts/sync-catalogs.mjs && astro build",
     "preview": "astro preview",
+    "favicon": "node scripts/make-favicon.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
