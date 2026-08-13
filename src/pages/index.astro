@@ -4,7 +4,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ArchiveFigure from '../components/ArchiveFigure.astro';
 import { COMPANY } from '../lib/company';
 import { mustResolve } from '../lib/references';
-import yarnImage from '../assets/products/conductive-metal-yarn.jpg';
+/**
+ * The SEM panel alone, cropped out of the three-panel catalog composite.
+ *
+ * The composite ships 34% white — the ground of the PDF page it was laid out on. Against
+ * a near-black page that is not provenance, it is a slab, worst on a phone where this
+ * figure is full width. The product page still uses the whole composite, where the
+ * caption explains all three panels and the white reads as the document it came from.
+ * tests/imagery.test.ts fails if a homepage figure goes back over a quarter blank page.
+ */
+import crossSection from '../assets/products/cmy-cross-section.jpg';
 import factoryImage from '../assets/company/factory-floor.jpg';
 import staffImage from '../assets/company/trade-show-stand.jpg';
 
@@ -67,9 +76,9 @@ const doors = [
     </div>
 
     <ArchiveFigure
-      image={yarnImage}
-      alt={cmy.data.heroImage.alt}
-      caption="Conductive Metal Yarn: the spool, the coil around the core, and the cut end under an electron microscope. 2018 catalog."
+      image={crossSection}
+      alt="Scanning electron micrograph of a diagonally cut end of the yarn at 300× magnification: the exposed elliptical face of the polymer core, its cell-like texture visible, ringed by the outer layer of micro metal, above the instrument's own 100-micrometre scale bar"
+      caption="Conductive Metal Yarn in cross-section: the polymer core and the micro-metal layer covering it, at ×300. 2018 catalog."
       size="full"
       loading="eager"
     />
