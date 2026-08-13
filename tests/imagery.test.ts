@@ -39,7 +39,7 @@ function allProvenance(): Record<string, { aiGenerated: boolean }> {
  * caught nothing. The homepage is where the composite actually hurt.
  */
 describe('the homepage ships photographs, not catalog page ground', () => {
-  it('keeps every homepage figure under a quarter blank page', async () => {
+  it('keeps every homepage figure under a tenth blank page', async () => {
     const sharp = (await import('sharp')).default;
     const html = readFileSync(join(DIST, 'index.html'), 'utf8');
 
@@ -63,13 +63,18 @@ describe('the homepage ships photographs, not catalog page ground', () => {
         if (data[o] >= 242 && data[o + 1] >= 242 && data[o + 2] >= 242) near++;
       }
       const pct = (100 * near) / (info.width * info.height);
-      if (pct >= 25) measured.push({ src, white: `${pct.toFixed(1)}%` });
+      if (pct >= 10) measured.push({ src, white: `${pct.toFixed(1)}%` });
     }
 
-    // 25% sits above the honest headroom and below the defect. The three-panel CMY
-    // composite measured 33.8%; the factory strip, which is also a composite but a
-    // tightly packed one, measures 14.3% and is fine. Both numbers were read off the
-    // build, not guessed.
+    // Was 25%, and that was too loose: it had been set just high enough to let the
+    // factory strip's 14.3% through on the theory that a tightly packed composite was
+    // fine. It was not — the gutters between its three photographs read as white bars on
+    // a near-black page, which is the same defect at a smaller scale.
+    //
+    // 10% is the honest line now that every homepage figure has had its page ground
+    // dealt with: the highest of the three is the trade-show photo at 1.1%, so there is
+    // an order of magnitude of headroom for a legitimately bright photograph before this
+    // fires. Every number here was read off the build.
     expect(measured, `homepage figures that are mostly blank page:\n${JSON.stringify(measured, null, 2)}`)
       .toEqual([]);
   });
