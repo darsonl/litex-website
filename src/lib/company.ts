@@ -34,6 +34,20 @@ export const COMPANY = {
    * channel in Taiwanese and Japanese industrial procurement.
    */
   fax: '+886-2-2308-4714',
+  /**
+   * ⚠ This is the OFFICE address, not a factory address.
+   *
+   * Corrected by LiTex 2026-08-13: the Bangka Blvd. premises are the office; the
+   * manufacturing happens in other parts of Taiwan. Site copy therefore says
+   * "woven in Taiwan" and "manufacturing in Taiwan", never "in Taipei" — an earlier
+   * draft said Taipei on the homepage and the /company/ hub, which was wrong.
+   *
+   * Taipei remains correct wherever it describes this address, the UTC+8 note on
+   * /contact/, the office hours, or the TAITRONICS show name. The distinction is
+   * office versus factory, not a ban on the word. A test in tests/chrome.test.ts
+   * fails the build if any page claims something is made, woven or manufactured
+   * "in Taipei".
+   */
   addressLines: ['188 Bangka Blvd., Wanhua Dist.', 'Taipei, Taiwan 108'],
   hours: 'Mon–Fri 09:00–18:00',
 } as const;
