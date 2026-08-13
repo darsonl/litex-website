@@ -1,0 +1,46 @@
+---
+// src/pages/contact/index.astro
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ContactBlock from '../../components/ContactBlock.astro';
+import EnquiryForm from '../../components/EnquiryForm.astro';
+---
+<BaseLayout
+  title="Contact — LiTex Textile & Technology"
+  description="Contact LiTex Textile & Technology in Taipei about conductive metal yarn, heating textiles, EMI shielding tube and woven tapes."
+>
+  <h1>Contact</h1>
+
+  <p class="intro">
+    Tell us the grade, quantity and application if you know them — that is usually enough
+    for us to answer with real numbers rather than a request for more detail. If you would
+    rather have material in your hands first, ask for a{' '}
+    <a href="/request-a-sample/">sample</a>.
+  </p>
+
+  <div class="cols">
+    <section>
+      <h2>Send an enquiry</h2>
+      <EnquiryForm formType="contact" submitLabel="Send enquiry" />
+    </section>
+
+    <section>
+      <h2>Direct details</h2>
+      <ContactBlock />
+      <p class="note">
+        Taipei is UTC+8. An enquiry sent from Europe in the afternoon is usually answered
+        the following morning.
+      </p>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .intro { color: var(--c-text-2); max-width: 60ch; }
+  .cols {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    gap: var(--s-12);
+    align-items: start;
+  }
+  .note { color: var(--c-text-2); font-size: var(--t-14); max-width: 40ch; }
+</style>

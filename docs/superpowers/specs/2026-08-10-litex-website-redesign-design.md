@@ -288,6 +288,35 @@ If email fails, the submission still exists, and the user sees an honest error w
 address as fallback — never a fake success message. Store first, then attempt delivery, treat
 delivery as retryable.
 
+#### As built — Plan 7, 2026-08-13
+
+Five decisions were taken with the human before Plan 7 was written. They are recorded here so a
+later reader does not re-derive them, and in particular does not rediscover a dead end that cost
+real time:
+
+1. **Delivery goes through the Resend HTTP API.** **MailChannels' free Cloudflare integration ended
+   2024-06-30** — every blog post and Stack Overflow answer describing that path is dead. The other
+   Cloudflare-native option, Email Routing's `send_email` binding, is **Workers-only and unavailable
+   to Pages Functions**: it would need a second deployable plus a service binding, and Email Routing
+   additionally requires LiTex to click a verification link, which makes shipping depend on a reply
+   from a slow correspondent.
+2. **The form works with JavaScript disabled.** Plain HTML POST is the baseline; the inline-error
+   script is an upgrade layered on top. Verified in a browser with `javaScriptEnabled: false`.
+3. **Both pages, one endpoint.** `/contact/` and `/request-a-sample/` post to `/api/submit` with a
+   `formType` discriminator, so the Turnstile check, the KV write and the delivery path exist once.
+4. **Three outcomes, never two** — `delivered`, `stored` (kept but not emailed, with the direct
+   address), `rejected`, plus `failed` when even the store fails. The middle one is never collapsed
+   into either end. This is the mitigation above, made testable: a test asserts the **call order**,
+   not the code's appearance.
+5. **No IP address is stored or transmitted.** Turnstile's `remoteip` parameter is optional and is
+   deliberately not sent, which removes a category of personal data from the KV record and shortens
+   what `/legal/privacy/` must disclose. Asserted by a test that submits with `cf-connecting-ip` set
+   and greps the stored record for it.
+
+Retention is **180 days**, set as `expirationTtl` on the KV write, stated on `/legal/privacy/` and
+pinned by a test. The deployment steps are in `docs/deployment.md`; **nothing in Plan 7 ran against
+real Cloudflare infrastructure**, which is Plan 8's job.
+
 ### Verification
 
 - **Build fails on:** schema violation, broken internal link, broken `reference()`.

@@ -5,23 +5,28 @@ import { COMPANY } from '../../lib/company';
 
 /**
  * Every statement below is a property of the site as built, checkable in dist/:
- * no cookies are set, no third-party host is requested, no analytics script runs,
- * and there is no form. tests/legal.test.ts and tests/build.test.ts both assert the
- * last three. When Plan 7 adds the contact form or Plan 8 adds analytics, this page
- * changes in the same commit — the tests fail until it does.
+ * this site's own code sets no cookie, no analytics script runs, and the only
+ * third-party host any page requests is challenges.cloudflare.com — the Turnstile
+ * widget on the enquiry forms, which this page now discloses. tests/legal.test.ts
+ * asserts each of those, and the "no IP address" promise below is enforced against
+ * the endpoint itself by tests/submit.test.ts, which is what makes it safe to state.
+ * The 180-day figure is RETENTION_SECONDS in functions/api/submit.ts; the two must
+ * agree. When Plan 8 adds analytics, this page changes in the same commit — the
+ * tests fail until it does.
  */
-const UPDATED = '2026-08-11';
+const UPDATED = '2026-08-12';
 ---
 <BaseLayout
   title="Privacy — LiTex Textile & Technology"
-  description="What this website collects, which is almost nothing: no cookies, no analytics, no third-party requests. How to contact LiTex about personal data."
+  description="What this website collects, which is almost nothing: no cookies, no analytics, one disclosed third-party host. What happens to an enquiry, and for how long."
 >
   <h1>Privacy</h1>
 
   <p class="lede">
-    This site collects nothing about you. That is not a policy position so much as a description
-    of how it is built — there is no cookie, no analytics script and no third-party request on any
-    page of it.
+    This site collects nothing about you that you did not choose to send it. That is not a policy
+    position so much as a description of how it is built — no cookie of its own, no analytics
+    script, and exactly one host other than this domain contacted anywhere on it: the anti-spam
+    check on the enquiry form.
   </p>
 
   <h2>Who is responsible</h2>
@@ -32,19 +37,24 @@ const UPDATED = '2026-08-11';
 
   <ul>
     <li>
-      <strong>No cookies.</strong> No page on this site sets a cookie or writes to local storage.
+      <strong>No cookies.</strong> Nothing this site serves sets a cookie or writes to local
+      storage. The one script it does not serve itself is the Turnstile widget described below,
+      which is Cloudflare's code and behaves on Cloudflare's terms rather than ours.
     </li>
     <li>
       <strong>No analytics.</strong> There is no analytics script, no tag manager and no pixel.
       Nobody is counting your visit.
     </li>
     <li>
-      <strong>No third-party requests.</strong> Fonts, images, stylesheets and scripts are all
-      served from this domain. Loading a page contacts no other company.
+      <strong>One third-party host.</strong> Fonts, images and stylesheets are served from this
+      domain on every page, and so is every script but one: a page carrying an enquiry form also
+      loads Cloudflare's Turnstile widget from challenges.cloudflare.com. Loading any other page
+      contacts no host but this one.
     </li>
     <li>
-      <strong>No forms.</strong> There is nothing on this site to submit. Contact happens by email
-      or telephone, using the details above.
+      <strong>One kind of form.</strong> The enquiry form is the only thing on this site to submit,
+      and using it is optional — contact by email or telephone works just as well, using the
+      details above. What the form collects, and how long it is kept, is set out below.
     </li>
   </ul>
 
@@ -55,6 +65,53 @@ const UPDATED = '2026-08-11';
     information a browser sends in order to deliver a page — your IP address, the page requested,
     and your user agent — and retains it briefly for security and operational purposes. LiTex does
     not receive that data as a report and does not combine it with anything else.
+  </p>
+
+  <h2>If you send us an enquiry through this site</h2>
+
+  <p>
+    A form asks for your name, your company, an email address we can reply to and, if you choose
+    to give it, your country. The rest is the enquiry itself — what you need, and, where a form
+    asks for it, the product, grade, quantity and intended application. That is the whole of it:
+    nothing is recorded that you did not type.
+  </p>
+
+  <p>
+    Two of the fields are hidden. One records which form you submitted, so that a single endpoint
+    can serve every form. The other is an empty box no visitor ever sees and only an automated
+    script fills in; a submission that arrives with it filled is discarded and never stored.
+    Neither field says anything about you.
+  </p>
+
+  <p>
+    Your submission is written to Cloudflare Workers KV — the key-value store behind this site's
+    form endpoint — and emailed to LiTex. The stored copy expires automatically after{' '}
+    <strong>180 days</strong>. That expiry is set on the record at the moment it is written, so
+    deletion is a
+    property of the storage rather than something someone has to remember to do. The email that
+    reaches the sales mailbox is then held on the terms in the next section.
+  </p>
+
+  <p>
+    <strong>No IP address is recorded.</strong> The form endpoint does not read the address your
+    submission came from, does not store it and does not pass it on — not even to Cloudflare
+    Turnstile, whose verification API accepts an optional visitor IP that this site deliberately
+    declines to send. What is kept is the contents of the form and the time it arrived. Cloudflare's
+    own hosting logs, described above, are a separate matter and outside LiTex's hands.
+  </p>
+
+  <p>
+    <strong>Cloudflare Turnstile.</strong> A page carrying a form also loads a small script from
+    challenges.cloudflare.com, and the endpoint checks its result before accepting anything. It
+    establishes that a submission is coming from a person rather than from a script, which is what
+    lets the form stay open to anyone at all without the sales mailbox filling with spam. It runs
+    on the form pages only; no other page of this site requests it.
+  </p>
+
+  <p>
+    <strong>Resend.</strong> The enquiry email is delivered by Resend, engaged solely to carry it
+    to LiTex. Your browser never contacts Resend — the request is made server-side, after your
+    submission has already been stored.
   </p>
 
   <h2>If you email or telephone us</h2>

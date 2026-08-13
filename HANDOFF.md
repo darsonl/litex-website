@@ -1,115 +1,79 @@
 # Session handoff — LiTex website redesign
 
-**Written:** 2026-08-11, last updated 2026-08-12 (end of session 7, after PR #6 merged)
-**Reason:** Session running out of context. This file is the resume point.
+**Written:** 2026-08-11, last updated 2026-08-13 (end of session 8, Plan 7 complete)
+**Reason:** This file is the resume point between sessions.
 
 ---
 
 ## ▶ Do this first
 
-**Plans 1–6 are built, verified and merged. Plan 7 is WRITTEN but not started.** Do not re-run
-brainstorming, the spec self-review, `/impeccable init`, or `writing-plans` for any of them.
+**Plans 1–7 are built and verified. Plan 8 is NOT written.** Do not re-run brainstorming, the spec
+self-review, or `/impeccable init`.
 
-### → Start here: execute Plan 7
+### → Start here: write Plan 8, then execute it
 
-**`docs/superpowers/plans/2026-08-12-litex-contact-and-sample-flow.md`** — the contact page and
-sample-request flow (Cloudflare Pages Function, Turnstile, KV, Resend). Seven tasks. Written and
-self-reviewed 2026-08-12; **no task has been started and no branch exists yet.**
+Plan 8 is the launch plan and it is the **last** one. Its scope, from spec §3 and the roadmap:
+`_redirects` for all 23 legacy URLs, sitemap, Cloudflare Web Analytics, Sveltia CMS, a print
+stylesheet, Lighthouse/axe budgets, a broken-link check — **and the deployment itself**, which is
+now written out step by step in **`docs/deployment.md`**. Read that file before planning; it is the
+executable half of Plan 8 and it already resolves the decisions.
 
-Run it with `superpowers:subagent-driven-development`, from a new branch off `main`
-(`plan-7-contact-and-sample`). `main` is clean at **`cea382a`**.
+Use `superpowers:writing-plans` to write it, then run it **subagent-driven**
+(`superpowers:subagent-driven-development`) from a new branch off `main`.
 
-**Read the plan's own front matter before dispatching anything** — it carries five decisions taken
-with the human, a section explaining why the Turnstile script deliberately has no SRI hash, and a
-⚠ section on the two forward guards in `tests/legal.test.ts`. All three exist to stop an implementer
-"fixing" something that is already correct.
+**Before planning, confirm where `main` actually is.** At the time of writing, Plan 7 is complete
+on `plan-7-contact-and-sample` (9 commits, tip `830cdd1`) and **PR #7 had not yet been merged**, so
+this file cannot record its squash SHA the way earlier sessions recorded theirs. Run
+`git log --oneline -5 main` and `gh pr list --state all` and trust that over this paragraph.
 
-Its three riskiest facts, all verified against live docs on 2026-08-12 rather than written from
-memory — **re-verify before trusting them if much time has passed**:
+**Plan 8 carries three things that will bite if forgotten**, all detailed below and in
+`docs/deployment.md`:
 
-- **MailChannels' free Cloudflare integration ended 2024-06-30.** Every blog post and Stack Overflow
-  answer describing that path is dead. Delivery goes through **Resend**.
-- **`send_email` is a Workers-only binding and is unavailable to Pages Functions.** The
-  Cloudflare-only design would need a second deployable plus a service binding, and Email Routing
-  additionally needs LiTex to click a verification link.
-- Turnstile's documented **test keys** (secret `1x0000…AA` always passes, `2x0000…AA` always fails)
-  are what make the function testable without a Cloudflare account.
-
-**Nothing in Plan 7 can be verified end-to-end**, because hosting does not exist until Plan 8. The
-function is covered by unit tests against a mocked environment, and Plan 7 Task 7 produces
-`docs/deployment.md` for Plan 8 to execute. That limitation is stated in the plan; do not let a
-reviewer treat it as an oversight.
-
-**Execution mode:** Plans 1–4 ran **inline** via `superpowers:executing-plans`. **Plans 5 and 6 ran
-subagent-driven** via `superpowers:subagent-driven-development` — a fresh implementer per task, a
-spec-plus-quality review after each, and one whole-branch review at the end. Both modes work; the
-branch → task → test → commit per task → PR → merge → delete branch pattern is unchanged and has
-now held for 41 tasks across six plans.
-
-Subagent-driven is worth repeating, and Plan 6 strengthened the evidence rather than merely
-repeating it: **five of Plan 6's seven implementation tasks needed a fix round, and every single
-finding traced to the plan's own text rather than to implementer error.** A pre-flight scan caught
-a sixth before Task 1 started. The four that cost the most were all authoring defects a fresh
-reader found and the author could not:
-
-- a brief whose stated **premise was false** (it claimed two files duplicated the dist helpers; six
-  more did);
-- plan-supplied code that validated a date's **format but not its calendar validity**;
-- plan-supplied code that used `Date.parse` as a validity check, so **the plan's own required test
-  failed against the plan's own code**;
-- a **plan self-contradiction** — one task mandated recording a dead URL as prose provenance, a
-  later task's test banned that string from the whole build. Both were mandated; they cannot both
-  hold.
-
-Budget for the review loop. It is where the quality came from, in both plans now.
+- The Pages build command **must be `npm run build`**, not `npx astro build` or the Cloudflare
+  default. `npx` skips `package.json` scripts, so the catalog sync never runs and eleven links 404
+  in production **with no test catching it**.
+- The **Turnstile sitekey in `src/components/EnquiryForm.astro` is Cloudflare's always-passes test
+  key.** Shipping it is a soft failure — the widget renders, the form works, spam filtering is
+  simply off. No test can catch it, because the real key does not exist in this repo.
+- Cloudflare Web Analytics is an external script, so it must be **added to the `DISCLOSED`
+  allowlist in `tests/legal.test.ts` and disclosed on `/legal/privacy/` in the same commit.** The
+  allowlist is deliberate. Do not remove it to make a test pass.
 
 ---
 
-## State as of 2026-08-12 (end of session 7)
+## State as of 2026-08-13 (end of session 8)
 
-- **Plan 6 is MERGED.** Squash-merged 2026-08-12 as **PR #6 → `bafff91`**; both the remote and
-  local branches are deleted. All 8 tasks were done and reviewed, five with a fix round, then a
-  **whole-branch review on the most capable model returned "ready with fixes"** — 2 Important,
-  5 Minor, all seven fixed in one wave and confirmed by a scoped re-review, which returned
-  **ready**. Re-verified on merged `main`: 32 pages, 284 tests, and the squashed branch diffed
-  **identical** to `main` before its local branch was force-deleted.
-  - Note for next time: `git branch -d` **refuses** after a squash merge, because the branch's
-    commits are not ancestors of `main`. Diff the branch against `main` to prove the content
-    landed, then `-D`. The refusal is not evidence of unmerged work.
-- **The Plan 6 SDD ledger has been deleted** — it was gitignored and existed only on one
-  machine. Everything durable from it was lifted into this file first: the carried-forward
-  minors, the toolchain gotchas, and the review lessons below. Do not go looking for
-  `.superpowers/sdd/2026-08-12-*`; it is gone. The committed plan and the PR #6 diff are the
-  remaining record.
-- **The whole-branch review earned its place**, and its best catch is a warning for future
-  plans: Task 6's fix round removed an unverifiable claim from the braid photograph's alt
-  text and *introduced a different one in the same sentence* — it said the tube crossed the
-  frame "diagonally" when it runs horizontally; the braid **pattern** is what is diagonal.
-  Every per-task re-review checked that the retracted claim was gone. None re-read the rest
-  of the sentence. **When a fix rewrites a factual sentence, re-verify the whole sentence.**
-  The same review also found the retracted claim still alive in `scripts/extract-images.mjs`'s
-  provenance note, where it would have walked back onto the page the next time anyone drafted
-  alt text from the manifest — a per-task review could not have seen that, because the note
-  and the alt were written in different tasks.
-- `main` is at **`9d0e164`** ("docs: write Plan 6"), which sits on top of **`ee93b71`** and Plan 5's
-  squash merge **`28fc138`** (PR #5).
-- `npm run build` exits 0, emitting **32 pages**. `npm test` = **284 tests across 18 files**, all
+- **Plan 7 is complete on its branch**, seven tasks, all committed. It added the site's first
+  server-side runtime, the first `functions/` directory and **the first JavaScript this site has
+  ever shipped**.
+- `npm run build` exits 0 emitting **35 pages**. `npm test` = **330 tests across 21 files**, all
   passing. Design detector over `src/components src/pages src/styles` reports **no findings**.
-- `dist` totals about **17 MB**, of which `dist/catalogs` is about **11 MB** — the six catalog PDFs.
-- Routes added this plan: `/news/` plus `/news/<slug>/` ×7 — `techtextil-frankfurt`,
-  `wearable-expo`, `copper-nickel-1s1z`, `featured-on-techtextil-blog`, `dusseldorf-wire-show`,
-  `new-braided-self-curling-tube`, `tokyo-wearable-expo-2022`. These are exactly the seven slugs
-  spec §3's redirect map promises, at exactly those paths.
-- Repo public at **https://github.com/darsonl/litex-website**. Plans 1–5 merged via PR #1–#5.
+- `dist` totals about **16 MB**, of which `dist/catalogs` is about 11 MB — the six catalog PDFs.
+- Routes added this plan: **`/contact/`**, **`/request-a-sample/`**, **`/enquiry-sent/`**. The
+  primary nav now has **seven** items; `/contact/` is last.
+- **Nothing in Plan 7 has run against real Cloudflare infrastructure.** There is no Pages project,
+  no KV namespace, no Resend account and no Turnstile widget. The function is covered by unit tests
+  against a mocked environment. `docs/deployment.md` is the checklist Plan 8 executes. **This is a
+  stated limitation of the plan, not an oversight — do not let a reviewer treat it as one.**
+- Repo public at **https://github.com/darsonl/litex-website**. Plans 1–6 merged via PR #1–#6
+  (Plan 6 squashed as `bafff91`).
 
-### ⚠ The nav has six items and the newest news post is January 2022. That is deliberate.
+### What Plan 7 built, in one paragraph
+
+`src/lib/enquiry.ts` defines the fields and validates them, with **zero imports**, so Vitest, the
+Astro build and the Workers runtime can all load it. `src/components/EnquiryForm.astro` renders a
+form from that list; `functions/api/submit.ts` validates against the same list. Both pages post to
+the one endpoint with a `formType` discriminator. The endpoint runs honeypot → Turnstile →
+validate → **KV write** → delivery, in that order, and the KV write happening *before* delivery is
+asserted by a test on **call order**, not by reading the code. Delivery failure yields
+`outcome: 'stored'` with the direct email address — never a success, never a bare failure.
+
+### ⚠ The nav has seven items and the newest news post is January 2022. That is deliberate.
 
 `/news/` is framed as an **archive**, not a live feed, and the framing is what makes the four-year
 gap honest rather than embarrassing. The index says out loud that these are announcements published
-between 2017 and 2022, reproduced with their original dates, nothing rewritten or brought up to
-date — so a 2017 post reading *"we will soon roll out (around April)"* cannot be read as a current
-claim. The date range is **computed from the entries** (`Math.min`/`Math.max` over
-`publishedYear`), so it cannot drift, and an eighth post in any year slots in with no code change.
+between 2017 and 2022, reproduced with their original dates. The date range is **computed from the
+entries**, so it cannot drift, and an eighth post in any year slots in with no code change.
 
 Do not "fix" this by hiding the section from the nav, back-dating anything, or inventing filler
 posts. The correct fix is LiTex supplying news since 2022 — see the open questions.
@@ -124,26 +88,49 @@ posts. The correct fix is LiTex supplying news since 2022 — see the open quest
 | 4 | Site chrome & the technology section | ✅ merged (PR #4) |
 | 5 | `/company/` ×4 · `/downloads/` · `/legal/privacy/` | ✅ merged (PR #5, `28fc138`) |
 | 6 | `/news/` index + 7 posts | ✅ merged (PR #6, `bafff91`) |
-| 7 | Contact + sample-request flow (Pages Function, Turnstile, KV, Resend) | 📝 **written, not started** — `docs/superpowers/plans/2026-08-12-litex-contact-and-sample-flow.md` |
-| 8 | Launch: `_redirects`, sitemap, analytics, Sveltia CMS, print stylesheet, Lighthouse/axe, broken-link check | not written |
+| 7 | Contact + sample-request flow (Pages Function, Turnstile, KV, Resend) | ✅ **built** — `plan-7-contact-and-sample`, PR #7 |
+| 8 | Launch: deploy, `_redirects`, sitemap, analytics, Sveltia CMS, print stylesheet, Lighthouse/axe, broken-link check | 📝 **not written** |
 
 ---
 
-## What Plan 7 inherits — use these, don't reinvent
+## What Plan 8 inherits — use these, don't reinvent
 
 | Thing | Where | Note |
 |---|---|---|
-| Primary nav | `src/lib/nav.ts` | Six items; `/news/` is last. `tests/chrome.test.ts` **fails if a chrome link has no built page behind it** — add the route first, then the nav entry. Verified this plan by pointing it at a route that does not exist and watching it fail. |
-| Shared dist test helpers | `tests/helpers/dist.ts` | `DIST`, `walk`, `allHtmlFiles`, `docFor`, `routeFile` — **one copy each, consolidated across eight test files in Plan 6 Task 1.** A new `tests/contact.test.ts` imports them; it does not paste them. See the caveat about `tests/fonts.test.ts` below — its `walk` is a different function, not a stray duplicate. |
-| Stored-timestamp handling | `src/lib/dates.ts` | **The single owner of the format** `2017-02-23T14:47:55+08:00`: parsing, formatting, ordering *and* validity. Exports `STORED`, `isStoredTimestamp`, `displayDate`, `isoDate`, `publishedYear`, `byPublishedDesc`. It has **zero imports**, which is exactly what keeps it loadable by both Vitest and the Astro build — **do not add an Astro import to it**, and do not re-derive its calendar check anywhere else (`src/schemas/news.ts` imports it rather than keeping a second copy). Display never constructs a `Date`; ordering does, because comparing instants across offsets is the one place a `Date` is correct. |
-| `byPublishedDesc` is load-bearing | `src/lib/dates.ts` | Three posts share **2017-02-23** and differ only by time (14:38 / 14:47 / 14:54). Glob order differs from published order. **If anyone "simplifies" this to compare dates only, those three silently reorder** — verified in the built HTML, not the source. |
-| Captioned archive photography | `src/components/ArchiveFigure.astro` | Props `{ image: ImageMetadata; alt: string; caption: string (required); size?: 'full'\|'half'\|'document'; loading?: 'eager'\|'lazy' }`. Never upscales a source. Plan 6 reused it for the one news photograph rather than adding a third figure component — see carried-forward minor 2. |
-| Contact block | `src/components/ContactBlock.astro` | Props `{ showLegalNameZh?: boolean }`, default `false`. Renders legal name, optional Chinese legal name, address lines, Tel, Fax, email, hours as `<p>` children inside one `<address data-contact-block>`. Used on `/company/about/`, `/company/` (with `showLegalNameZh`), and `/legal/privacy/`. It carries its own `.contact p { margin: 0; }` — that rule has to live inside the component. **Plan 7's `/contact/` must use it; do not add a fourth inline `<address>`.** |
-| Three-group image extraction | `scripts/extract-images.mjs` + `extract-image.py`; `src/assets/{products,company,news}/provenance.json` | `SOURCES` entries carry `group: 'products' \| 'company' \| 'news'`, default `'products'`. `tests/provenance.test.ts` walks all three manifests and asserts no filename appears in two groups. Re-running is **deterministic** — Plan 6 re-ran it and reproduced the other thirteen images byte-for-byte. Be aware the script **clears every group directory before regenerating**, which is what makes that check worth doing. |
-| Catalog delivery | `public/catalogs/` (gitignored), `scripts/sync-catalogs.mjs`, `src/data/catalog-files.json` (generated, committed) | `npm run build` is `node scripts/sync-catalogs.mjs && astro build` — an **inlined step, not an npm `prebuild` lifecycle hook** — so it survives `pnpm` or any runner that skips lifecycle hooks. It does **not** survive `npx astro build`; see the parked residual. |
-| `data-source-note` vs `data-page-note` | `company/patents-and-awards.astro`, `company/certifications.astro`, `news/[slug].astro` | `SpecTable` emits its own `[data-source-note]`. A page-level note sitting **beside a `SpecTable`** uses `[data-page-note]` instead. News posts do use `[data-source-note]`, and that is safe: every test queries it **per page via `docFor`**, never site-wide, so the singular-hook rule is about one page, not the whole build. |
-| JSON-LD | `src/lib/jsonld.ts` | `productJsonLd()` and `newsJsonLd()` (`BlogPosting`). Emitted `url` must match the page's own canonical element. The news `datePublished` keeps its `+08:00` offset and `tests/news.test.ts` **hardcodes `+08:00`** in its dist regex — deliberate and sound for this dataset, but a normalizing change would fail it. There is no `dateModified`. |
-| Forward-guard tests | `tests/legal.test.ts` | Two tests on `/legal/privacy/` — *"claims no analytics only while the site really runs none"* and *"describes no form while no form exists"*. **The second one is Plan 7's problem: it is written to fail the moment a form ships.** Delete it deliberately, in the same commit that updates `/legal/privacy/` to describe the new reality. Do not silence or loosen it instead. |
+| Deployment checklist | `docs/deployment.md` | Every binding, secret and variable the function reads, the build-command trap, the Turnstile test keys, the Resend DNS dependency and a five-step smoke test. **Written to be executed, not re-derived.** |
+| Primary nav | `src/lib/nav.ts` | Seven items; `/contact/` is last. `tests/chrome.test.ts` **fails if a chrome link has no built page behind it** — add the route first, then the nav entry. |
+| Shared dist test helpers | `tests/helpers/dist.ts` | `DIST`, `walk`, `allHtmlFiles`, `docFor`, `routeFile` — one copy each. A new test imports them; it does not paste them. `walk` also exists in `tests/fonts.test.ts` **by design** — different function, walks `src/`. Do not merge them. |
+| Enquiry field definitions | `src/lib/enquiry.ts` | `FORM_TYPES`, `FIELDS`, `fieldsFor()`, `validateEnquiry()`, `MAX_LENGTHS`, `HONEYPOT_FIELD`. **Zero imports, deliberately** — loaded by Vitest, the Astro build *and* the Workers runtime. Do not add an Astro import to it. A product-page "Request this grade" CTA (spec §5) reads `fieldsFor('sample')` from here. |
+| The endpoint | `functions/api/submit.ts` | `onRequestPost` at `POST /api/submit`, plus exported `verifyTurnstile()` and `deliver()` so both are testable alone. `fetchImpl` is an injected test seam; Cloudflare never passes it. `RETENTION_SECONDS` = 180 days and **`/legal/privacy/` states that number in prose** — change the constant, the page and `tests/legal.test.ts` together. |
+| The form component | `src/components/EnquiryForm.astro` | `<EnquiryForm formType="contact"\|"sample" submitLabel="…" sitekey?="…" />`. Renders fields from `fieldsFor()`, plus honeypot and Turnstile widget. Its `<script>` is progressive enhancement only — **the form must keep working with it removed.** |
+| Stored-timestamp handling | `src/lib/dates.ts` | The single owner of `2017-02-23T14:47:55+08:00`: parsing, formatting, ordering *and* calendar validity. Zero imports. Do not re-derive its calendar check anywhere else. |
+| `byPublishedDesc` is load-bearing | `src/lib/dates.ts` | Three posts share **2017-02-23** and differ only by time. **If anyone "simplifies" this to compare dates only, those three silently reorder.** |
+| Captioned archive photography | `src/components/ArchiveFigure.astro` | Props `{ image, alt, caption (required), size?, loading? }`. Never upscales a source. |
+| Contact block | `src/components/ContactBlock.astro` | Props `{ showLegalNameZh?: boolean }`. Used on `/company/about/`, `/company/`, `/legal/privacy/` **and now `/contact/`**. Do not add a fifth inline `<address>`. |
+| Three-group image extraction | `scripts/extract-images.mjs` + `extract-image.py` | `SOURCES` entries carry `group: 'products'\|'company'\|'news'`. `tests/provenance.test.ts` asserts no filename appears in two groups. Re-running is deterministic, but the script **clears every group directory first**. |
+| Catalog delivery | `public/catalogs/` (gitignored), `scripts/sync-catalogs.mjs`, `src/data/catalog-files.json` | `npm run build` is `node scripts/sync-catalogs.mjs && astro build` — an **inlined step, not an npm `prebuild` hook** — so it survives `pnpm`. It does **not** survive `npx astro build`. See the parked residual. |
+| `data-source-note` vs `data-page-note` | `company/*.astro`, `news/[slug].astro` | `SpecTable` emits its own `[data-source-note]`; a page-level note beside a `SpecTable` uses `[data-page-note]`. Tests query per page via `docFor`, never site-wide. |
+| JSON-LD | `src/lib/jsonld.ts` | `productJsonLd()` and `newsJsonLd()` (`BlogPosting`). Emitted `url` must match the page's canonical. News `datePublished` keeps `+08:00` and `tests/news.test.ts` **hardcodes it**. |
+| The third-party allowlist | `tests/legal.test.ts` | `DISCLOSED` contains exactly the Turnstile widget URL. The guard sweeps **built HTML *and* emitted JS** and fails on anything undisclosed. **Plan 8 extends the list and updates `/legal/privacy/` in the same commit.** |
+
+---
+
+## ⚠ The two Plan 5 forward guards — both resolved in Plan 7, do not reopen
+
+Plan 5 wrote two tests designed to fail the moment their premise stopped being true. Plan 7 Task 4
+made **both** false, and both were resolved in that same commit — the plan predicted only one.
+
+1. **`describes no form while no form exists`** — **deleted**, and replaced by
+   `describes the form now that one exists`, which asserts `/legal/privacy/` names Turnstile, the
+   180-day retention and the no-IP promise.
+2. **`claims no analytics only while the site really runs none`** — **rewritten, not deleted.** It
+   now fails on any external resource not in the `DISCLOSED` allowlist. Its unrelated "no analytics"
+   text assertion was **kept as its own test** rather than lost with the sweep it used to travel
+   with.
+
+Both fired for real before being fixed, which is the evidence they were doing their job. The
+rewritten guard was then **proved** by adding `<script src="https://example.org/tracker.js">` to
+`BaseLayout.astro`, watching it fail naming that URL, and reverting.
 
 ---
 
@@ -154,163 +141,114 @@ Seven posts in `src/content/news/`, transcribed from `archive/pages/news-*.html`
 
 - `publishedAt` is taken from the archive's `entry-date published` datetime — **not** the "updated"
   timestamp. The archived pages carry both; they are not the same value.
-- Every archived title contained **U+00A0** (WordPress widow-prevention). All were normalized to a
-  normal space; a test asserts none survives in `src/content/news/`. Curly apostrophes (U+2019) are
-  correct typography and were preserved.
-- **No page anywhere claims a quotation is verbatim.** Each post carries a `sourceNote` recording
-  its permalink and what was changed or withheld.
+- Every archived title contained **U+00A0**. All were normalized to a normal space; a test asserts
+  none survives. Curly apostrophes (U+2019) are correct typography and were preserved.
+- **No page anywhere claims a quotation is verbatim.** Each post carries a `sourceNote`.
 - Exactly **one photograph** ships: `src/assets/news/new-braided-self-curling-tube.jpg`, LiTex's own
-  macro of the braided sleeving. Largest emitted variant is 133 KB, well under the 300 KB cap. The
-  Tier 3 guard covers `/news/` — proved by flipping `aiGenerated` to `true` and watching
-  `tests/imagery.test.ts` name the exact page and asset.
+  macro of the braided sleeving.
 
 ---
 
 ## Company photography extracted in Plan 5
 
-All six sourced from `archive/catalogs/2018-company-introduction.pdf` via the extraction
-pipeline, verified 2026-08-11 by rendering and viewing each file.
+All six sourced from `archive/catalogs/2018-company-introduction.pdf`, verified 2026-08-11 by
+rendering and viewing each file.
 
 | Slug | Shows | Used on |
 |---|---|---|
-| `premises` | The LiTex building photographed from street level, illuminated shopfront sign reading *LiTex* over *LED 紡織科技* | `/company/about/` |
-| `heritage-nameplates` | Two brushed-steel company nameplates at the shared premises: 恆好貿易有限公司 / HEN HAO TRADING CO., LTD. and 台灣吉普織帶工業 / TAIWAN TULIP RIBBON & BRAIDS | `/company/about/` |
+| `premises` | The LiTex building from street level, illuminated shopfront sign reading *LiTex* over *LED 紡織科技* | `/company/about/` |
+| `heritage-nameplates` | Two brushed-steel nameplates: 恆好貿易有限公司 / HEN HAO TRADING CO., LTD. and 台灣吉普織帶工業 / TAIWAN TULIP RIBBON & BRAIDS | `/company/about/` |
 | `factory-floor` | Creel rack, narrow-fabric loom, a row of covering machines | `/company/about/` |
 | `trade-show-stand` | Three staff under a sign reading LITEX TEXTILE & TECH. CO., LTD. | `/company/about/` |
 | `taitronics-award` | 2014 TAITRONICS Technology Innovation Awards certificate | `/company/patents-and-awards/` |
 | `sgs-test-report` | Cover of SGS Test Report `CE/2013/52203` | `/company/certifications/` |
 
-**Correction to session 4's handoff, caught during Plan 5 planning:** the prior version of this file
-described p.1 xref 52 as *"a loom with LiTex-branded tape, two framed certificates, a spool of woven
-tape."* That is wrong on every count — there is no loom in it and there are no certificates in it.
-It is three panels: the LiTex building from street level with an illuminated shopfront sign; **two
-brushed-steel company nameplates** reading 恆好貿易有限公司 / HEN HAO TRADING CO., LTD.
-and 台灣吉普織帶工業 / TAIWAN TULIP RIBBON & BRAIDS; and spools of metal filament beside woven tape.
-Taiwan Tulip Ribbon & Braids appears in **no archived HTML** — only in this photograph. The old
-wording is deleted from this file; do not reintroduce it.
+**Correction held from session 4:** an earlier handoff described p.1 xref 52 as "a loom with
+LiTex-branded tape, two framed certificates, a spool of woven tape". That is wrong on every count.
+Taiwan Tulip Ribbon & Braids appears in **no archived HTML** — only in this photograph. Do not
+reintroduce the old wording.
 
-**Correction to the TAITRONICS date:** an earlier session recorded the certificate as "fully read"
-and dated `2014.9.29`. Re-examined at 14× lanczos, the day's final digit is roughly five pixels tall
-and is either a 6 or a 9 — unresolvable. That earlier "fully read" claim was overconfident. The site
-publishes **"September 2014"** (`AWARD.dated` in `src/data/patents.ts`) and nothing more precise. Do
-not restore a specific day without a better source image.
+**Correction to the TAITRONICS date:** the day's final digit is unresolvable at 14× lanczos —
+either a 6 or a 9. The site publishes **"September 2014"** and nothing more precise. Do not restore
+a specific day without a better source image.
 
 ---
 
 ## ⚠ Patent facts — resolved 2026-08-11, do not re-derive or revert
 
 The archive's patent claims are **stale and partly false**. Transcribing
-`archive/images/patents-and-awards.jpg` onto `/company/patents-and-awards/` would publish two
-untrue statements.
+`archive/images/patents-and-awards.jpg` onto the site would publish two untrue statements.
 
 | Record | Truth (Google Patents) |
 |---|---|
-| **TWM545145U** | *"Elastic ribbon having extensible electronic device"*, filed 2017-03-20 by **富鉅紡織科技股份有限公司** — exact match for `COMPANY.legalNameZh`, so certainly LiTex's. **Renewal status unconfirmed.** |
-| **US 12/787,378** | **ABANDONED 2012-04-23** — "failure to respond to an office action". Published US2010/0300060A1. **Never granted.** |
-| **TW M371733** | **LAPSED 2017-10-01**, non-payment. Archive lists it under "Issued patents" — true once, false now. |
+| **TWM545145U** | *"Elastic ribbon having extensible electronic device"*, filed 2017-03-20 by **富鉅紡織科技股份有限公司** — exact match for `COMPANY.legalNameZh`. **Renewal status unconfirmed.** |
+| **US 12/787,378** | **ABANDONED 2012-04-23** — failure to respond to an office action. **Never granted.** |
+| **TW M371733** | **LAPSED 2017-10-01**, non-payment. |
 | Applicant | Older filings are **Fu-Biau Hsu / 許富標 as an individual**, not the company. |
 
-- The archive prints **"TW 1M545145" — malformed**; the leading `1` is a transcription artifact.
-  Correct form is **TWM545145** / `M545145`.
-- Because the US application was abandoned, **the USPTO ribbon certificate in the catalog is not
-  for it.** What it depicts is unknown. Do not attribute it. It carries **no number** — it is the
-  generic cover page; the number lives on the facing page, never photographed. Don't try to read
-  it off the image; that was checked at 4× upscale.
-- The credibility bar now reads **`TW UTILITY MODEL M545145`**, deliberately *not* asserting a
-  right in force. `tests/chrome.test.ts` fails if `1M545145` or `PATENTED` reaches any built page.
-  **Do not restore "PATENTED" without LiTex confirming renewal.**
+- The archive prints **"TW 1M545145" — malformed**. Correct form is **TWM545145** / `M545145`.
+- Because the US application was abandoned, **the USPTO ribbon certificate in the catalog is not for
+  it.** What it depicts is unknown. It carries **no number** — checked at 4× upscale.
+- The credibility bar reads **`TW UTILITY MODEL M545145`**, deliberately not asserting a right in
+  force. `tests/chrome.test.ts` fails if `1M545145` or `PATENTED` reaches any built page.
 
 ---
 
 ## Settled — do not re-raise
 
-- **Image usage rights granted** (2026-08-11) for all catalog photography, including the
-  certificates and personnel shots held for Plan 5. Note the limit: the grant covers **LiTex's own
-  photography**, not third parties' marks — see the news imagery decision below.
-- **The public repo is deliberate.** The archived catalogs and images are material LiTex publishes
-  publicly. Do not suggest making it private.
-- **The Google Maps API key in `archive/pages/*.html` is not a leak and is not LiTex's.** Google
-  Cloud Console was checked 2026-08-11: no key ending `p8dwTE` exists in their account, so it is
-  Automattic's. Nothing to revoke. Documented in `archive/README.md`. Do not propose a history
-  rewrite.
-- **News posts stay as short dated entries** (decided 2026-08-11, executed in Plan 6) — published
-  honestly with their original dates, not merged into a timeline and not expanded with invented
-  detail. *New Braided Self-curling Tube* has **no body text at all** (it is a photograph and a
-  product link), *Tokyo Wearable Expo 2022* is one sentence, and the longest of the seven is three
-  sentences. That is the real material. Do not pad it.
-- **WordPress.com Site Redirect:** the user is not using WordPress, so legacy
-  `litextextile.wordpress.com` URLs will not 301 and that ranking is not recoverable. Business
-  decision, already taken. Nothing blocks building.
-- **LiTex is a subsidiary of Hen Hao Trading, and the two share the Bangka Blvd. premises.**
-  Confirmed by the user 2026-08-11. Hen Hao is the **current parent**, not a predecessor — an
-  earlier draft of `/company/about/` called the nameplates "the two businesses that came before",
-  which was wrong and is now fixed. Declared once as `COMPANY.parentCompany` in
-  `src/lib/company.ts`. **Only the LiTex/Hen Hao relationship is confirmed** — Taiwan Tulip Ribbon
-  & Braids is known solely from its nameplate at the same address, which establishes co-location
-  and nothing more. A draft of `/company/about/` called it "in the same group"; that was an
-  invented corporate fact about a third party and a test now guards against it returning.
-- **SGS report `CE/2013/52203` is issued in Hen Hao Trading's name**, confirmed by the user
-  2026-08-11. It is stated outright on `/company/certifications/` under "Issued to", because a buyer
-  who requests the report and meets an unfamiliar company name on it has found a discrepancy the
-  site created by staying quiet. It is **not** read off the cover photograph — the addressee block
-  there is still illegible, and `SGS_REPORT.notReadable` correctly still says so. A residual
-  commercial question remains and it is a question for LiTex, not for the site: a procurement filter
-  requiring the certificate be in the *supplier's* name is not satisfied by a parent-company
-  document.
-- **`litex.com.tw` and `sales@litex.com.tw` are confirmed** and declared in `astro.config.mjs`.
-  `mail@example.com` is theme boilerplate — a test fails if any `example.com` string is rendered.
+- **Image usage rights granted** (2026-08-11) for all catalog photography. The grant covers
+  **LiTex's own photography**, not third parties' marks.
+- **The public repo is deliberate.** Do not suggest making it private.
+- **The Google Maps API key in `archive/pages/*.html` is not a leak and is not LiTex's.** Checked
+  2026-08-11; it is Automattic's. Do not propose a history rewrite.
+- **News posts stay as short dated entries.** *New Braided Self-curling Tube* has **no body text at
+  all**; the longest of the seven is three sentences. That is the real material. Do not pad it.
+- **WordPress.com Site Redirect:** legacy `litextextile.wordpress.com` URLs will not 301. Business
+  decision, already taken.
+- **LiTex is a subsidiary of Hen Hao Trading**, and the two share the Bangka Blvd. premises.
+  Declared once as `COMPANY.parentCompany`. **Only the LiTex/Hen Hao relationship is confirmed** —
+  Taiwan Tulip Ribbon & Braids is known solely from its nameplate, which establishes co-location
+  and nothing more.
+- **SGS report `CE/2013/52203` is issued in Hen Hao Trading's name**, stated outright on
+  `/company/certifications/` under "Issued to". A residual commercial question remains and it is a
+  question for LiTex, not for the site.
+- **`litex.com.tw` and `sales@litex.com.tw` are confirmed.** A test fails if any `example.com`
+  string is rendered.
+- **The four Plan 6 news decisions** — no third-party event imagery; `test-post-blah` stays dead
+  (seven posts, not eight); the TechTextil blog article is not linked (dead domain, wrong TLS
+  certificate); titles normalized and two typos corrected with disclosure. **Do not re-litigate.**
 
-### Settled in Plan 6 — the four news decisions
+### Settled in Plan 7 — the five contact-flow decisions
 
-Taken with the human on 2026-08-12 after reading all ten archived posts, and recorded in the plan's
-"Decisions taken before this plan was written" table. **Do not re-litigate them.**
+Taken with the human on 2026-08-12, recorded in the plan's front matter and now also in **spec §4
+"Contact form — failure modes → As built"**. Do not re-derive them, and in particular do not
+rediscover the dead end in the first one:
 
-1. **No third-party event imagery is republished.** Six of the seven posts' only images are
-   trade-show organizers' marks — Messe Frankfurt's Techtextil key visual, the Wearable Expo logos,
-   Messe Düsseldorf's mark, and a screenshot of a third-party blog. LiTex's usage grant covers its
-   own catalog photography, not event organizers' trademarks. `/news/` therefore ships **exactly one
-   photograph**, and it is LiTex's own.
-2. **`test-post-blah` stays dead — seven posts, not eight.** ⚠ **Read this before you "discover" it
-   again.** Its title is *"LiTex Attending Wearable Expo"* and **its body is genuinely real content,
-   not junk** — the junk is the slug. It is killed anyway, because it pre-announces the very expo
-   that `wearable-expo` (2017-02-23) thanks visitors for, so nothing of substance is lost. Spec §3
-   sentences the URL to **410 Gone**; that holds. There is no eighth post to recover.
-3. **The TechTextil blog article is not linked.** `techtextil-blog.com` now serves a certificate for
-   `*.messefrankfurt.com`, so the 2017 link throws a TLS warning — worse than no link. A Wayback
-   snapshot (2022-05-19, HTTP 200) exists and the original path is recorded in that post's
-   `sourceNote` as plain text for a future session, but nothing is linked because the capture's
-   contents were never verified.
-4. **Titles are normalized; two typos are corrected; nothing claims to be verbatim.** The
-   `featured-on-techtextil-blog` body had two genuine errors (*"Its been"*, *"It was pleasure"*),
-   corrected and disclosed in that post's `sourceNote`. A second reader confirmed those two
-   corrections are the only changes to that body.
+1. **Delivery goes through Resend.** **MailChannels' free Cloudflare integration ended 2024-06-30** —
+   every blog post and Stack Overflow answer describing it is dead. And **`send_email` is a
+   Workers-only binding, unavailable to Pages Functions**: it would need a second deployable plus a
+   service binding, and Email Routing needs LiTex to click a verification link.
+2. **The form works with JavaScript disabled.** Verified in a browser with `javaScriptEnabled:
+   false`: a native `POST` to `/api/submit` carrying the full body.
+3. **Both pages, one endpoint**, with a `formType` discriminator.
+4. **Three outcomes, never two** — `delivered` / `stored` / `rejected`, plus `failed` when the store
+   itself fails.
+5. **No IP address is stored or transmitted.** Turnstile's `remoteip` is deliberately not sent.
 
 ### Also settled in Plan 6 — rulings and standards worth keeping
 
-- **`walk` exists in two files by design.** `tests/helpers/dist.ts` walks `dist/`;
-  `tests/fonts.test.ts` walks `src/` and filters against an extension allowlist. Two reviewers read
-  both and confirmed they are different functions. **Do not "finish the job" by merging them.**
-  `DIST`, `docFor` and `routeFile` do each exist in exactly one place.
-- **Human ruling, Task 1: the wider scope governs.** When the brief's premise turned out to
-  understate the duplication, the consolidation was extended to all eight affected test files rather
-  than stopping at the two the brief named.
-- **Human ruling, Task 5: the provenance note governs; the test was wrong.** A test banned the
-  string `techtextil-blog.com` anywhere in the build, which collided with the provenance note that
-  deliberately records the dead article's path. The test was narrowed to **anchor `href`s across the
-  whole build**, and the note was restored byte-identical from its verified commit. **General
-  lesson: a string-containment ban over rendered HTML cannot tell a link from a mention. Guard the
-  thing that actually harms a reader** — here, that no visitor can click through to a TLS warning.
+- **`walk` exists in two files by design.** Two reviewers confirmed they are different functions.
+  **Do not "finish the job" by merging them.**
+- **A string-containment ban over rendered HTML cannot tell a link from a mention.** Guard the thing
+  that actually harms a reader.
 - **The standard for "this guard still works".** Prove it, don't assert it: add a live probe that
-  should trip the guard, rebuild, observe the failure, revert, re-verify. Both the narrowed link
-  guard and the Tier 3 imagery guard were verified this way in Plan 6, as was the nav guard.
-- **The braided-tube alt text does not mention the self-curling overlap seam.** Three independent
-  viewers examined the frame; none could find one. The product genuinely has such a seam — it is
-  simply not in this crop. On this site alt text is a factual claim read aloud to someone who cannot
-  check it, so an unconfirmable structural detail is the same class of error as an unsourced spec
-  value. **Do not restore the claim from product knowledge if this alt is ever revisited.**
-- **`img_4818.jpg` really is LiTex's own photography.** The archived post's `og:image` points at
-  `litextextile.wordpress.com/wp-content/uploads/2020/05/img_4818.jpg` — LiTex's own media library —
-  and the camera-default filename is consistent. This was queried and closed.
+  should trip the guard, rebuild, observe the failure, revert, re-verify. Applied again in Plan 7
+  to the rewritten third-party guard.
+- **When a fix rewrites a factual sentence, re-verify the whole sentence.** Plan 6's best catch: a
+  fix removed one unverifiable claim from an alt text and introduced a different one in the same
+  sentence.
+- **The braided-tube alt text does not mention the self-curling overlap seam.** Three viewers found
+  none in this crop. Do not restore the claim from product knowledge.
 
 ---
 
@@ -319,117 +257,100 @@ Taken with the human on 2026-08-12 after reading all ten archived posts, and rec
 Full detail in the `litex-verified-toolchain` memory. The ones that bite hardest:
 
 1. **`extract_image()` returns raw stored bytes** — three catalog images are **JPEG 2000**, which
-   sharp cannot decode at all, and all six are **CMYK**. Decode through `fitz.Pixmap` →
-   `fitz.csRGB`. Soft masks are page-layout gutters over white; ignore them.
+   sharp cannot decode, and all six are **CMYK**. Decode through `fitz.Pixmap` → `fitz.csRGB`.
 2. **Astro `compressHTML` (default true) strips the newline between text and a following element**,
    so `covering,\n<span>1S1Z</span>` ships as `covering,1S1Z`. Fix with an explicit `{' '}`.
    Detect with `grep -oE '[a-zA-Z,;:.]<(span|a|strong|em)\b'` over `dist/**/*.html`.
 3. **`<Picture>` sizes its fallback from the source's intrinsic width** unless given `width`, and
    **Astro emits the untouched source file for every `image()` a schema resolves**, referenced or
-   not. Both silently ship megabytes. Sources are capped at 1400 px by the extraction script.
+   not. Sources are capped at 1400 px by the extraction script.
 4. **A broken `reference()` does not fail the build** (exits 0, renders blank). Always use
-   `mustResolve()` from `src/lib/references.ts`. Schema `superRefine` violations *do* fail (127).
+   `mustResolve()`. Schema `superRefine` violations *do* fail (127).
 5. **sharp holds files open on Windows** — read into a Buffer before writing back to the same path.
 6. A local, gitignored waiver in `.impeccable/config.local.json` silences the `broken-image` rule
-   inside `tests/imagery.test.ts` only (it false-positived on the `<img>`-matching regexes there).
-   The rule still fires everywhere else — verified.
-7. **pymupdf's `Pixmap.copy(source, irect)` works in absolute coordinates.** A destination pixmap
-   created at `IRect(0, 0, w, h)` does not intersect a source region at a non-zero offset, so the
-   copy is empty and the result is a black rectangle. `scripts/extract-image.py` had this bug from
-   the start; it was invisible because its only caller (the RFID hero, Plan 3) cropped from `(0,0)`,
-   where the bug can't show. Fixed in Plan 5 Task 1 by creating the destination pixmap at the crop
-   origin and resetting its origin afterward. A black frame is otherwise a completely valid JPEG of
-   the correct dimensions with a valid provenance entry — nothing about it looks wrong until you
-   open it. It is now caught structurally: `tests/provenance.test.ts` computes bytes-per-pixel for
-   every shipped image and fails anything too uniform to be a photograph.
-8. **YAML parses an unquoted ISO timestamp into a `Date`, not a string.** Written bare in front
-   matter, `publishedAt: 2017-02-23T14:54:11+08:00` arrives at the schema as a `Date` object — and
-   a `Date` has already thrown away the `+08:00` offset and the exact characters, which is the whole
-   point of storing the string. **Every `publishedAt` in `src/content/news/*.md` is quoted**, and
-   `src/schemas/news.ts` uses a plain `z.string()` so zod's default type error ("expected string,
-   received date") names the exact mistake. Do not "tidy" the quotes away.
+   inside `tests/imagery.test.ts` only. The rule still fires everywhere else.
+7. **pymupdf's `Pixmap.copy(source, irect)` works in absolute coordinates.** A destination pixmap at
+   `IRect(0, 0, w, h)` does not intersect a source region at a non-zero offset — the result is a
+   black rectangle that is otherwise a completely valid JPEG. Fixed in Plan 5; now caught
+   structurally by a bytes-per-pixel uniformity check in `tests/provenance.test.ts`.
+8. **YAML parses an unquoted ISO timestamp into a `Date`, not a string** — and a `Date` has already
+   thrown away the `+08:00` offset. **Every `publishedAt` in `src/content/news/*.md` is quoted.**
+   Do not "tidy" the quotes away.
 9. **`Date.parse` is lenient by specification — it cannot be used as a validity check.**
-   `Date.parse('2018-02-31')` does not return `NaN`; it rolls the value forward to **March 3** and
-   returns a perfectly good number. A schema written on the assumption that it rejects impossible
-   dates rejects nothing, and *"February 31, 2018"* renders happily. This cost a whole fix round
-   twice in one plan. **Round-trip through `Date.UTC` and compare the fields back**, as
-   `fields()` in `src/lib/dates.ts` does. The trap inside the trap: a naive stricter check must
-   still **accept real leap days** — `2016-02-29` is valid and there is a test pinning it.
-10. **Consolidating a helper out of a test file breaks unrelated imports.** Twice in Plan 6 Task 1,
-    an import line served both a helper being deleted *and* a direct use elsewhere in the same file
-    (`fileURLToPath` in `chrome.test.ts`; `readFileSync` + `fileURLToPath` in `build.test.ts`).
-    Deleting the helper deleted a live import. The test run caught both before commit — expect this
-    on any future consolidation here, and run the suite before believing the refactor.
+   `Date.parse('2018-02-31')` rolls forward to March 3 and returns a good number. **Round-trip
+   through `Date.UTC` and compare the fields back.** The trap inside the trap: a stricter check must
+   still **accept real leap days** — `2016-02-29` is valid and a test pins it.
+10. **Consolidating a helper out of a test file breaks unrelated imports** — an import line can serve
+    both a helper being deleted and a direct use elsewhere in the same file. Run the suite before
+    believing the refactor.
+11. **Astro rewrites a non-`is:inline` external `<script src>` into a local module** whose body is
+    `import "https://…"`. The browser still makes the third-party request, but **no HTML attribute
+    names it**, so an HTML-only scan for external resources reports clean. This was demonstrated,
+    not assumed, in Plan 7 Task 4 — it is why `tests/legal.test.ts` sweeps emitted `.js` as well as
+    HTML, and why the Turnstile tag is marked `is:inline`.
+12. **`dist/` is gitignored, and ripgrep skips ignored paths by default.** Claude Code's Grep tool
+    is ripgrep, so a dist-wide search through it returns "no matches" **without opening a file**.
+    Since this repo's entire test strategy reads `dist/`, use Bash `grep` for any dist sweep. A
+    clean result from a tool that never looked is the most dangerous kind of green.
+13. **`playwright-cli eval` treats any string containing `=>` as a function definition**, so an
+    arrow-function one-liner fails with `TypeError: result is not a function`. Wrap the expression
+    in `(function(){ … })()` and use a `for` loop instead.
 
 ---
 
 ## Parked residual — Plan 8 must handle this
 
-The Plan 5 final whole-branch review found that `npx astro build` on a cold checkout, where
-`public/catalogs/` was never populated, still ships a build with an unpopulated `public/catalogs/`.
-`npx` bypasses `package.json` scripts entirely, so the inlined `node scripts/sync-catalogs.mjs &&
-astro build` in `npm run build` never runs — there is no way to reach the sync step from
-`package.json` alone. No CI config exists in this repo yet, so nothing currently triggers this path.
-**Plan 8 must set the Cloudflare Pages build command to `npm run build`, not `npx astro build` or
-the Cloudflare default**, or the six downloads and five product catalog links 404 in production with
-no test catching it.
+`npx astro build` on a cold checkout ships a build with an unpopulated `public/catalogs/`, because
+`npx` bypasses `package.json` scripts entirely and the inlined `node scripts/sync-catalogs.mjs`
+never runs. No CI config exists yet, so nothing currently triggers this path. **Plan 8 must set the
+Cloudflare Pages build command to `npm run build`**, or the six downloads and five product catalog
+links 404 in production with no test catching it. This is now the first row of
+`docs/deployment.md`'s settings table.
 
 ---
 
-## Carried-forward minors from the Plan 5 and Plan 6 review ledgers
+## Carried-forward minors from the Plan 5–7 review ledgers
 
-Both SDD ledgers were gitignored and are deleted once their plan merges, so the findings with a live
-trigger condition are preserved here. None is a bug; each is a decision that becomes wrong later.
+The SDD ledgers are gitignored and deleted once their plan merges, so findings with a live trigger
+condition are preserved here. None is a bug; each is a decision that becomes wrong later.
 
-**Closed by Plan 6:**
+**Plan 8 should act on these:**
 
-- ~~**1. `walk()` and `routeFile()` are duplicated verbatim** in `tests/chrome.test.ts` and
-  `tests/company.test.ts`; extract a shared helper.~~ **DONE** — Plan 6 Task 1 created
-  `tests/helpers/dist.ts`. The duplication turned out to be wider than recorded here (eight files,
-  not two), and all eight were consolidated. `DIST`, `docFor` and `routeFile` now exist in exactly
-  one place; `walk` exists in two **by design** (see "Settled"). Do not reopen this.
-
-**Left alone deliberately, with the trigger re-evaluated:**
-
-2. **`ArchiveFigure` and `ProductHero` share near-identical figure boilerplate** (wrapper CSS,
-   `:global(img)`, figcaption, width/height shape). The recorded trigger was "if a third figure
-   component appears". **It did not** — Plan 6 reused `ArchiveFigure` unchanged for the one news
-   photograph rather than writing a third component, which was the right call and leaves the
-   boilerplate at two copies. Still not worth refactoring; re-evaluate if a genuine third appears.
-3. **`ArchiveFigure size="full"` resolves its `widths` ladder to `[400, 800]`**, so an 800–1200px
-   source fills a ~960px slot at 800px. Inherited unchanged from `ProductHero`. It now affects two
-   images — `factory-floor.jpg` and the news braid macro, whose 3024px source is capped to 1400px by
-   the extraction script and then served at 800px. Cosmetic sharpness only; no budget is breached.
-
-**Plan 8 should act on these four:**
-
-4. The **dist-reading test strategy assumes `npm run build` ran immediately before `npm test`.**
-   A stale `dist/` can pass some assertions vacuously. Pre-existing; a CI-ordering constraint the
-   moment CI exists.
-5. `/legal/privacy/`'s **script guard checks only absolute `http(s)` `script[src]`** — it would miss
-   a protocol-relative URL or an inline third-party call. Cloudflare Web Analytics uses a full
-   `https` src, so Plan 8's actual change *is* covered; the guard is just narrower than it reads.
-6. The same page's **analytics guard asserts `toContain('no analytics')`**, which could pass on a
-   partially-rewritten page. The script-src assertion is the real blocker; this is redundancy.
-7. **Every `npm run build` rewrites `src/data/catalog-files.json` with a CRLF-only diff** and no
-   content change, dirtying the working tree on every build. It has now cost three separate agents a
-   detour into "what did I change?". Harmless, but fix the line-ending handling in
-   `scripts/sync-catalogs.mjs` (or `.gitattributes`) in Plan 8. **Until then: if
-   `src/data/catalog-files.json` shows modified with an empty `git diff`, just `git checkout --` it.**
-
-**Plan 7 should keep this one in view:**
-
-8. **`/news/`'s `BlogPosting` JSON-LD omits `image` and `author`**, both of which Google's Rich
-   Results Test lists as recommended. Both omissions are honest rather than lazy — `author` is
-   genuinely unknown for these posts and `image` exists for only one of the seven. If LiTex ever
+1. **The function assumes all five `env` values exist.** `const contactEmail = env.ENQUIRY_TO` has
+   no fallback, so on a deployment where the variable is missing, every honest failure message
+   degrades to "please email " with nothing after it — on exactly the paths that exist to give the
+   visitor a way through. Cheapest fix is a hardcoded default equal to `COMPANY.email`.
+2. **The Turnstile test sitekey ships by default** and no test can detect the real one is missing,
+   because the real key does not exist in this repo. Soft failure: the widget renders and the form
+   works, spam filtering is simply off. Check by eye after deploy.
+3. **Nothing notices a run of `stored` outcomes**, which is precisely the signal that Resend has
+   stopped accepting mail. There is no alerting and no admin UI; submissions are read from the
+   Cloudflare dashboard.
+4. The **dist-reading test strategy assumes `npm run build` ran immediately before `npm test`.** A
+   stale `dist/` can pass some assertions vacuously. A CI-ordering constraint the moment CI exists.
+5. **Every `npm run build` rewrites `src/data/catalog-files.json` with a CRLF-only diff** and no
+   content change, dirtying the working tree on every build. It has now cost four separate agents a
+   detour into "what did I change?". Fix the line-ending handling in `scripts/sync-catalogs.mjs` or
+   `.gitattributes`. **Until then: if it shows modified with an empty `git diff`, `git checkout --` it.**
+6. **`/news/`'s `BlogPosting` JSON-LD omits `image` and `author`.** Both omissions are honest rather
+   than lazy — `author` is genuinely unknown and `image` exists for only one of seven. If LiTex ever
    answers who wrote them, add `author`.
+
+**Left alone deliberately, trigger re-evaluated:**
+
+7. **`ArchiveFigure` and `ProductHero` share near-identical figure boilerplate.** The recorded
+   trigger was "if a third figure component appears". It has not. Re-evaluate if one does.
+8. **`ArchiveFigure size="full"` resolves its `widths` ladder to `[400, 800]`**, so an 800–1200px
+   source fills a ~960px slot at 800px. Cosmetic sharpness only; no budget is breached.
+9. **`/enquiry-sent/` shows both the delivered and the queued message when JavaScript is off.** The
+   page is static, so the distinction is drawn by a tiny inline script reading the query string.
+   Verbose but never misleading — the visitor is told the enquiry is recorded either way. The
+   comment in the page says so.
 
 **No trigger, carry indefinitely:**
 
-- `dirFor()` reimplemented with different signatures in `extract-images.mjs` and
-  `provenance.test.ts`.
-- `patents.ts` repeats 富鉅紡織科技股份有限公司 as a literal instead of importing
-  `COMPANY.legalNameZh`, while commenting that it is "an exact match".
+- `dirFor()` reimplemented with different signatures in `extract-images.mjs` and `provenance.test.ts`.
+- `patents.ts` repeats 富鉅紡織科技股份有限公司 as a literal instead of importing `COMPANY.legalNameZh`.
 - `AWARD.dated` is styled `class="value"` beside true identifiers.
 - The "does not assert a right currently in force" test only checks that the word "renewal" appears.
 - The "never publishes the unattributable US patent certificate" test cannot fail until a
@@ -437,20 +358,14 @@ trigger condition are preserved here. None is a bug; each is a decision that bec
 - `scripts/sync-catalogs.mjs` throws a bare ENOENT if `archive/catalogs/` is missing.
 - `humanSize()` has no direct unit test, so the MB/KB boundary is unpinned.
 - `about.astro:99` is a 113-char line against a ~78–90 char file norm.
-- `about.astro:132–135` ("looms built for exactly the widths a conductive tape needs") is
-  interpretive framing rather than a sourced fact — noted because it sits on a page built on
-  traceability.
-- **`isStoredTimestamp` does not signal in its name that it also checks calendar realness**, not
-  only format. Its JSDoc says so. `isValidStoredTimestamp` would read better if it is ever renamed.
-- **`dates.ts`'s "does not depend on the runner timezone" test never varies `TZ`.** It documents
-  intent and pins one expected output rather than empirically proving timezone independence. Proving
-  it properly needs a child process with `TZ` set, which costs more than it returns while the
-  implementation contains no timezone-sensitive path at all. **Revisit only if `dates.ts` ever gains
-  one.**
-- **`src/pages/products/[slug].astro` tags its JSON-LD `<script>` with `is:inline`; the news page
-  omits it.** Verified empirically that Astro 7 does not process `type="application/ld+json"` at
-  all — both pages emit byte-identical script tags, no hoisting, no bundle reference. Stylistic
-  inconsistency only. Worth one cleanup pass someday; not a functional risk.
+- `about.astro:132–135` is interpretive framing rather than a sourced fact.
+- **`isStoredTimestamp` does not signal in its name that it also checks calendar realness.** Its
+  JSDoc says so. `isValidStoredTimestamp` would read better if it is ever renamed.
+- **`dates.ts`'s "does not depend on the runner timezone" test never varies `TZ`.** Proving it
+  properly needs a child process; the implementation contains no timezone-sensitive path at all.
+- **`products/[slug].astro` tags its JSON-LD `<script>` `is:inline`; the news page omits it.**
+  Verified that Astro 7 does not process `type="application/ld+json"` at all — both emit
+  byte-identical tags. Stylistic only.
 
 ---
 
@@ -458,93 +373,116 @@ trigger condition are preserved here. None is a bug; each is a decision that bec
 
 Ordered by how much damage the wrong answer does.
 
-1. **TWM545145 renewal status.** Unchanged, still the highest-value answer. Its sibling lapsed for non-payment; this is the claim in the footer of every page. A confirmation would let the credibility bar say something stronger than "TW UTILITY MODEL".
-2. **What is the SGS report's scope?** Not readable at the stored resolution — the site currently says so out loud. The full report closes the largest hole in `/company/certifications/`, and spec §7 item 5 rates it High.
-3. **The thermograph's test conditions** — voltage, duration, ambient temperature, colour scale. Held out of `/technology/` for a fourth plan running.
-4. **News since 2022** (spec §7 item 14). `/news/` now exists and is framed as an archive, which makes the four-year gap **honest** — it does not **fill** it. Anything from 2023–2026 (a trade show attended, a new grade, a customer win) turns a closed archive back into evidence of a live company, and the section is built to take it: drop a Markdown file in `src/content/news/`, and the year grouping and the stated date range update themselves. **Ask for this every time you speak to them.**
-5. **Does LiTex have a copy of the TechTextil coverage?** In June 2017 the Techtextil blog interviewed them at Frankfurt Messe and published an article (`techtextil-blog.com/en/the-heat-is-on/`, interviewer Liam Rodden). The domain is dead and now serves a Messe Frankfurt certificate, so it cannot be linked. **This is the only independent editorial mention of LiTex anywhere in the archive**, which makes it disproportionately valuable — third-party coverage is worth more than anything the site says about itself. Ask whether they kept a PDF, a print copy, or a screenshot; failing that, whether they can confirm the Wayback capture of 2022-05-19 reflects the real article, which would let it be cited.
-6. **What the USPTO certificate actually is**, given 12/787,378 was abandoned. It is now deliberately unpublished, so this is no longer blocking anything — but if it turns out to be a granted patent under a different number, that is a real asset currently missing from the site.
-7. **Are CN 201485574U, TW 099146482 and CN 201120008487.x still live?** `/company/patents-and-awards/` prints "Not verified" against all three. LiTex can answer this in a sentence and the page improves immediately.
-7b. **Which of the older filings were made by Fu-Biau Hsu (許富標) personally rather than by the company?** The register check found individual applicants on the older family but did not enumerate which. The page says "some" because that is the precision the evidence supports; naming them would be better, and only LiTex can.
-8. **Company facts for `/company/about/`** — headcount, floor area, production capacity, factory locations. The page deliberately states none of these. Spec §7 item 13.
-9. **Should `/legal/privacy/` be reviewed by LiTex's counsel?** The page states only verifiable properties of the site and makes no promise the site cannot keep, but it is a legal document published in LiTex's name in a market where such documents matter. Flag it; do not block launch on it. **Plan 7 makes this sharper** — the moment a contact form collects personal data, the privacy page stops being a formality.
-10. **CuNi status** — "coming soon" in 2018; `/technology/` still says exactly that, and the January 2017 news post *Copper Nickel 1s1z* announces it. Nine years of "coming soon" is its own signal.
-11. **Is the 2018 grade range (1S–4S4Z) still current?** The whole `/technology/` argument rests on it.
-12. **Are the 2018 catalogs still the current set?** `/downloads/` now serves all six and says plainly that they are eight years old. Spec §7 item 15.
-13. **Re-shoot `wired-conductive-tape`** (600×341 is genuinely the largest in the archive).
-14. Carried over: EMI `(c)` column and `(ø)` units; the stainless steel yarn table's owning product.
+1. **Who actually receives enquiries?** ⚠ **New, and now the most urgent of all of these.** The
+   whole contact flow delivers to `sales@litex.com.tw`. Nobody has confirmed that inbox is
+   monitored, or by whom, or how fast. `/enquiry-sent/` promises a reply "within one working day".
+   **The most carefully built enquiry pipeline on earth is worth nothing if the inbox is not read** —
+   and the site now makes a promise on LiTex's behalf. Ask before launch.
+2. **TWM545145 renewal status.** Its sibling lapsed for non-payment; this is the claim in the footer
+   of every page. A confirmation would let the credibility bar say something stronger.
+3. **What is the SGS report's scope?** Not readable at the stored resolution — the site says so out
+   loud. Spec §7 item 5 rates it High.
+4. **The thermograph's test conditions** — voltage, duration, ambient temperature, colour scale.
+   Held out of `/technology/` for a fifth plan running.
+5. **News since 2022** (spec §7 item 14). `/news/` is framed as an archive, which makes the gap
+   **honest** — it does not **fill** it. Drop a Markdown file in `src/content/news/` and the year
+   grouping and stated date range update themselves. **Ask every time you speak to them.**
+6. **Does LiTex have a copy of the TechTextil coverage?** June 2017, `techtextil-blog.com/en/the-heat-is-on/`,
+   interviewer Liam Rodden. The domain is dead and serves a Messe Frankfurt certificate. **This is
+   the only independent editorial mention of LiTex anywhere in the archive**, which makes it
+   disproportionately valuable. Ask for a PDF, a print copy or a screenshot.
+7. **Is a 180-day retention right** for their record-keeping? ⚠ **New.** It is published on
+   `/legal/privacy/` and enforced by `expirationTtl` on every KV write. If their commercial
+   record-keeping needs longer, both must change together.
+8. **Should a sample request accept attachments?** ⚠ **New.** A drawing or spec sheet would be
+   genuinely useful and is the most obvious missing field; it needs R2 or size-limited base64 and
+   its own abuse surface, so it was deliberately not built.
+9. **Should `/legal/privacy/` be reviewed by LiTex's counsel?** **Sharper now than before Plan 7** —
+   the page has stopped being a formality, because the site now collects personal data and makes
+   specific, checkable promises about it (no IP address, 180 days, three named processors). Flag it;
+   do not block launch on it.
+10. **What the USPTO certificate actually is**, given 12/787,378 was abandoned. Deliberately
+    unpublished, so no longer blocking.
+11. **Are CN 201485574U, TW 099146482 and CN 201120008487.x still live?** The page prints "Not
+    verified" against all three. LiTex can answer in a sentence.
+11b. **Which of the older filings were made by Fu-Biau Hsu (許富標) personally?** The page says "some"
+    because that is the precision the evidence supports.
+12. **Company facts for `/company/about/`** — headcount, floor area, production capacity, factory
+    locations. The page deliberately states none of these.
+13. **CuNi status** — "coming soon" in 2018; `/technology/` still says exactly that. Nine years of
+    "coming soon" is its own signal.
+14. **Is the 2018 grade range (1S–4S4Z) still current?** The whole `/technology/` argument rests on it.
+15. **Are the 2018 catalogs still the current set?** `/downloads/` serves all six and says plainly
+    that they are eight years old.
+16. **Re-shoot `wired-conductive-tape`** (600×341 is genuinely the largest in the archive).
+17. Carried over: EMI `(c)` column and `(ø)` units; the stainless steel yarn table's owning product.
 
 ---
 
 ## Resuming in a new session
 
-**Everything below was true at 2026-08-12. Trust it over any recollection.**
+**Everything below was true at 2026-08-13. Trust it over any recollection.**
 
 ### Where things stand
 
-Plan 6 is **merged** (PR #6, squashed as `bafff91`). **Plan 7 is written and committed but not
-started.** `main` is at **`cea382a`**, clean and pushed, with no branches outstanding and nothing
-in flight. On `main`: `npm run build` → **32 pages**, `npm test` → **284 passing across 18 files**,
-detector → no findings.
-
-Plan 7 will take the site to **35 pages** — `/contact/`, `/request-a-sample/` and `/enquiry-sent/` —
-and adds the first `functions/` directory and the first JavaScript this site has ever shipped.
-
-The Plan 6 SDD ledger has been **deleted**, as Plan 5's was. Everything durable in it was lifted
-into this file first: the four news decisions and the two human rulings are under "Settled", the new
-deferred findings are under "Carried-forward minors", and the two date-handling traps are toolchain
-gotchas 8 and 9. What was left behind was bookkeeping only: per-task commit SHAs that die with the
-squash, and two report-arithmetic slips with no code impact. Do not go looking for
-`.superpowers/sdd/2026-08-11-*` or `.superpowers/sdd/2026-08-12-*`; both are gone.
+Plans 1–6 are merged. **Plan 7 is complete on `plan-7-contact-and-sample`** (tip `830cdd1`), with
+PR #7 open at the time of writing — **verify its state with git before assuming anything.** On the
+branch: `npm run build` → **35 pages**, `npm test` → **330 passing across 21 files**, detector →
+no findings.
 
 ### Do this first
 
-**Execute Plan 7** — it is already written. Branch off `main` as `plan-7-contact-and-sample` and run
-`superpowers:subagent-driven-development` against
-`docs/superpowers/plans/2026-08-12-litex-contact-and-sample-flow.md`. Do **not** re-write it, and do
-not re-run `writing-plans`. Nothing from Plan 6 is outstanding.
-
-Expected shape of that run, so a deviation is noticeable: 7 tasks, ending at **35 pages** with the
-whole suite green. Task 4 is the one to watch — it ships the first form, which makes **both**
-forward guards in `tests/legal.test.ts` fire, and it resolves them in the same task. Seeing those
-two failures before the fix is the evidence the guards were real; the plan asks the implementer to
-record both messages.
+**Write Plan 8** with `superpowers:writing-plans`, reading `docs/deployment.md` first — it is
+already the executable half. Then run it subagent-driven from a branch off `main`. Plan 8 is the
+last plan.
 
 Do not re-run brainstorming or the spec self-review, and do not re-derive anything under
 "Settled — do not re-raise".
 
-The `gh` token note, kept because it will recur on PR #7: `gh pr edit` and `gh pr merge` may fail
-with a **`read:org` scope error**. Fall back to the REST API
+The `gh` token note, kept because it will recur: `gh pr edit` and `gh pr merge` may fail with a
+**`read:org` scope error**. Fall back to the REST API
 (`gh api --method PUT repos/darsonl/litex-website/pulls/N/merge`) or the browser. It is a token
-config issue, not a repo problem. On PR #5 **and PR #6**, `gh pr merge --squash --delete-branch`
-worked with no error. Note that `git branch -d` **refuses a squash merge**; that refusal is expected
-and is not evidence of unmerged work.
+config issue, not a repo problem. Note that `git branch -d` **refuses after a squash merge**,
+because the branch's commits are not ancestors of `main`. Diff the branch against `main` to prove
+the content landed, then `-D`. **The refusal is not evidence of unmerged work.**
 
 ### What NOT to redo
 
-- Do not re-derive the patent statuses, the TAITRONICS award text, the SGS report facts, the
-  catalog page counts, or any company photograph's contents. All were verified twice and are
-  recorded above.
-- Do not re-transcribe the seven news posts. Their text was extracted with linkedom and then
-  re-verified word-for-word by an independent second reader against the archived originals.
+- Do not re-derive the patent statuses, the TAITRONICS award text, the SGS report facts, the catalog
+  page counts, or any company photograph's contents.
+- Do not re-transcribe the seven news posts.
 - Do not "fix" the missing full stop at the end of the Mobile information paragraph on
-  `/legal/privacy/`, or the reduced-precision "September 2014" award date. Both are deliberate
-  and both are explained in comments beside them.
+  `/legal/privacy/`, or the reduced-precision "September 2014" award date. Both are deliberate and
+  both are explained in comments beside them.
 - Do not restore `PATENTED` or `1M545145` anywhere. A test bans both site-wide.
-- Do not add a fourth inline contact `<address>` — use `src/components/ContactBlock.astro`.
-- Do not hide `/news/` from the nav or invent posts to close the 2022 gap. See the state block.
+- Do not add a fifth inline contact `<address>` — use `src/components/ContactBlock.astro`.
+- Do not hide `/news/` from the nav or invent posts to close the 2022 gap.
 - Do not go hunting for an eighth news post. `test-post-blah` was read, has real content, and was
   killed anyway on the merits.
+- **Do not remove or loosen the `DISCLOSED` allowlist in `tests/legal.test.ts`.** It is deliberate.
+  Plan 8 **extends** it with the Cloudflare Web Analytics URL and updates `/legal/privacy/` in the
+  same commit. Loosening the guard to make a test pass silently un-does the only mechanism that
+  keeps the privacy notice true.
+- **Do not add a Subresource Integrity hash to the Turnstile script.** The endpoint is unversioned
+  and Cloudflare rolls it in place, so a hash would guarantee a silent breakage of both forms. The
+  full reasoning is in Plan 7's front matter.
+- **Do not add client-side validation to `EnquiryForm.astro` to make errors appear without a
+  server.** Validation lives once, in `src/lib/enquiry.ts`, and the server is authoritative. In
+  `astro dev` there is no Functions runtime, so a submission 404s and the script correctly reports
+  that it could not reach the server. That is the design working, not a gap to fill.
 
-### Execution mode recommendation for Plan 7
+### Execution mode recommendation for Plan 8
 
-Run it **subagent-driven** (`superpowers:subagent-driven-development`), as Plans 5 and 6 were. Across
-two plans the pattern is now unambiguous: **ten of fifteen implementation tasks needed a fix round,
-and effectively every finding traced to the plan's own text rather than to implementer error.** The
-plan's author cannot review the plan's prose — that separation is where the quality came from.
+Run it **subagent-driven** (`superpowers:subagent-driven-development`), as Plans 5–7 were, and run
+the pre-flight scan before Task 1 — it caught a build-breaking contradiction in Plan 6 before a
+single implementer started. Across three plans the pattern holds: **most implementation tasks needed
+a fix round, and effectively every finding traced to the plan's own text rather than to implementer
+error.** The plan's author cannot review the plan's prose.
 
-Plan 7 is the strongest case yet for it. It is the first plan with a **server-side runtime**
-(a Pages Function), the first that **accepts input from strangers**, and the first where a defect is
-a security or spam problem rather than a wrong figure on a page. A fresh reviewer reading each task's
-diff against its brief is worth more there than anywhere so far. Also run the pre-flight scan before
-Task 1 — it caught a build-breaking contradiction in Plan 6 before a single implementer started.
+Plan 7 added a fresh example, and it is worth carrying into Plan 8's review budget: the plan's own
+manual-verification step asked the implementer to confirm that **inline field errors appear in
+`astro dev`**, which the plan's own architecture makes impossible — validation is server-side only
+and there is no Functions runtime locally. The same step's *next* sentence correctly predicts the
+404 that makes it impossible. **Two adjacent sentences of the same step contradicted each other.**
+The inline-error path was verified instead by mocking the endpoint response in the browser, which is
+the only honest way to check it before Plan 8 deploys.

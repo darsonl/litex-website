@@ -1,0 +1,199 @@
+---
+// src/components/EnquiryForm.astro
+import { fieldsFor, HONEYPOT_FIELD, MAX_LENGTHS, type FormType } from '../lib/enquiry';
+import { COMPANY } from '../lib/company';
+
+interface Props {
+  formType: FormType;
+  submitLabel: string;
+  /** Cloudflare Turnstile sitekey. The documented always-passes test key by default. */
+  sitekey?: string;
+}
+
+// 1x00000000000000000000AA is Cloudflare's documented always-passes test sitekey. It is
+// the default so the form is usable in development and in CI; Plan 8 replaces it with the
+// real key at deploy time. A wrong sitekey fails closed — the server still verifies.
+const { formType, submitLabel, sitekey = '1x00000000000000000000AA' } = Astro.props;
+const fields = fieldsFor(formType);
+---
+<form
+  class="enquiry"
+  method="post"
+  action="/api/submit"
+  novalidate
+  data-enquiry-form
+  data-contact-email={COMPANY.email}
+>
+  <input type="hidden" name="formType" value={formType} />
+
+  <!-- Honeypot. Hidden from sight and from assistive technology; only a bot fills it. -->
+  <p class="honeypot" aria-hidden="true">
+    <label for={`hp-${formType}`}>Leave this field empty</label>
+    <input id={`hp-${formType}`} type="text" name={HONEYPOT_FIELD} tabindex="-1" autocomplete="off" />
+  </p>
+
+  {fields.map((field) => (
+    <p class="field">
+      <label for={`${formType}-${field.name}`}>
+        {field.label}{' '}
+        {field.required && <span class="req" aria-hidden="true">*</span>}
+        {!field.required && <span class="opt">(optional)</span>}
+      </label>
+
+      {field.hint && <span class="hint" id={`${formType}-${field.name}-hint`}>{field.hint}</span>}
+
+      {field.type === 'textarea' ? (
+        <textarea
+          id={`${formType}-${field.name}`}
+          name={field.name}
+          rows="5"
+          maxlength={MAX_LENGTHS[field.name]}
+          required={field.required}
+          aria-describedby={field.hint ? `${formType}-${field.name}-hint` : undefined}
+        />
+      ) : (
+        <input
+          id={`${formType}-${field.name}`}
+          name={field.name}
+          type={field.type}
+          maxlength={MAX_LENGTHS[field.name]}
+          required={field.required}
+          autocomplete={field.autocomplete}
+          aria-describedby={field.hint ? `${formType}-${field.name}-hint` : undefined}
+        />
+      )}
+
+      <span class="error" data-error-for={field.name} hidden></span>
+    </p>
+  ))}
+
+  <div class="cf-turnstile" data-sitekey={sitekey}></div>
+
+  <p class="actions">
+    <button type="submit">{submitLabel}</button>
+  </p>
+
+  <p class="fallback">
+    Prefer email?{' '}
+    <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>
+  </p>
+
+  <p class="status" data-form-status role="status" aria-live="polite" hidden></p>
+</form>
+
+<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<style>
+  .enquiry { max-width: 40rem; }
+  .field { display: flex; flex-direction: column; gap: var(--s-1); margin: 0 0 var(--s-6); }
+  label { font-size: var(--t-14); }
+  .req { color: var(--c-copper); margin-left: var(--s-1); }
+  .opt { color: var(--c-text-2); font-size: var(--t-12); margin-left: var(--s-2); }
+  .hint { color: var(--c-text-2); font-size: var(--t-12); }
+  input, textarea {
+    background: var(--c-raised);
+    border: 1px solid var(--c-line);
+    color: var(--c-text-1);
+    font: inherit;
+    padding: var(--s-2) var(--s-3);
+  }
+  input:focus-visible, textarea:focus-visible { outline: 2px solid var(--c-copper-lift); }
+  .error { color: var(--c-copper-lift); font-size: var(--t-12); }
+  /* Off-screen rather than display:none — some bots skip what is not rendered. */
+  .honeypot {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  button {
+    background: var(--c-copper);
+    border: 0;
+    color: var(--c-base);
+    font: inherit;
+    font-weight: 600;
+    padding: var(--s-3) var(--s-6);
+    cursor: pointer;
+  }
+  button:hover { background: var(--c-copper-lift); }
+  .fallback, .status { color: var(--c-text-2); font-size: var(--t-14); }
+</style>
+
+<script>
+  // Progressive enhancement only. With JS off the form posts normally and the function
+  // answers with a redirect or an HTML error page — that path is the baseline and must
+  // keep working. Nothing here is required for the form to function.
+  for (const form of document.querySelectorAll<HTMLFormElement>('[data-enquiry-form]')) {
+    const status = form.querySelector<HTMLElement>('[data-form-status]');
+    const contactEmail = form.dataset.contactEmail ?? '';
+
+    const clearErrors = () => {
+      for (const el of form.querySelectorAll<HTMLElement>('[data-error-for]')) {
+        el.textContent = '';
+        el.hidden = true;
+        const control = form.querySelector(`[name="${el.dataset.errorFor}"]`);
+        control?.removeAttribute('aria-invalid');
+      }
+    };
+
+    const showErrors = (errors: Record<string, string>) => {
+      let first: HTMLElement | null = null;
+      for (const [field, message] of Object.entries(errors)) {
+        const el = form.querySelector<HTMLElement>(`[data-error-for="${field}"]`);
+        const control = form.querySelector<HTMLElement>(`[name="${field}"]`);
+        control?.setAttribute('aria-invalid', 'true');
+        if (!el) continue;
+        el.textContent = message;
+        el.hidden = false;
+        first ??= control ?? el;
+      }
+      first?.focus?.();
+    };
+
+    const say = (message: string) => {
+      if (!status) return;
+      status.textContent = message;
+      status.hidden = false;
+    };
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearErrors();
+
+      const button = form.querySelector('button[type="submit"]');
+      button?.setAttribute('disabled', '');
+      say('Sending…');
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: { accept: 'application/json' },
+          body: new FormData(form),
+        });
+        const result = await response.json();
+
+        if (result.outcome === 'delivered') {
+          location.assign('/enquiry-sent/');
+          return;
+        }
+        if (result.outcome === 'stored') {
+          location.assign('/enquiry-sent/?delivery=pending');
+          return;
+        }
+        if (result.outcome === 'rejected') {
+          showErrors(result.errors ?? {});
+          say('Please correct the fields marked above.');
+        } else {
+          say(`${result.message ?? 'Something went wrong.'} Please email ${contactEmail}.`);
+        }
+      } catch {
+        // The network failed, so we cannot know whether anything was stored. Never
+        // claim success here; point at the address that always works.
+        say(`We could not reach the server. Please email ${contactEmail}.`);
+      } finally {
+        button?.removeAttribute('disabled');
+      }
+    });
+  }
+</script>
