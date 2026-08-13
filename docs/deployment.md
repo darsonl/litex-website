@@ -390,7 +390,7 @@ remains is delivery, which is Resend, which is blocked on registrar access.
 
 **Also unresolved:**
 
-- **Nobody has confirmed `sales@litex.com.tw` is monitored, or by whom.** The most carefully built enquiry pipeline on earth is worth nothing if the inbox is not read. Ask LiTex before launch.
+- ~~**Nobody has confirmed `sales@litex.com.tw` is monitored, or by whom.**~~ ✅ **Closed 2026-08-14: it is a Google Group with the site owner as a member**, and live DNS confirms Google Workspace MX. The residual risk moved rather than vanished — a Group can reject an external sender, hold mail for moderation, or spam-file it, and **`outcome: 'delivered'` cannot see any of that**, because it reports only that the Resend API accepted the message. See `docs/cloudflare-setup.md` Part D, step **D9**: Part D is not finished until a real enquiry is confirmed to *arrive in the Group*.
 - **No admin UI.** Submissions are read from the Cloudflare dashboard. A KV-reading page needs auth, which needs sessions.
 - **No attachments.** A drawing or spec sheet on a sample request would be genuinely useful; it needs R2 and its own abuse surface.
 - **No alerting.** Nothing notices a run of `stored` outcomes, which is exactly the signal that Resend has stopped working.
