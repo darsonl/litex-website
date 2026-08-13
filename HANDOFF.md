@@ -7,13 +7,13 @@
 
 ## ▶ Do this first
 
-**Plans 1–7 are merged. Plan 8 is written and FIVE of its nine tasks are merged.** Do not re-run
+**Plans 1–7 are merged. Plan 8 is written and EIGHT of its nine tasks are merged.** Do not re-run
 brainstorming, the spec self-review, `/impeccable init`, or `writing-plans` for Plan 8.
 
-### → Start here: resume Plan 8 at Task 6
+### → Start here: Plan 8 Task 9, the last task
 
 The plan is **`docs/superpowers/plans/2026-08-13-litex-launch.md`**. Execute it with
-`superpowers:executing-plans` (this session ran it inline) or subagent-driven, from a branch off
+`superpowers:executing-plans` (sessions 9–10 ran it inline) or subagent-driven, from a branch off
 `main`.
 
 | Task | What | State |
@@ -23,20 +23,38 @@ The plan is **`docs/superpowers/plans/2026-08-13-litex-launch.md`**. Execute it 
 | 3 | Sitemap, `robots.txt`, `noindex` | ✅ merged (PR #11) |
 | 4 | Favicon | ✅ merged (PR #11) |
 | 5 | Print stylesheet | ✅ merged (PR #11) |
-| **6** | **Broken-link sweep** | ⬅ **START HERE** |
-| 7 | axe + playwright accessibility harness | not started |
-| 8 | Cloudflare Web Analytics + disclosure | not started — **needs the token from the human** |
-| 9 | Final verification, docs, handoff for Plan 9 | not started |
+| 6 | Broken-link sweep | ✅ merged (PR #13) |
+| 7 | axe + playwright accessibility harness | ✅ merged (PR #13) |
+| 8 | Cloudflare Web Analytics + disclosure | ✅ merged (PR #14) |
+| **9** | **Final verification, docs, handoff for Plan 9** | ⬅ **START HERE** |
 
-`main` is at **`b3ef5fc`**, clean and pushed, nothing in flight. `npm run build` → **36 pages**,
-`npm test` → **359 passing across 22 files**.
+`main` is at **`fdde0ef`**, clean and pushed, nothing in flight. `npm run build` → **36 pages**,
+`npm test` → **373 passing across 23 files**.
 
-**Task 6 is expected to fail on its first run** — the link sweep has never run against this site.
-If it names dead links, fix them and report each; do not weaken the test. It only became a
-meaningful check at all once Task 1 killed the SPA fallback.
+#### What Task 9 actually requires
 
-**Task 8 is blocked on a human input:** the Cloudflare Web Analytics token for the production
-hostname. Do not invent one. Every other remaining task is independent of it.
+1. **Local verification** — build, `npm test`, `npm run test:a11y`, the design detector, and the
+   `compressHTML` spacing sweep over `dist/404.html dist/contact dist/request-a-sample`.
+2. **Deployed-site verification** — the `curl` block in the plan's Task 9 Step 2. Most of it has
+   **already been run and passed** (see "Verified in production" below); re-run it after the final
+   merge and record what you see.
+3. **Lighthouse — ⚠ needs the human.** Spec §4 sets a **≥95** budget for performance, accessibility
+   and SEO. It is a manual Chrome DevTools run against the deployed site (mobile preset, `/` and
+   `/products/conductive-metal-yarn/`). **You cannot run this yourself — ask.** Record whatever the
+   numbers are, including if they are below 95, with the reason. The number is evidence, not a
+   target to hit.
+4. **Update `docs/deployment.md`** with the live results and the Lighthouse figures.
+5. **Rewrite `HANDOFF.md` for Plan 9** (Sveltia CMS + the deferred `SpecTable` "Request this
+   grade" CTA).
+
+**Everything except Lighthouse is unblocked.** Do items 1, 2, 4 and the parts of 5 that do not
+depend on the numbers, then ask for the Lighthouse run.
+
+#### The one thing that is NOT done and is not in Plan 8
+
+**The site is still on `litex-website.pages.dev`.** Parts B, D, E, F and G of
+`docs/cloudflare-setup.md` remain — see the setup table below. Plan 8 finishing does **not** mean
+the site is launched; it means the repo is ready for launch.
 
 ### ⚠ Three things about Plan 8 that will bite if forgotten
 
@@ -59,7 +77,11 @@ hostname. Do not invent one. Every other remaining task is independent of it.
   first `functions/` directory and the first JavaScript this site has ever shipped.
 - **The site is deployed** at **`https://litex-website.pages.dev`** — Cloudflare Pages, Git
   integration, auto-deploys on push to `main` in about 45 seconds.
-- `npm run build` → **36 pages**. `npm test` → **359 passing across 22 files**. Detector clean.
+- `npm run build` → **36 pages**. `npm test` → **373 passing across 23 files**. Detector clean.
+- ⚠ **`npm test` now needs a browser binary.** Task 7 added an axe/playwright accessibility run, so
+  a fresh checkout must do **`npx playwright install chromium`** once or the suite fails with a
+  missing-executable error rather than a test failure. CI will need it too. The run takes ~8s
+  instead of ~2s. `npm run test:a11y` runs just that file.
 - `dist` is about 16 MB, of which `dist/catalogs` is ~11 MB — the six catalog PDFs.
 - Repo public at **https://github.com/darsonl/litex-website**. PRs #1–#11 merged.
 
@@ -76,7 +98,13 @@ tracks which parts are finished.
 | D — Resend domain `send.litex.com.tw` | ❌ **blocked** — no registrar access yet |
 | E — the four Pages variables/secrets | ❌ not done |
 | F — custom domain / nameserver move | ❌ deliberately last |
-| G — Web Analytics | ❌ not done; blocks Plan 8 Task 8 |
+| G — Web Analytics | ✅ site added; token committed in `BaseLayout.astro` |
+
+**The fastest path to proving the enquiry pipeline is B + the C secret + E — none of which need
+Resend.** With those three done, submitting a form writes a real KV record and returns the honest
+queued-delivery message, because delivery fails without a Resend key and the endpoint reports
+`outcome: 'stored'` rather than a false success. That is the never-lose-a-submission guarantee
+demonstrated against real infrastructure, and it is the single most valuable thing still unproven.
 
 **Consequence:** submitting either form on the live site currently returns
 `400 {"outcome":"rejected","errors":{"turnstile":…}}` — the endpoint failing closed with no
@@ -107,6 +135,37 @@ a build output with no root `404.html` as a single-page app and matches all path
 silently defeated any broken-link check (nothing *could* 404) and made spec §3's 410 unobservable.
 `src/pages/404.astro` is the entire fix, and it is why the 404 page is Task 1 rather than a
 cosmetic afterthought.
+
+### What Tasks 6–8 measured, so nobody re-derives it
+
+- **The broken-link sweep found nothing** across **701 internal hrefs and 138 asset references on
+  36 pages**. Proved rather than trusted: a probe adding `/no-such-page/` and `/no-such-image.png`
+  failed both halves naming the exact URL.
+- **axe reports zero WCAG 2 A/AA violations on all eleven representative pages.** The plan
+  predicted real failures and there were none. In particular the honeypot's `tabindex="-1"`
+  mitigation — decided on reasoning alone in Plan 7 — **holds up under a real engine**. Proved by
+  a probe adding an alt-less image and a low-contrast paragraph, which failed naming `image-alt`
+  (critical) and `color-contrast` (serious).
+- **axe returns THREE outcomes, not two.** `incomplete` means "axe could not decide" — classically
+  text over a background image. `tests/a11y.test.ts` asserts on incompletes **as well as**
+  violations, with exactly one allowlisted exception: the decorative `aria-hidden` bullet in the
+  status pill, which axe declines to judge as a non-BMP character. **Do not drop that second
+  assertion** — without it a genuine unanswered question sits behind a green suite.
+- **`@axe-core/playwright` rejects a page from `browser.newPage()`.** Every page must come from an
+  explicit `browser.newContext()`, or all eleven tests fail before a single rule runs.
+
+### ⚠ `tests/build.test.ts`'s render-blocking rule was narrowed — read before "restoring" it
+
+`ships no render-blocking third-party requests` used to fail on **any** absolute URL, which is
+broader than its name. Task 8's analytics beacon is `type="module"` — **deferred by default, so it
+does not block first paint** — and therefore never violated the stated intent. The rule now tests
+what it claims: an external stylesheet, or a plain `<script src>` with no `defer`/`async`/`module`,
+still fails.
+
+**This is not the disclosure guard and must not be treated as one.** Whether a third party may be
+contacted at all is enforced separately and far more strictly by the `DISCLOSED` allowlist in
+`tests/legal.test.ts`, which sweeps every built page **and** the emitted JS. A single probe — an
+undisclosed, non-deferred script — trips both guards at once. Verified 2026-08-13.
 
 ### ⚠ Recurring lesson found three times in Plan 8 alone
 
@@ -150,7 +209,7 @@ posts. The correct fix is LiTex supplying news since 2022 — see the open quest
 | 5 | `/company/` ×4 · `/downloads/` · `/legal/privacy/` | ✅ merged (PR #5, `28fc138`) |
 | 6 | `/news/` index + 7 posts | ✅ merged (PR #6, `bafff91`) |
 | 7 | Contact + sample-request flow (Pages Function, Turnstile, KV, Resend) | ✅ merged (PR #7, `1a2a3a6`) |
-| 8 | Launch: 404, `_redirects`, sitemap, favicon, print, link sweep, axe, analytics | 🔨 **in progress — 5 of 9 tasks merged** (PR #10, #11) |
+| 8 | Launch: 404, `_redirects`, sitemap, favicon, print, link sweep, axe, analytics | 🔨 **8 of 9 tasks merged** (PR #10, #11, #13, #14) — only Task 9 left |
 | 9 | **Sveltia CMS at `/admin`** + the deferred `SpecTable` "Request this grade" CTA | 📝 not written |
 
 **The roadmap grew to 9.** Sveltia CMS was deferred out of Plan 8 by decision on 2026-08-13: it
@@ -493,15 +552,20 @@ Ordered by how much damage the wrong answer does.
 
 ### Where things stand
 
-Plans 1–7 are merged and **Plan 8 is five tasks in**, all merged. `main` is at **`b3ef5fc`**, clean
-and pushed, **nothing in flight**: `npm run build` → **36 pages**, `npm test` → **359 passing across
-22 files**, detector clean. The site auto-deploys to `litex-website.pages.dev` on push to `main`.
+Plans 1–7 are merged and **Plan 8 is eight tasks in**, all merged (PR #10, #11, #13, #14). `main` is
+at **`fdde0ef`**, clean and pushed, **nothing in flight**: `npm run build` → **36 pages**,
+`npm test` → **373 passing across 23 files**, detector clean. The site auto-deploys to
+`litex-website.pages.dev` on push to `main`, in about 45 seconds.
 
 ### Do this first
 
-**Resume Plan 8 at Task 6** (the broken-link sweep) in
-`docs/superpowers/plans/2026-08-13-litex-launch.md`. Do not re-write the plan. See the task table at
-the top of this file for what is done and what is blocked.
+**Plan 8 Task 9 is the only task left** —
+`docs/superpowers/plans/2026-08-13-litex-launch.md`. Do not re-write the plan. The task table at
+the top of this file breaks down exactly what Task 9 needs, including the **one step that requires
+the human: a manual Lighthouse run**. Everything else in it is unblocked.
+
+**Run `npx playwright install chromium` before `npm test`** on a fresh checkout, or the suite fails
+with a missing-executable error rather than a test failure.
 
 **Branch before committing anything.** In session 9 the Plan 8 document was committed straight to
 local `main` and never pushed; a later branch cut from that `main` dragged the unpushed commit into
