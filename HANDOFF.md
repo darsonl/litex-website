@@ -115,17 +115,15 @@ subagent-driven. Its scope was fixed by decision on 2026-08-13:
 **Run `npx playwright install chromium` before `npm test` on a fresh checkout**, or the suite fails
 with a missing-executable error rather than a test failure.
 
-#### ⚠ But the highest-value work is not Plan 9 — it is finishing Cloudflare
+#### ✅ Cloudflare B + C-secret + E are DONE and the enquiry pipeline is PROVEN (2026-08-14)
 
-**The site is still on `litex-website.pages.dev`.** Plan 8 finishing means the **repo** is ready for
-launch; it does **not** mean the site is launched. Parts B, C-secret, D, E and F of
-`docs/cloudflare-setup.md` remain — see the setup table below.
+This section used to say finishing Cloudflare outranked Plan 9. It did, and it is done. A real
+submission through the live form reached `/enquiry-sent/?delivery=pending` — see the setup table
+below and `docs/deployment.md` §6c.
 
-**B (KV) + the C secret + E (variables) is the fastest path to proving the enquiry pipeline, and
-none of the three needs Resend.** With those done, submitting a form writes a real KV record and
-returns the honest queued-delivery message, because delivery fails without a Resend key and the
-endpoint reports `outcome: 'stored'` rather than a false success. **That is the single most valuable
-thing in this whole system still unproven**, and it is worth doing before a line of Plan 9.
+**The site is still on `litex-website.pages.dev`.** What remains is **D (Resend — blocked, no
+registrar access)** and **F (the custom domain / nameserver move, deliberately last)**. Neither is
+startable today, which makes **Plan 9 the next real work** once `homepage-redesign` is merged.
 
 ### ⚠ Three things about Plan 8 that will bite if forgotten
 
@@ -168,11 +166,17 @@ tracks which parts are finished.
 | Part | State |
 |---|---|
 | A — Pages project, Git integration, build command | ✅ done, verified in production |
-| B — KV namespace bound as `SUBMISSIONS` | ❌ not done |
-| C — Turnstile widget | ✅ created; sitekey committed. **Secret not yet set.** |
+| B — KV namespace bound as `SUBMISSIONS` | ✅ **done and PROVEN 2026-08-14** — `docs/deployment.md` §6c |
+| C — Turnstile widget | ✅ widget, sitekey **and secret** — all proven 2026-08-14 |
 | D — Resend domain `send.litex.com.tw` | ❌ **blocked** — no registrar access yet |
-| E — the four Pages variables/secrets | ⚠ **partly done** — `ENQUIRY_TO` is confirmed set (a live probe echoed `sales@litex.com.tw`). The other three are unverified; a Turnstile rejection does **not** prove `TURNSTILE_SECRET` is missing. |
+| E — the Pages variables/secrets | ✅ **done** for the three that do not need Resend; `RESEND_API_KEY` absent by design until D |
 | F — custom domain / nameserver move | ❌ deliberately last |
+
+**The enquiry pipeline is proven end-to-end.** A real submission through the live form on 2026-08-14
+landed on `/enquiry-sent/?delivery=pending` — which is only reachable by passing Turnstile *and*
+completing the KV write, since a failed `put()` returns 503 instead. The full reasoning, and why no
+automated check could have established it, is `docs/deployment.md` §6c. What remains is **delivery**,
+which is Resend, which is blocked on registrar access.
 | G — Web Analytics | ✅ site added; token committed in `BaseLayout.astro` |
 
 **The fastest path to proving the enquiry pipeline is B + the C secret + E — none of which need
