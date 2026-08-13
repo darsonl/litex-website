@@ -1,35 +1,64 @@
 # Session handoff — LiTex website redesign
 
-**Written:** 2026-08-11, last updated 2026-08-13 (session 10 — **Plan 8 complete; all nine tasks merged**)
+**Written:** 2026-08-11, last updated 2026-08-14 (session 13 — **Plan 9 written, not executed; see the resume point below**)
 **Reason:** This file is the resume point between sessions.
 
 ---
 
-## ▶▶ SESSION 13 RESUME POINT — everything merged; Plan 9 is the next work
+## ▶▶ SESSION 14 RESUME POINT — Plan 9 is WRITTEN but NOT EXECUTED
 
-**`main` is at `30a62ce`, clean, nothing in flight.** PR #17 squash-merged the homepage rebuild and
-the three shared-chrome fixes; PR #19 cropped the lede figure off the catalog's page ground. Both
-feature branches are deleted. **Cloudflare parts A, B, C and E are done and the enquiry pipeline is
-PROVEN end-to-end** — a real submission reached `/enquiry-sent/?delivery=pending`, recorded in
-`docs/deployment.md` §6c.
+**Session 13 ended here because the human ran out of budget, mid-plan-9, with nothing half-built.**
+The tree is clean and the stopping point is tidy: everything shipped is merged and verified in
+production, and the only thing outstanding is a plan document waiting to be executed.
 
-### → Do this next: write Plan 9
+### State
 
-**Nothing else is startable.** D (Resend) is blocked on registrar access to `litex.com.tw`, and F
-(the domain cutover) is deliberately last. So Plan 9 is the work: **Sveltia CMS at `/admin`** plus
-**the deferred `SpecTable` "Request this grade" CTA** (spec §5; it reads `fieldsFor('sample')` from
-`src/lib/enquiry.ts`, which already exists). Write it with `superpowers:writing-plans`, then execute
-it subagent-driven.
+- **`main` is at `3538a82`, clean.** Merged this session: **#17** homepage rebuild + the three
+  shared-chrome fixes, **#19** lede-figure crop, **#20** factory-strip background repaint, **#18**
+  and **#21** docs. All feature branches deleted.
+- **One PR open: [#22](https://github.com/darsonl/litex-website/pull/22)** — the Plan 9 document on
+  branch `docs/plan-9`. **Docs only, nothing executed.** Merge it (or not) before starting.
+- `npm run build` → **36 pages**. `npm test` → **393 across 25 files**. `test:a11y` → **11**.
+- **Cloudflare A, B, C, E done; the enquiry pipeline is PROVEN end-to-end** — a real submission
+  reached `/enquiry-sent/?delivery=pending`. `docs/deployment.md` §6c.
+- ✅ **Lighthouse re-run by hand 2026-08-14: still 100 across the board**, on the homepage that now
+  ships three photographs rather than the image-free one the original result came from. LCP and CLS
+  held. §6b. Still needs re-running after the Part F cutover — different host, different question.
 
-✅ **Lighthouse was re-run by hand 2026-08-14 and is still 100 across the board**, now on the
-homepage that ships three photographs rather than the image-free one the original result came from.
-LCP and CLS held. Recorded in `docs/deployment.md` §6b. **Nothing to do here** — but it still needs
-re-running after the Part F cutover, which is a different question about a different host.
+### → Do this next: EXECUTE Plan 9
 
-One cheap thing worth doing before Plan 9:
+**`docs/superpowers/plans/2026-08-14-litex-cms-and-grade-cta.md`** — written with
+`superpowers:writing-plans` and researched against live Sveltia documentation. **7 TDD tasks, real
+test code, no placeholders. Do not rewrite it; execute it** with
+`superpowers:subagent-driven-development`. Test count runs **393 → 417**.
+
+The plan's own research corrected the scope that was recorded here for months:
+
+- ⚠ **There is NO OAuth backend and no second Cloudflare deployable.** Sveltia signs in with a
+  **personal access token** ("Sign In with Token" links to GitHub with the scopes pre-selected).
+  The old note in this file claiming otherwise was written before anyone checked. **Do not go
+  looking for `sveltia-cms-auth`; you do not need it.**
+- ⚠ **Sveltia's documented install is a `unpkg.com` CDN script. Do not use it.** It would break the
+  `DISCLOSED` guard in `tests/legal.test.ts` or make `/legal/privacy/` untrue. Task 1 vendors the
+  bundle from npm at build time, the same way the catalog PDFs and the fonts already are.
+- ⚠ **`allHtmlFiles()` in `tests/helpers/dist.ts` returns EVERY `.html` in `dist/`.** Four guards
+  read "every generated page" as every page of the *website* — masthead, footer, contact details,
+  one `h1`. `/admin` has none of them, so **Task 2 splits app pages from site pages BEFORE `/admin`
+  exists.** Do not reorder the tasks past this.
+- **Editorial Workflow is the safety net.** The zod `superRefine` rules cannot be expressed in YAML,
+  so every CMS save becomes a PR and the Pages preview build enforces them.
+- **Two steps need a human and a browser** and cannot be done by an agent: Task 4 Step 6 (the
+  `publishedAt` quoting round-trip, using a real GitHub PAT) and Task 6 Step 6.
+
+### Also still open, both cheap, neither blocking
 
 - **Re-run `/impeccable critique` on the homepage** to see the score move off 25/40, now that both
   P0s, the two mobile P2s and the white-page-ground decision are all closed.
+- **Nobody has confirmed the Google Group's posting settings.** `sales@litex.com.tw` is a Google
+  Group with the owner as a member — but `outcome: 'delivered'` only means the Resend API accepted
+  the message, so a Group rejection, moderation hold or spam classification is invisible to the
+  endpoint. `docs/cloudflare-setup.md` **D9** covers it: Part D is finished when an enquiry is
+  confirmed to *arrive*, not when Resend says Verified.
 
 ### What is done — session 11, shared chrome
 
