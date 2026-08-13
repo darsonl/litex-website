@@ -3,6 +3,20 @@ import '../styles/global.css';
 import SiteNav from '../components/SiteNav.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 
+/**
+ * Cloudflare Web Analytics site token for litex.com.tw, issued 2026-08-13.
+ *
+ * Public by design — it identifies the site being measured, not an account, and ships
+ * in the HTML of every page. It is not a secret and does not belong in an env var.
+ *
+ * The MANUAL snippet is used deliberately, in preference to Cloudflare's automatic
+ * injection for proxied sites. An auto-injected beacon never appears in the build, so
+ * the third-party guard in tests/legal.test.ts could not see it — and /legal/privacy/
+ * would quietly stop being true with nobody's fingerprints on it. Disclosure has to be
+ * mechanical to survive.
+ */
+const CF_ANALYTICS_TOKEN = '73942cd6e84c4e33a475ee5ea0527c13';
+
 interface Props {
   title: string;
   description: string;
@@ -35,5 +49,23 @@ const { title, description, noindex = false } = Astro.props;
       <slot />
     </main>
     <SiteFooter />
+
+    <!--
+      Cloudflare Web Analytics. Cookieless and collects no personal data, which is why
+      spec §4 chose it: no consent banner, which matters for EU buyers.
+
+      is:inline is required. Without it Astro rewrites this into a local module that
+      imports the remote URL, and the third-party guard in tests/legal.test.ts — which
+      reads HTML attributes — would stop being able to see it. Same reason the Turnstile
+      tag carries it. No SRI hash, for the same reason as Turnstile: an unversioned
+      endpoint Cloudflare rolls in place, where a pinned hash guarantees silent breakage
+      rather than preventing it.
+    -->
+    <script
+      is:inline
+      type="module"
+      src="https://static.cloudflareinsights.com/beacon.min.js"
+      data-cf-beacon={`{"token": "${CF_ANALYTICS_TOKEN}"}`}
+    ></script>
   </body>
 </html>
