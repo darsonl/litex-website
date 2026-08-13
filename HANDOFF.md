@@ -5,20 +5,29 @@
 
 ---
 
-## ▶▶ SESSION 12 RESUME POINT — homepage redesign branch, finished and ready to merge
+## ▶▶ SESSION 13 RESUME POINT — everything merged; Plan 9 is the next work
 
-**Branch `homepage-redesign` holds two commits. It is NOT merged and has no PR.** Session 10 ran
-`/impeccable critique` on the homepage and rebuilt it; **the user reviewed that in a browser and
-approved the direction ("looks good")**. Session 11 finished the three shared-chrome fixes that were
-deliberately held back so one page could be reviewed before 36 were touched. **All three are done.**
+**`main` is at `abec8f5`, clean, nothing in flight.** PR #17 squash-merged the homepage rebuild and
+the three shared-chrome fixes; the `homepage-redesign` branch is deleted. **Cloudflare parts A, B,
+C and E are done and the enquiry pipeline is PROVEN end-to-end** — a real submission reached
+`/enquiry-sent/?delivery=pending`, recorded in `docs/deployment.md` §6c.
 
-### → Do this next
+### → Do this next: write Plan 9
 
-**The branch is verified and ready. Open a PR and merge it.** Then the ranking in "Do this first"
-below still stands: finishing Cloudflare (parts B + C-secret + E) is worth more than starting Plan 9.
+**Nothing else is startable.** D (Resend) is blocked on registrar access to `litex.com.tw`, and F
+(the domain cutover) is deliberately last. So Plan 9 is the work: **Sveltia CMS at `/admin`** plus
+**the deferred `SpecTable` "Request this grade" CTA** (spec §5; it reads `fieldsFor('sample')` from
+`src/lib/enquiry.ts`, which already exists). Write it with `superpowers:writing-plans`, then execute
+it subagent-driven.
 
-Worth doing at some point, not blocking: **re-run `/impeccable critique` on the homepage** to see
-the score move off 25/40, now that both P0s and the two mobile P2s are closed.
+Two cheap things worth doing before that:
+
+1. ⚠ **Re-run Lighthouse on `/`.** The 100/100/100/100 result on record was measured on the **old,
+   image-free** homepage. The new one ships **three images**, one of them above the fold, so **LCP
+   and CLS are genuinely unmeasured** against spec §4's ≥95 budget. This is a manual Chrome DevTools
+   run — **you cannot do it yourself, ask the human.**
+2. **Re-run `/impeccable critique` on the homepage** to see the score move off 25/40, now that both
+   P0s and the two mobile P2s are closed.
 
 ### What is done — session 11, shared chrome
 

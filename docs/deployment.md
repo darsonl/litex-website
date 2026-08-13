@@ -350,6 +350,28 @@ live HTML still lacked markers from the unmerged `homepage-redesign` branch.
 
 ---
 
+## 6d. Homepage + shared chrome — verified in production 2026-08-14
+
+PR #17 (`abec8f5`) merged and auto-deployed. Measured against the live
+`litex-website.pages.dev` in a real browser, not against a local build:
+
+| Check | Result |
+|---|---|
+| Print media on `/products/conductive-metal-yarn/` — wordmark, canonical URL, email, phone | all four present |
+| Print colophon leaking onto the screen | no |
+| Masthead height at 390px | **77.00px** (was 153.59px; the guard is ≤96px) |
+| Primary nav links visible at 390px, menu closed → opened | **0 → 7** |
+| Primary nav links visible at 1280px | 7 |
+| Footer credibility strip at 390px | 3 rendered lines, **0** starting with a separator |
+
+⚠ **The printed canonical URL is `https://litex.com.tw/...`, which does not point here yet.** That
+is `SITE_URL` from `astro.config.mjs` and it is deliberate — it matches the `<link rel="canonical">`
+already shipping since Plan 8, and a printed sheet citing a `pages.dev` address would be worse and
+would need reprinting after Part F. **It becomes correct at the domain cutover.** Until then a
+printed sheet cites the domain LiTex already owns, which currently serves the old WordPress site.
+
+---
+
 ## 7. Still open after this list
 
 **Infrastructure not yet done** — Plan 8 finishing means the *repo* is ready, not that the site is
