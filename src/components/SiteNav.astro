@@ -13,22 +13,39 @@ const isCurrent = (href: string) => here === href || here.startsWith(href);
       <span class="sub">Textile &amp; Technology</span>
     </a>
 
-    <nav aria-label="Primary">
-      <ul>
-        {NAV.map((item) => (
-          <li>
-            <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
-              {item.label}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <!--
+      A native disclosure, not a scripted one.
+
+      Seven links wrapping to two rows cost 153px of an 844px phone viewport — 18% of the
+      fold spent before the first word of content, with each link 20px tall. Below 40rem
+      the list collapses behind this control; above it, CSS reopens the details and the
+      row of links is exactly what it always was.
+
+      <details> rather than a button and a script because this site ships JavaScript only
+      for the two enquiry forms. Navigation is the last thing that should be able to fail
+      to a blank state, and the disclosure has to keep working for a visitor whose network
+      dropped the bundle. tests/responsive.test.ts opens it with JavaScript disabled.
+    -->
+    <details class="menu" data-navmenu>
+      <summary>Menu</summary>
+      <nav aria-label="Primary">
+        <ul>
+          {NAV.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </details>
   </div>
 </header>
 
 <style>
   .masthead {
+    position: relative; /* the containing block for the open menu panel */
     border-bottom: 1px solid var(--c-line);
     background: var(--c-base);
   }
@@ -37,9 +54,8 @@ const isCurrent = (href: string) => here === href || here.startsWith(href);
     margin: 0 auto;
     padding: var(--s-4) var(--s-6);
     display: flex;
-    flex-wrap: wrap;
     gap: var(--s-4) var(--s-8);
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
   }
   .wordmark {
@@ -63,28 +79,120 @@ const isCurrent = (href: string) => here === href || here.startsWith(href);
   }
   .wordmark:hover .name { color: var(--c-copper-lift); }
 
-  nav ul {
+  /* ---- the control ---- */
+
+  /* list-style:none removes the disclosure triangle in Firefox and modern Blink; the
+     ::-webkit-details-marker rule covers Safari, which still uses the older pseudo. */
+  .menu > summary {
     list-style: none;
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-6);
-    margin: 0;
-    padding: 0;
-  }
-  nav a {
+    align-items: center;
+    min-height: 44px;
     font-family: var(--font-mono);
     font-size: var(--t-12);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--c-text-2);
-    text-decoration: none;
-    padding-bottom: var(--s-1);
-    border-bottom: 1px solid transparent;
+    cursor: pointer;
   }
-  nav a:hover { color: var(--c-text-1); }
-  /* The active section is marked by colour *and* a rule, never colour alone. */
-  nav a[aria-current='page'] {
+  .menu > summary::-webkit-details-marker { display: none; }
+  .menu > summary:hover { color: var(--c-text-1); }
+
+  /* Drawn from borders rather than set as a glyph. `content: ''` contributes nothing to
+     the accessible name, so the control is announced as "Menu" and not "Menu ▾". */
+  .menu > summary::after {
+    content: '';
+    width: 0.45rem;
+    height: 0.45rem;
+    margin-left: var(--s-2);
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    transform: translateY(-0.1rem) rotate(45deg);
+    transition: transform 150ms ease;
+  }
+  .menu[open] > summary::after { transform: translateY(0.1rem) rotate(-135deg); }
+
+  /* ---- the panel, phone only ---- */
+
+  /* Absolutely positioned so opening the menu never changes the height of the masthead
+     itself — the measurement the 96px guard in tests/responsive.test.ts protects. */
+  .menu > nav {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    z-index: 20;
+    background: var(--c-base);
+    border-bottom: 1px solid var(--c-line);
+    box-shadow: 0 12px 24px rgb(0 0 0 / 0.45);
+  }
+  .menu > nav ul {
+    list-style: none;
+    max-width: 76rem;
+    margin: 0 auto;
+    padding: var(--s-2) var(--s-6) var(--s-4);
+  }
+  /* min-height rather than padding: it states the target size outright instead of
+     leaving it to be inferred from a line-height that could change under it. */
+  .menu > nav a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    font-family: var(--font-mono);
+    font-size: var(--t-14);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--c-text-2);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    padding-left: var(--s-3);
+  }
+  .menu > nav a:hover { color: var(--c-text-1); }
+  /* The active section is marked by colour *and* a rule, never colour alone. On a
+     vertical list that rule runs down the side rather than under the text. */
+  .menu > nav a[aria-current='page'] {
     color: var(--c-copper);
-    border-bottom-color: var(--c-copper);
+    border-left-color: var(--c-copper);
+  }
+
+  /* ---- 40rem and up: no disclosure, the original row of links ---- */
+
+  @media (min-width: 40rem) {
+    .inner { align-items: baseline; }
+    .menu > summary { display: none; }
+
+    /* Two mechanisms for one outcome, kept as SEPARATE rules on purpose.
+       Chromium 131+ hides the contents of a closed <details> with content-visibility on
+       ::details-content; engines before that used display on the children. An engine
+       that does not recognise the pseudo-element discards that rule and keeps this one —
+       but only because they are not written as a single selector list, where one
+       unsupported selector would invalidate both. Same lesson as the :has() note in the
+       print block of global.css. */
+    .menu::details-content { content-visibility: visible; }
+    .menu > nav {
+      display: block;
+      position: static;
+      background: none;
+      border-bottom: 0;
+      box-shadow: none;
+    }
+
+    .menu > nav ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--s-6);
+      margin: 0;
+      padding: 0;
+    }
+    .menu > nav a {
+      display: inline;
+      min-height: 0;
+      font-size: var(--t-12);
+      border-left: 0;
+      padding-left: 0;
+      padding-bottom: var(--s-1);
+      border-bottom: 1px solid transparent;
+    }
+    .menu > nav a[aria-current='page'] { border-bottom-color: var(--c-copper); }
   }
 </style>

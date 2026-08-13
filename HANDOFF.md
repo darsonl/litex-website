@@ -5,16 +5,61 @@
 
 ---
 
-## ▶▶ SESSION 11 RESUME POINT — homepage redesign, in flight
+## ▶▶ SESSION 12 RESUME POINT — homepage redesign branch, finished and ready to merge
 
-**Branch `homepage-redesign` holds one commit. It is NOT merged and has no PR.** Session 10 ran
-`/impeccable critique` on the homepage, then began acting on the findings. Ran out of budget
-mid-rollout. **The user reviewed the result in a browser and approved the direction ("looks good").**
+**Branch `homepage-redesign` holds two commits. It is NOT merged and has no PR.** Session 10 ran
+`/impeccable critique` on the homepage and rebuilt it; **the user reviewed that in a browser and
+approved the direction ("looks good")**. Session 11 finished the three shared-chrome fixes that were
+deliberately held back so one page could be reviewed before 36 were touched. **All three are done.**
 
-### What is done — homepage only (`src/pages/index.astro`)
+### → Do this next
 
-Verified: **373/373 tests**, 36 pages, detector clean, spacing sweep clean, no overflow at 390px,
-no image upscaled.
+**The branch is verified and ready. Open a PR and merge it.** Then the ranking in "Do this first"
+below still stands: finishing Cloudflare (parts B + C-secret + E) is worth more than starting Plan 9.
+
+Worth doing at some point, not blocking: **re-run `/impeccable critique` on the homepage** to see
+the score move off 25/40, now that both P0s and the two mobile P2s are closed.
+
+### What is done — session 11, shared chrome
+
+Verified: **392 passing across 25 files** (was 373/23 — two new test files), 36 pages,
+`npm run test:a11y` 11 passing, detector clean.
+
+1. **P0 print, FIXED.** `BaseLayout` now carries a print-only letterhead — wordmark, legal name,
+   address, phone, email, and the page's own canonical URL — shown only in print media and
+   `display: none` on screen, so it never reaches the accessibility tree either. The canonical URL
+   is declared once in the layout and used twice, as `<link rel="canonical">` and as the printed
+   address, because a sheet carrying a URL that is not its own canonical address sends the reader
+   somewhere else and nothing on screen would ever show it.
+   `tests/print.test.ts` renders three pages under print media emulation and reads `innerText`.
+2. **Nav collapses below 40rem.** `<details>`/`<summary>`, no JavaScript — navigation is the last
+   chrome that should be able to fail to a blank state, and the test opens it with JS disabled.
+   Masthead at 390px went **153.59px → under 96px**; menu items from 20px to ≥44px tall. Desktop is
+   the original row of seven, unchanged. Current section still marked by colour *and* a rule — a
+   left rule on mobile, the original underline on desktop.
+3. **Credibility strip.** Separator moved from `li + li::before` to `li:not(:last-child)::after`, so
+   a wrap can only ever leave a separator at the END of a line, where it reads as continuation.
+   Size 10px → 12px: it carries the buyer's whole qualification checklist.
+
+### ⚠ Two traps found doing it — both will bite again
+
+- **`content-visibility` defeats every naive visibility check.** Chromium hides a closed
+  `<details>`'s contents with `content-visibility: hidden` on the `::details-content` pseudo-element,
+  which skips PAINTING but still answers layout queries. A link inside the **closed** menu reports a
+  44px bounding box, a non-null `offsetParent`, **and its text appears in
+  `document.body.innerText`**. Two assertions in the first draft of `tests/responsive.test.ts`
+  passed before the feature existed — this repo's own gotcha 12, caught by probing rather than by
+  reasoning. **`Element.checkVisibility()` is the only check that discriminates**, verified against
+  closed-on-phone, opened-on-phone and CSS-reopened-on-desktop. Note `innerText` *does* respect
+  `display: none`, which is why `tests/print.test.ts` can rely on it — the two files use different
+  checks on purpose.
+- **Keeping `<details>` open on desktop needs TWO separate rules**, never a selector list:
+  `.menu::details-content { content-visibility: visible }` for Chromium 131+, and
+  `.menu > nav { display: block }` for engines before it. Written as one list, an engine that does
+  not recognise the pseudo-element would discard both. Same lesson as the `:has()` note already in
+  the print block of `global.css`.
+
+### What was done — session 10, homepage only (`src/pages/index.astro`)
 
 - 3 images added, all existing rights-cleared archive material: the CMY micrograph beside the lede,
   the factory strip, and the trade-show staff photo **placed last, so the page ends on people
@@ -28,22 +73,7 @@ no image upscaled.
   headline, empty box edge" to headline + lede + the full micrograph.
 - Door hover given a transition (was a hard snap); eyebrows removed (craft-floor ban).
 
-### → Do this next: the three SHARED-CHROME fixes, deliberately held back
-
-The user asked to see one page before touching 36. They have now seen it and approved. These are
-site-wide by construction and could not be previewed on one page:
-
-1. **P0 — print strips the wordmark, canonical URL and contact details.** `@media print` in
-   `global.css` hides `header[data-masthead]` and `footer[data-sitefooter]` and **nothing reinstates
-   them**. PRODUCT.md requires all three on a printed page. Fix in `BaseLayout` as a print-only
-   block, plus a test so it cannot silently regress. It slipped because Task 5 checked print on a
-   spec page and `/contact/` — the two pages where the loss is least visible.
-2. **Nav eats 153px on mobile**, 7 links over two rows, links 20px tall. `SiteNav`. Collapse below
-   ~640px.
-3. **Footer credibility strip** is 10px and `li + li::before` puts the separator *before* each item,
-   so wrapped lines start with a hanging interpunct. `SiteFooter`.
-
-### Open decision, not yet made
+### Open decision, still not made — ASK, do not just do it
 
 **The catalog's white page ground bleeds into two images**, most visible in the micrograph on
 mobile. Honest provenance, but jarring on a near-black page. Cropping each to its dominant panel

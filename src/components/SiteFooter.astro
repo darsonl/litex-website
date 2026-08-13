@@ -51,13 +51,24 @@ const year = new Date().getFullYear();
     margin: 0 0 var(--s-12);
     padding: 0 0 var(--s-6);
     border-bottom: 1px solid var(--c-line);
-    font-size: var(--t-10);
+    /* 10px for the buyer's entire qualification checklist — REACH, RoHS, SGS, the
+       utility model, since-1999 — was the smallest type on the site carrying the
+       largest decision. 12px is still quiet enough to stay a strip rather than a
+       heading. */
+    font-size: var(--t-12);
     letter-spacing: 0.12em;
     color: var(--c-copper);
   }
-  .credibility li + li::before {
+  /* The separator belongs to the item BEFORE it, never the item after.
+     `li + li::before` put it on the following item, so every claim pushed onto a new
+     line by wrapping — which is all of them at 390px — began with a floating interpunct
+     hanging in the left margin. Trailing it instead means a wrap can only ever leave a
+     separator at the end of a line, where it reads as continuation.
+     tests/responsive.test.ts measures the rendered lines at 390px and fails if anything
+     starts one with a separator or a left border. */
+  .credibility li:not(:last-child)::after {
     content: '·';
-    margin-right: var(--s-4);
+    margin-left: var(--s-4);
     color: var(--c-line);
   }
   .cols {
