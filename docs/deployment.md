@@ -1,16 +1,20 @@
 # Deploying LiTex to Cloudflare Pages
 
-**Written:** 2026-08-13, at the end of Plan 7.
+**Written:** 2026-08-13, at the end of Plan 7. **Updated 2026-08-13** at the end of Plan 8 with the
+launch verification results in §6b.
 
-**Status: none of this has been executed.** Plan 7 built the contact and sample-request flow
-against unit tests and a mocked environment. There is no Cloudflare project, no KV namespace, no
-Resend account and no Turnstile widget yet. **Plan 8 executes this list.** Every item below is
-either read directly out of the committed code or was verified against vendor documentation on
-2026-08-12 — nothing here is written from memory.
+**Status: partly executed.** The site is live at **`https://litex-website.pages.dev`** — Pages
+project, Git integration and build command are done and **proved in production** (§6a), and Plan 8's
+launch work is verified against the deployed site (§6b). **Still outstanding: the KV namespace, the
+`TURNSTILE_SECRET`, the four Pages variables/secrets, Resend domain verification (§4) and the
+nameserver move (§6).** Every item below is either read directly out of the committed code or was
+verified against vendor documentation on 2026-08-12 — nothing here is written from memory.
 
-Until this list is done, `/contact/` and `/request-a-sample/` render correctly and post to
-`/api/submit`, which does not exist. There is no Functions runtime in `astro dev`, so a local
-submission returns 404. That is expected and is not a bug to chase.
+Until §2's bindings exist, `/contact/` and `/request-a-sample/` render correctly and post to
+`/api/submit`, which **is deployed and runs** but fails closed at the Turnstile check with no secret
+configured — returning `400 {"outcome":"rejected",…}` and storing nothing. That is the design
+working. There is no Functions runtime in `astro dev`, so a *local* submission returns 404. Both are
+expected and neither is a bug to chase.
 
 ---
 
@@ -210,18 +214,20 @@ Part A of `docs/cloudflare-setup.md` is **done**. Parts B–E (KV, Turnstile, Re
 - **Turnstile loads on exactly `/contact/` and `/request-a-sample/`**, and on none of `/`,
   `/products/`, `/downloads/`, `/news/`, `/legal/privacy/`.
 
-### ⚠ Defect found: unmatched URLs return 200 with the homepage
+### ⚠ Defect found — ✅ FIXED in Plan 8 Task 1, re-verified in production 2026-08-13 (§6b)
 
-**Every** path that does not match a file — `/robots.txt`, `/favicon.ico`, `/any-typo/` — returns
-**HTTP 200** serving the homepage HTML.
+**Kept on the record because it explains the shape of Plan 8**, not because it is still true.
+
+At first deploy, **every** path that did not match a file — `/robots.txt`, `/favicon.ico`,
+`/any-typo/` — returned **HTTP 200** serving the homepage HTML.
 
 **Cause** (confirmed against Cloudflare's serving-pages documentation): when a Pages build output
 has **no root `404.html`**, Cloudflare assumes a single-page application and matches all incoming
-paths to `/`. This project has no `src/pages/404.astro`, so Astro emits no `404.html`.
+paths to `/`. The project had no `src/pages/404.astro`, so Astro emitted no `404.html`.
 
-**Fix:** add `src/pages/404.astro`. Astro then emits `dist/404.html`, and Cloudflare serves it with
-a genuine 404 status. **This belongs in Plan 8 Task 1**, before `_redirects` and before any
-broken-link checking, because:
+**Fix, now shipped:** `src/pages/404.astro`. Astro emits `dist/404.html` and Cloudflare serves it
+with a genuine 404 status — confirmed live in §6b. This was **Plan 8 Task 1**, deliberately ahead of
+`_redirects` and of any broken-link checking, because:
 
 1. A broken-link check would otherwise be **vacuous** — nothing on the site can 404, so a "no dead
    links" assertion passes without looking. (Compare HANDOFF gotcha 12.)
@@ -229,9 +235,109 @@ broken-link checking, because:
    homepage.
 3. Missing assets masquerade as present — `favicon.ico` reads as 200 while no favicon exists.
 
-Add a test asserting `dist/404.html` exists, so the SPA fallback cannot silently return.
+A test asserts `dist/404.html` exists, so the SPA fallback cannot silently return.
+
+## 6b. Launch verification — Plan 8 Task 9, run 2026-08-13
+
+### Local
+
+| Check | Result |
+|---|---|
+| `npm run build` | **36 pages**, exit 0 |
+| `npm test` | **373 passing across 23 files** |
+| `npm run test:a11y` | **11 passing** — zero axe WCAG 2 A/AA violations *and* zero unexplained incompletes |
+| Design detector over `src/components src/pages src/styles` | clean, exit 0 |
+| `compressHTML` spacing sweep over `dist/404.html dist/contact dist/request-a-sample` | no matches |
+
+⚠ `npm test` needs a browser binary. On a fresh checkout run **`npx playwright install chromium`**
+once, or the suite fails with a missing-executable error rather than a test failure.
+
+### Against the deployed site
+
+Run with `curl` against `https://litex-website.pages.dev`. **Every result matched the expectation.**
+
+| Check | Expected | Actual |
+|---|---|---|
+| `/no-such-page-xyz/` | 404 | **404** |
+| `/about-2/` | 301 → `/company/about/` | **301 → `https://litex-website.pages.dev/company/about/`** |
+| `/2016/09/22/test-post-blah/` | 410 | **410** |
+| `/2016/09/22/test-post-blah` (bare) | 410 | **410** |
+| `/robots.txt` | 200 | **200** |
+| `/sitemap-index.xml` | 200 | **200** |
+| `/favicon.svg` | 200 | **200** |
+| `/contact/` | 200, **not** a redirect | **200** |
+
+Also confirmed live:
+
+- **`robots.txt` names `https://litex.com.tw/sitemap-index.xml`** — the custom domain, not the
+  `pages.dev` host, so it needs no edit at the Part F cutover.
+- **`sitemap-0.xml` carries 34 URLs** = 36 built pages − `/404` − `/enquiry-sent/`. Neither excluded
+  page appears; both carry `noindex` per-page instead.
+- **The analytics beacon serves on the homepage** (`static.cloudflareinsights.com/beacon.min.js`).
+
+### What is in place, and where it lives
+
+| Thing | Where | Note |
+|---|---|---|
+| Legacy URL map | `public/_redirects` | **Exactly 15 rules**, all 301. Not 22 — seven of spec §3's rows are identity mappings, and writing those creates redirect loops. `/contact/` returning 200 above is that trap staying shut. |
+| The one **410 Gone** | `functions/2016/09/22/test-post-blah.ts` | A Pages **Function**, because `_redirects` cannot express 410. Do not "simplify" it into the redirects file. Cloudflare matches both the trailing-slash and bare forms. |
+| Web Analytics token | `src/layouts/BaseLayout.astro:18` — `73942cd6e84c4e33a475ee5ea0527c13` | Injected **manually**, not via Cloudflare's automatic injection. An auto-injected beacon never appears in the build, so it would be invisible to the `DISCLOSED` guard in `tests/legal.test.ts` and the privacy notice could silently become untrue. |
+
+Both the beacon and the Turnstile tag are marked **`is:inline`** so the third-party guard can see
+them. Astro otherwise rewrites an external `<script src>` into a local module whose body is
+`import "https://…"` — the request still happens, but no HTML attribute names it. Removing
+`is:inline` makes them invisible to the guard.
+
+### Lighthouse — run by hand 2026-08-13, mobile preset
+
+<!-- Plan 8 Task 9 Step 3. The numbers are evidence, not a target: a sub-95 score belongs here with
+     its reason rather than re-run until it passes. These happened to come back clean. -->
+
+Chrome DevTools, **Navigation** mode, **Mobile** device, against the deployed site.
+
+| Page | Performance | Accessibility | Best Practices | SEO |
+|---|---|---|---|---|
+| `/` | **100** | **100** | **100** | **100** |
+| `/products/conductive-metal-yarn/` | **100** | **100** | **100** | **100** |
+
+Spec §4's budget is **≥95** for performance, accessibility and SEO. **All three clear it on both
+pages, with Best Practices at 100 as well.**
+
+**Why this is plausible rather than suspicious.** The site ships no framework JavaScript, no
+web fonts from a third party, and exactly one deferred `type="module"` beacon; images are built by
+Astro's pipeline at pinned widths so nothing is resized in the browser; and there is no client-side
+routing or hydration anywhere. A static site with almost no script is the case Lighthouse scores
+best, so 100 is the expected result here — not a surprise to be double-checked.
+
+**What these numbers do not say.** Lighthouse mobile is a **lab** measurement with a simulated
+network and CPU throttle, run from one machine at one moment. It is not field data and it is not a
+promise about real visitors on real devices in the EU or Japan. It is evidence that nothing in the
+build is structurally slow, which is what the budget was for.
+
+⚠ **Re-run both pages after the Part F custom-domain cutover.** These were measured on
+`litex-website.pages.dev`; the custom domain adds a Cloudflare zone in front, and the numbers should
+be confirmed rather than assumed to carry over.
 
 ## 7. Still open after this list
+
+**Infrastructure not yet done** — Plan 8 finishing means the *repo* is ready, not that the site is
+launched. `docs/cloudflare-setup.md` is the click-by-click walkthrough and tracks each part.
+
+| Part | What | State |
+|---|---|---|
+| B | KV namespace bound as `SUBMISSIONS` | ❌ |
+| C | `TURNSTILE_SECRET` (widget and sitekey are done) | ❌ |
+| E | The four Pages variables/secrets | ❌ |
+| D | **Resend domain verification** for `send.litex.com.tw` (§4) | ❌ **blocked** — no registrar access to `litex.com.tw` yet |
+| F | Custom domain / nameserver move (§6) | ❌ deliberately last |
+
+**B + the C secret + E is the fastest path to proving the enquiry pipeline, and none of the three
+needs Resend.** With those done, a submission writes a real KV record and returns the honest
+queued-delivery message — delivery fails without a Resend key, so the endpoint reports
+`outcome: 'stored'` rather than a false success. That is the never-lose-a-submission guarantee
+demonstrated against real infrastructure, and it is the most valuable thing still unproven.
+
+**Also unresolved:**
 
 - **Nobody has confirmed `sales@litex.com.tw` is monitored, or by whom.** The most carefully built enquiry pipeline on earth is worth nothing if the inbox is not read. Ask LiTex before launch.
 - **No admin UI.** Submissions are read from the Cloudflare dashboard. A KV-reading page needs auth, which needs sessions.

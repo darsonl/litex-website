@@ -45,10 +45,11 @@ describe('privacy notice stays true as the site grows', () => {
   // These guards exist to fail the moment the page stops describing the site. A privacy
   // notice that quietly stops being true is worse than one that was never written.
 
-  // Rewritten in Plan 7. The site now loads exactly one third-party resource — the
-  // Turnstile widget, on the pages that carry a form — and /legal/privacy/ discloses it.
-  // The guard's job is unchanged: an UNDISCLOSED third party must fail. Plan 8 adds the
-  // Cloudflare Web Analytics script to this list and updates the page in the same commit.
+  // Rewritten in Plan 7, extended in Plan 8. The site loads exactly two third-party
+  // resources — the Turnstile widget, on the pages that carry a form, and the cookieless
+  // Cloudflare Web Analytics beacon on every page — and /legal/privacy/ discloses both.
+  // The guard's job is unchanged: an UNDISCLOSED third party must fail. A third entry may
+  // only be added in the same commit that discloses it on that page.
   const DISCLOSED = new Set([
     'https://challenges.cloudflare.com/turnstile/v0/api.js',
     'https://static.cloudflareinsights.com/beacon.min.js',
