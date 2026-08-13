@@ -87,9 +87,9 @@ describe('privacy notice stays true as the site grows', () => {
 
   // Deliberately matched on the script element, not on the raw text of the file:
   // /legal/privacy/ has to NAME challenges.cloudflare.com in order to disclose it, and a
-  // page that discloses the widget is exactly not a page that loads it. Only /contact/
-  // exists today, so the count is 1; /request-a-sample/ raises it to 2 in the commit
-  // that adds the page.
+  // page that discloses the widget is exactly not a page that loads it. The count is
+  // exact rather than toBeGreaterThan(0) — that is what catches the widget leaking onto
+  // a page with no form to protect.
   it('loads Turnstile only on the pages that have a form', () => {
     const withTurnstile = walk(DIST)
       .filter((f) => f.endsWith('.html'))
@@ -97,8 +97,8 @@ describe('privacy notice stays true as the site grows', () => {
         parseHTML(readFileSync(f, 'utf8'))
           .document.querySelector('script[src*="challenges.cloudflare.com"]'),
       );
-    expect(withTurnstile).toHaveLength(1);
-    expect(withTurnstile.every((f) => /contact/.test(f))).toBe(true);
+    expect(withTurnstile).toHaveLength(2);
+    expect(withTurnstile.every((f) => /contact|request-a-sample/.test(f))).toBe(true);
   });
 
   // Carried over from the guard rewritten above, which asserted this alongside the

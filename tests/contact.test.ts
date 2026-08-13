@@ -45,3 +45,45 @@ describe('/contact/', () => {
     expect(hrefs).toContain('/request-a-sample/');
   });
 });
+
+describe('/request-a-sample/', () => {
+  const doc = docFor('request-a-sample/index.html');
+
+  it('has one h1 and its canonical', () => {
+    expect(doc.querySelectorAll('h1')).toHaveLength(1);
+    expect(doc.querySelector('link[rel="canonical"]')?.getAttribute('href'))
+      .toBe('https://litex.com.tw/request-a-sample/');
+  });
+
+  it('declares itself as the sample form to the shared endpoint', () => {
+    expect(doc.querySelector('input[name="formType"]')?.getAttribute('value')).toBe('sample');
+  });
+
+  it('asks for what a sample request needs', () => {
+    const names = [...doc.querySelectorAll('form [name]')].map((c) => c.getAttribute('name'));
+    for (const expected of ['product', 'grade', 'quantity', 'application']) {
+      expect(names, `sample form has no ${expected} field`).toContain(expected);
+    }
+  });
+
+  it('is honest that a sample is not automatic', () => {
+    expect(doc.body.textContent?.toLowerCase()).toContain('minimum');
+  });
+});
+
+describe('both forms', () => {
+  // One endpoint, two forms — the discriminator is the only thing that may differ.
+  it('post to the same endpoint', () => {
+    for (const route of ['contact/index.html', 'request-a-sample/index.html']) {
+      expect(docFor(route).querySelector('form')?.getAttribute('action')).toBe('/api/submit');
+    }
+  });
+
+  it('carry a honeypot that is hidden from assistive technology', () => {
+    for (const route of ['contact/index.html', 'request-a-sample/index.html']) {
+      const hp = docFor(route).querySelector('input[name="website"]');
+      expect(hp, `${route} has no honeypot`).toBeTruthy();
+      expect(hp!.closest('[aria-hidden="true"]'), `${route} honeypot is not hidden`).toBeTruthy();
+    }
+  });
+});
