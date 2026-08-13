@@ -21,14 +21,15 @@ PROVEN end-to-end** — a real submission reached `/enquiry-sent/?delivery=pendi
 `src/lib/enquiry.ts`, which already exists). Write it with `superpowers:writing-plans`, then execute
 it subagent-driven.
 
-Two cheap things worth doing before that:
+✅ **Lighthouse was re-run by hand 2026-08-14 and is still 100 across the board**, now on the
+homepage that ships three photographs rather than the image-free one the original result came from.
+LCP and CLS held. Recorded in `docs/deployment.md` §6b. **Nothing to do here** — but it still needs
+re-running after the Part F cutover, which is a different question about a different host.
 
-1. ⚠ **Re-run Lighthouse on `/`.** The 100/100/100/100 result on record was measured on the **old,
-   image-free** homepage. The new one ships **three images**, one of them above the fold, so **LCP
-   and CLS are genuinely unmeasured** against spec §4's ≥95 budget. This is a manual Chrome DevTools
-   run — **you cannot do it yourself, ask the human.**
-2. **Re-run `/impeccable critique` on the homepage** to see the score move off 25/40, now that both
-   P0s and the two mobile P2s are closed.
+One cheap thing worth doing before Plan 9:
+
+- **Re-run `/impeccable critique` on the homepage** to see the score move off 25/40, now that both
+  P0s, the two mobile P2s and the white-page-ground decision are all closed.
 
 ### What is done — session 11, shared chrome
 
