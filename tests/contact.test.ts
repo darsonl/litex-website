@@ -1,5 +1,6 @@
+import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
-import { docFor } from './helpers/dist';
+import { allHtmlFiles, docFor } from './helpers/dist';
 
 describe('/contact/', () => {
   const doc = docFor('contact/index.html');
@@ -84,6 +85,30 @@ describe('both forms', () => {
       const hp = docFor(route).querySelector('input[name="website"]');
       expect(hp, `${route} has no honeypot`).toBeTruthy();
       expect(hp!.closest('[aria-hidden="true"]'), `${route} honeypot is not hidden`).toBeTruthy();
+    }
+  });
+});
+
+describe('the Turnstile sitekey', () => {
+  // Shipping Cloudflare's always-passes TEST sitekey is a soft failure with no other
+  // symptom: the widget renders, submissions succeed, and spam filtering is simply OFF.
+  // Every other test in this suite passes either way, which is precisely why this one
+  // exists. It was written the day the real widget was created, because until then the
+  // repo genuinely had no way to tell the two apart.
+  const TEST_SITEKEY = '1x00000000000000000000AA';
+  const PRODUCTION_SITEKEY = '0x4AAAAAAEOqzFlvFS397MkG';
+
+  it('is never the always-passes test key, on any built page', () => {
+    const offenders = allHtmlFiles().filter((f) => readFileSync(f, 'utf8').includes(TEST_SITEKEY));
+    expect(offenders, 'the Turnstile TEST sitekey reached the build — spam filtering is off')
+      .toEqual([]);
+  });
+
+  it('is present on both form pages', () => {
+    for (const route of ['contact/index.html', 'request-a-sample/index.html']) {
+      const widget = docFor(route).querySelector('.cf-turnstile');
+      expect(widget, `${route} has no Turnstile widget`).toBeTruthy();
+      expect(widget!.getAttribute('data-sitekey'), `${route} sitekey`).toBe(PRODUCTION_SITEKEY);
     }
   });
 });

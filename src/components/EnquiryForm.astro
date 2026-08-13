@@ -6,14 +6,25 @@ import { COMPANY } from '../lib/company';
 interface Props {
   formType: FormType;
   submitLabel: string;
-  /** Cloudflare Turnstile sitekey. The documented always-passes test key by default. */
+  /** Cloudflare Turnstile sitekey. Defaults to LiTex's production key; see below. */
   sitekey?: string;
 }
 
-// 1x00000000000000000000AA is Cloudflare's documented always-passes test sitekey. It is
-// the default so the form is usable in development and in CI; Plan 8 replaces it with the
-// real key at deploy time. A wrong sitekey fails closed — the server still verifies.
-const { formType, submitLabel, sitekey = '1x00000000000000000000AA' } = Astro.props;
+// LiTex's real Turnstile sitekey, issued 2026-08-13. A sitekey is public by design — it
+// ships in the HTML of every page carrying a form — so it belongs in the repo, unlike the
+// secret key, which lives only in the Pages environment.
+//
+// This replaces Cloudflare's always-passes TEST sitekey (1x0000…AA), which was the default
+// while no widget existed. That substitution is deliberate and must not be reverted for
+// convenience: with the test key in place the forms look perfectly healthy while spam
+// filtering is silently off, and the test in tests/contact.test.ts now fails the build if
+// it ever comes back.
+//
+// Consequence for local work: Turnstile validates the hostname, so `npm run dev` renders an
+// error widget unless `localhost` is listed on the widget in the Cloudflare dashboard. Add
+// it there rather than reintroducing the test key here. A wrong sitekey fails closed anyway
+// — the server verifies every token independently.
+const { formType, submitLabel, sitekey = '0x4AAAAAAEOqzFlvFS397MkG' } = Astro.props;
 const fields = fieldsFor(formType);
 ---
 <form
