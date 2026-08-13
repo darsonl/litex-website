@@ -1,0 +1,37 @@
+# Legacy URL map — spec §3. Cloudflare Pages _redirects.
+#
+# Format: <from> <to> <status>. Only 301/302/303/307/308 are supported; 410 and 404 are
+# NOT (verified against Cloudflare's documentation 2026-08-13), which is why
+# /2016/09/22/test-post-blah/ is a Pages Function instead of a line in this file.
+#
+# Spec §3 lists 23 legacy URLs. Seven of them are identity mappings — /, /contact/,
+# /downloads/, /products/, and three product paths that did not change — and are
+# deliberately absent: a rule whose source equals its destination is an infinite
+# redirect. 15 rules + 7 identities + 1 Function = 23.
+#
+# Note that these are paths on the OLD WordPress site. They only receive traffic if a
+# visitor arrives at litex.com.tw carrying an old path — the 301s FROM
+# litextextile.wordpress.com need WordPress.com's paid Site Redirect upgrade, which is a
+# business decision taken separately. This file is what makes those redirects work the
+# moment that happens, and costs nothing until then.
+
+# Company and legal
+/about-2/                                                          /company/about/                            301
+/patents-and-awards-2/                                             /company/patents-and-awards/               301
+/privacy-policy/                                                   /legal/privacy/                            301
+
+# Products that were renamed
+/products/conductive-metal-yarn-cmy/                               /products/conductive-metal-yarn/           301
+/products/conductive-metal-yarn-cmy/electrical-heating-textile/    /products/electrical-heating-textile/      301
+/products/silica-gel-switch-controller-2/                          /products/silica-gel-switch-controller/    301
+
+# Old WordPress dated permalinks
+/2018/12/06/new-electrical-heating-alternatives-to-consider/       /technology/heating-element-comparison/    301
+/2018/02/26/catalog-download/                                      /downloads/                                301
+/2022/01/21/tokyo-wearable-expo-2022/                              /news/tokyo-wearable-expo-2022/            301
+/2020/05/20/new-braided-self-curling-tube-item/                    /news/new-braided-self-curling-tube/       301
+/2018/02/26/dusseldorf-wire-show/                                  /news/dusseldorf-wire-show/                301
+/2017/06/26/featured-on-techtextil-blog/                           /news/featured-on-techtextil-blog/         301
+/2017/02/23/copper-nickel-1s1z/                                    /news/copper-nickel-1s1z/                  301
+/2017/02/23/litex-attending-techtextil-at-frankfurt-germany/       /news/techtextil-frankfurt/                301
+/2017/02/23/a-rewarding-experience-at-the-wearable-expo/           /news/wearable-expo/                       301

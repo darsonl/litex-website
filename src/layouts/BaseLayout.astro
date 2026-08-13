@@ -6,9 +6,16 @@ import SiteFooter from '../components/SiteFooter.astro';
 interface Props {
   title: string;
   description: string;
+  /**
+   * Emit <meta name="robots" content="noindex">. For pages that must never be a search
+   * result: the 404 page, and the enquiry confirmation, which would otherwise tell a
+   * stranger arriving from a search result that LiTex has their enquiry. Everything else
+   * on this site is meant to be found, so the default is false.
+   */
+  noindex?: boolean;
 }
 
-const { title, description } = Astro.props;
+const { title, description, noindex = false } = Astro.props;
 ---
 <html lang="en">
   <head>
@@ -17,6 +24,7 @@ const { title, description } = Astro.props;
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    {noindex && <meta name="robots" content="noindex" />}
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to main content</a>

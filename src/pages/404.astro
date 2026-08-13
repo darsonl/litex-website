@@ -1,0 +1,33 @@
+---
+// src/pages/404.astro
+//
+// This page's existence is what switches Cloudflare Pages out of single-page-app mode.
+// With no 404.html at the root of the build output, Cloudflare matches every unmatched
+// path to / and answers 200 with the homepage — verified live on 2026-08-13.
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Page not found — LiTex Textile & Technology"
+  description="That page does not exist on litex.com.tw."
+  noindex
+>
+  <h1>That page does not exist</h1>
+
+  <p class="lead">
+    The address may be mistyped, or it may be a link to the old site that has not been
+    carried across.
+  </p>
+
+  <ul class="ways">
+    <li><a href="/">The homepage</a></li>
+    <li><a href="/products/">All products</a>, with the full specification tables</li>
+    <li><a href="/downloads/">Catalogs</a> — six PDFs, the complete 2018 set</li>
+    <li><a href="/contact/">Contact us</a> if you cannot find what you came for</li>
+  </ul>
+</BaseLayout>
+
+<style>
+  .lead { color: var(--c-text-2); max-width: 60ch; font-size: var(--t-20); }
+  .ways { max-width: 60ch; }
+  .ways li { margin-bottom: var(--s-2); }
+</style>
