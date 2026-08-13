@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
 import { parseHTML } from 'linkedom';
-import { DIST, walk, docFor } from './helpers/dist';
+import { DIST, walk, allHtmlFiles, docFor } from './helpers/dist';
 
 describe('privacy notice', () => {
   it('generates the route with a single h1 and its canonical', () => {
@@ -51,6 +51,7 @@ describe('privacy notice stays true as the site grows', () => {
   // Cloudflare Web Analytics script to this list and updates the page in the same commit.
   const DISCLOSED = new Set([
     'https://challenges.cloudflare.com/turnstile/v0/api.js',
+    'https://static.cloudflareinsights.com/beacon.min.js',
   ]);
 
   it('loads no third-party resource the privacy notice does not disclose', () => {
@@ -101,11 +102,24 @@ describe('privacy notice stays true as the site grows', () => {
     expect(withTurnstile.every((f) => /contact|request-a-sample/.test(f))).toBe(true);
   });
 
-  // Carried over from the guard rewritten above, which asserted this alongside the
-  // external-resource sweep. The claim is unchanged and still true, so it must not be
-  // lost with the sweep it used to travel with. Plan 8 changes the page and this line.
-  it('claims no analytics only while the site really runs none', () => {
-    expect(docFor('legal/privacy/index.html').body.textContent).toContain('no analytics');
+  // Replaces "claims no analytics only while the site really runs none", which Plan 8
+  // Task 8 made false and which was deleted rather than loosened. The site now runs
+  // Cloudflare Web Analytics, so the obligation inverts: the page must SAY SO.
+  it('discloses the analytics it now runs', () => {
+    const text = docFor('legal/privacy/index.html').body.textContent ?? '';
+    expect(text).toContain('Cloudflare Web Analytics');
+    // Cookieless is the reason spec §4 chose this vendor and the reason the site needs
+    // no consent banner. If that stops being true, this page is wrong, not just stale.
+    expect(text.toLowerCase()).toContain('cookie');
+  });
+
+  it('loads the analytics beacon on every page', () => {
+    for (const file of allHtmlFiles()) {
+      expect(
+        readFileSync(file, 'utf8'),
+        `${file} is missing the analytics beacon`,
+      ).toContain('static.cloudflareinsights.com/beacon.min.js');
+    }
   });
 
   it('describes the form now that one exists', () => {

@@ -42,11 +42,31 @@ describe('built home page', () => {
     expect(text).not.toContain('example.com');
   });
 
+  // Narrowed in Plan 8 Task 8, when cookieless analytics shipped. The rule is
+  // RENDER-BLOCKING, and this now tests that rather than "any third-party URL":
+  // a module script is deferred by default and an async/defer script does not block
+  // the parser, so neither delays first paint. An external stylesheet, or a plain
+  // <script src> with no defer/async/module, still does — and still fails here.
+  //
+  // This is deliberately not the disclosure guard. Whether a third party is allowed
+  // to be contacted AT ALL is enforced separately and more strictly in
+  // tests/legal.test.ts, which holds an explicit allowlist and sweeps every page plus
+  // the emitted JS. Loosening this test does not loosen that one.
   it('ships no render-blocking third-party requests', () => {
-    const external = [...doc.querySelectorAll('link[rel="stylesheet"], script[src]')]
-      .map((el) => el.getAttribute('href') ?? el.getAttribute('src') ?? '')
-      .filter((url) => /^https?:\/\//.test(url));
-    expect(external).toEqual([]);
+    const blocking = [...doc.querySelectorAll('link[rel="stylesheet"], script[src]')]
+      .filter((el) => {
+        const url = el.getAttribute('href') ?? el.getAttribute('src') ?? '';
+        if (!/^https?:\/\//.test(url)) return false;
+        if (el.tagName.toLowerCase() === 'link') return true; // a stylesheet always blocks
+        const deferred =
+          el.hasAttribute('defer') ||
+          el.hasAttribute('async') ||
+          el.getAttribute('type') === 'module';
+        return !deferred;
+      })
+      .map((el) => el.getAttribute('href') ?? el.getAttribute('src') ?? '');
+
+    expect(blocking, 'a third-party request is delaying first paint').toEqual([]);
   });
 });
 
