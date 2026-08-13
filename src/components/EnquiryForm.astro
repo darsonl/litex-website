@@ -119,3 +119,81 @@ const fields = fieldsFor(formType);
   button:hover { background: var(--c-copper-lift); }
   .fallback, .status { color: var(--c-text-2); font-size: var(--t-14); }
 </style>
+
+<script>
+  // Progressive enhancement only. With JS off the form posts normally and the function
+  // answers with a redirect or an HTML error page — that path is the baseline and must
+  // keep working. Nothing here is required for the form to function.
+  for (const form of document.querySelectorAll<HTMLFormElement>('[data-enquiry-form]')) {
+    const status = form.querySelector<HTMLElement>('[data-form-status]');
+    const contactEmail = form.dataset.contactEmail ?? '';
+
+    const clearErrors = () => {
+      for (const el of form.querySelectorAll<HTMLElement>('[data-error-for]')) {
+        el.textContent = '';
+        el.hidden = true;
+        const control = form.querySelector(`[name="${el.dataset.errorFor}"]`);
+        control?.removeAttribute('aria-invalid');
+      }
+    };
+
+    const showErrors = (errors: Record<string, string>) => {
+      let first: HTMLElement | null = null;
+      for (const [field, message] of Object.entries(errors)) {
+        const el = form.querySelector<HTMLElement>(`[data-error-for="${field}"]`);
+        const control = form.querySelector<HTMLElement>(`[name="${field}"]`);
+        control?.setAttribute('aria-invalid', 'true');
+        if (!el) continue;
+        el.textContent = message;
+        el.hidden = false;
+        first ??= control ?? el;
+      }
+      first?.focus?.();
+    };
+
+    const say = (message: string) => {
+      if (!status) return;
+      status.textContent = message;
+      status.hidden = false;
+    };
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearErrors();
+
+      const button = form.querySelector('button[type="submit"]');
+      button?.setAttribute('disabled', '');
+      say('Sending…');
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: { accept: 'application/json' },
+          body: new FormData(form),
+        });
+        const result = await response.json();
+
+        if (result.outcome === 'delivered') {
+          location.assign('/enquiry-sent/');
+          return;
+        }
+        if (result.outcome === 'stored') {
+          location.assign('/enquiry-sent/?delivery=pending');
+          return;
+        }
+        if (result.outcome === 'rejected') {
+          showErrors(result.errors ?? {});
+          say('Please correct the fields marked above.');
+        } else {
+          say(`${result.message ?? 'Something went wrong.'} Please email ${contactEmail}.`);
+        }
+      } catch {
+        // The network failed, so we cannot know whether anything was stored. Never
+        // claim success here; point at the address that always works.
+        say(`We could not reach the server. Please email ${contactEmail}.`);
+      } finally {
+        button?.removeAttribute('disabled');
+      }
+    });
+  }
+</script>

@@ -87,3 +87,21 @@ describe('both forms', () => {
     }
   });
 });
+
+describe('the form works without JavaScript', () => {
+  // The script is an upgrade. If the markup ever stops being a submittable form, a
+  // visitor with JS blocked loses the most valuable interaction on the site silently.
+  it('keeps a native action and method on both forms', () => {
+    for (const route of ['contact/index.html', 'request-a-sample/index.html']) {
+      const form = docFor(route).querySelector('form[data-enquiry-form]');
+      expect(form?.getAttribute('action'), `${route} lost its action`).toBe('/api/submit');
+      expect(form?.getAttribute('method')?.toLowerCase(), `${route} lost its method`).toBe('post');
+    }
+  });
+
+  it('marks required fields in the markup, not only in script', () => {
+    const form = docFor('contact/index.html').querySelector('form[data-enquiry-form]')!;
+    const required = [...form.querySelectorAll('[required]')].map((c) => c.getAttribute('name'));
+    expect(required).toEqual(expect.arrayContaining(['name', 'company', 'email', 'message']));
+  });
+});
