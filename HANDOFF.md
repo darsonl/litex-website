@@ -1,62 +1,123 @@
 # Session handoff — LiTex website redesign
 
-**Written:** 2026-08-11, last updated 2026-08-13 (end of session 8, Plan 7 complete)
+**Written:** 2026-08-11, last updated 2026-08-13 (session 9 — Plan 7 merged, Plan 8 five tasks in)
 **Reason:** This file is the resume point between sessions.
 
 ---
 
 ## ▶ Do this first
 
-**Plans 1–7 are built and verified. Plan 8 is NOT written.** Do not re-run brainstorming, the spec
-self-review, or `/impeccable init`.
+**Plans 1–7 are merged. Plan 8 is written and FIVE of its nine tasks are merged.** Do not re-run
+brainstorming, the spec self-review, `/impeccable init`, or `writing-plans` for Plan 8.
 
-### → Start here: write Plan 8, then execute it
+### → Start here: resume Plan 8 at Task 6
 
-Plan 8 is the launch plan and it is the **last** one. Its scope, from spec §3 and the roadmap:
-`_redirects` for all 23 legacy URLs, sitemap, Cloudflare Web Analytics, Sveltia CMS, a print
-stylesheet, Lighthouse/axe budgets, a broken-link check — **and the deployment itself**, which is
-now written out step by step in **`docs/deployment.md`**. Read that file before planning; it is the
-executable half of Plan 8 and it already resolves the decisions.
+The plan is **`docs/superpowers/plans/2026-08-13-litex-launch.md`**. Execute it with
+`superpowers:executing-plans` (this session ran it inline) or subagent-driven, from a branch off
+`main`.
 
-Use `superpowers:writing-plans` to write it, then run it **subagent-driven**
-(`superpowers:subagent-driven-development`) from a new branch off `main`.
+| Task | What | State |
+|---|---|---|
+| 1 | Real 404 page | ✅ merged (PR #10) |
+| 2 | `_redirects` ×15 + the 410 Function | ✅ merged (PR #10) |
+| 3 | Sitemap, `robots.txt`, `noindex` | ✅ merged (PR #11) |
+| 4 | Favicon | ✅ merged (PR #11) |
+| 5 | Print stylesheet | ✅ merged (PR #11) |
+| **6** | **Broken-link sweep** | ⬅ **START HERE** |
+| 7 | axe + playwright accessibility harness | not started |
+| 8 | Cloudflare Web Analytics + disclosure | not started — **needs the token from the human** |
+| 9 | Final verification, docs, handoff for Plan 9 | not started |
 
-**Before planning, confirm where `main` actually is.** At the time of writing, Plan 7 is complete
-on `plan-7-contact-and-sample` (9 commits, tip `830cdd1`) and **PR #7 had not yet been merged**, so
-this file cannot record its squash SHA the way earlier sessions recorded theirs. Run
-`git log --oneline -5 main` and `gh pr list --state all` and trust that over this paragraph.
+`main` is at **`b3ef5fc`**, clean and pushed, nothing in flight. `npm run build` → **36 pages**,
+`npm test` → **359 passing across 22 files**.
 
-**Plan 8 carries three things that will bite if forgotten**, all detailed below and in
-`docs/deployment.md`:
+**Task 6 is expected to fail on its first run** — the link sweep has never run against this site.
+If it names dead links, fix them and report each; do not weaken the test. It only became a
+meaningful check at all once Task 1 killed the SPA fallback.
 
-- The Pages build command **must be `npm run build`**, not `npx astro build` or the Cloudflare
-  default. `npx` skips `package.json` scripts, so the catalog sync never runs and eleven links 404
-  in production **with no test catching it**.
-- The **Turnstile sitekey in `src/components/EnquiryForm.astro` is Cloudflare's always-passes test
-  key.** Shipping it is a soft failure — the widget renders, the form works, spam filtering is
-  simply off. No test can catch it, because the real key does not exist in this repo.
-- Cloudflare Web Analytics is an external script, so it must be **added to the `DISCLOSED`
-  allowlist in `tests/legal.test.ts` and disclosed on `/legal/privacy/` in the same commit.** The
-  allowlist is deliberate. Do not remove it to make a test pass.
+**Task 8 is blocked on a human input:** the Cloudflare Web Analytics token for the production
+hostname. Do not invent one. Every other remaining task is independent of it.
+
+### ⚠ Three things about Plan 8 that will bite if forgotten
+
+- The Pages build command **must be `npm run build`**, not `npx astro build`. Already set correctly
+  in the live project, and **verified in production** — all six catalogs download byte-exact.
+- Cloudflare Web Analytics must be added to the **`DISCLOSED` allowlist in `tests/legal.test.ts`**
+  and disclosed on `/legal/privacy/` in the same commit. Use the **manual** snippet, not
+  Cloudflare's automatic injection — an auto-injected beacon is invisible to that guard, so the
+  privacy notice could silently become untrue.
+- The Turnstile **production** sitekey `0x4AAAAAAEOqzFlvFS397MkG` is committed and **guarded**: a
+  test fails the build if the always-passes test key `1x00000000000000000000AA` reaches any page.
+  Consequence for local work — `npm run dev` renders an error widget unless `localhost` is on the
+  widget's hostname list in the dashboard. **Add it there; do not put the test key back.**
 
 ---
 
-## State as of 2026-08-13 (end of session 8)
+## State as of 2026-08-13 (session 9)
 
-- **Plan 7 is complete on its branch**, seven tasks, all committed. It added the site's first
-  server-side runtime, the first `functions/` directory and **the first JavaScript this site has
-  ever shipped**.
-- `npm run build` exits 0 emitting **35 pages**. `npm test` = **330 tests across 21 files**, all
-  passing. Design detector over `src/components src/pages src/styles` reports **no findings**.
-- `dist` totals about **16 MB**, of which `dist/catalogs` is about 11 MB — the six catalog PDFs.
-- Routes added this plan: **`/contact/`**, **`/request-a-sample/`**, **`/enquiry-sent/`**. The
-  primary nav now has **seven** items; `/contact/` is last.
-- **Nothing in Plan 7 has run against real Cloudflare infrastructure.** There is no Pages project,
-  no KV namespace, no Resend account and no Turnstile widget. The function is covered by unit tests
-  against a mocked environment. `docs/deployment.md` is the checklist Plan 8 executes. **This is a
-  stated limitation of the plan, not an oversight — do not let a reviewer treat it as one.**
-- Repo public at **https://github.com/darsonl/litex-website**. Plans 1–6 merged via PR #1–#6
-  (Plan 6 squashed as `bafff91`).
+- **Plan 7 is MERGED** as PR #7 → **`1a2a3a6`**. It added the site's first server-side runtime, the
+  first `functions/` directory and the first JavaScript this site has ever shipped.
+- **The site is deployed** at **`https://litex-website.pages.dev`** — Cloudflare Pages, Git
+  integration, auto-deploys on push to `main` in about 45 seconds.
+- `npm run build` → **36 pages**. `npm test` → **359 passing across 22 files**. Detector clean.
+- `dist` is about 16 MB, of which `dist/catalogs` is ~11 MB — the six catalog PDFs.
+- Repo public at **https://github.com/darsonl/litex-website**. PRs #1–#11 merged.
+
+### What is live, and what is not
+
+**Cloudflare setup is PART-DONE.** `docs/cloudflare-setup.md` is the click-by-click walkthrough and
+tracks which parts are finished.
+
+| Part | State |
+|---|---|
+| A — Pages project, Git integration, build command | ✅ done, verified in production |
+| B — KV namespace bound as `SUBMISSIONS` | ❌ not done |
+| C — Turnstile widget | ✅ created; sitekey committed. **Secret not yet set.** |
+| D — Resend domain `send.litex.com.tw` | ❌ **blocked** — no registrar access yet |
+| E — the four Pages variables/secrets | ❌ not done |
+| F — custom domain / nameserver move | ❌ deliberately last |
+| G — Web Analytics | ❌ not done; blocks Plan 8 Task 8 |
+
+**Consequence:** submitting either form on the live site currently returns
+`400 {"outcome":"rejected","errors":{"turnstile":…}}` — the endpoint failing closed with no
+secret configured. That is the design working, not a bug.
+
+**Once B, C-secret and E are done — which do NOT need Resend — the most valuable behaviour in the
+whole system becomes testable:** submit a form, watch a KV record appear, and see the honest
+queued-delivery message. Delivery failure yields `outcome: 'stored'`, never a false success.
+
+### Verified in production on 2026-08-13 — do not re-derive
+
+Each of these was something Plan 7 could only assert:
+
+- **All six catalog PDFs download byte-exact** against `src/data/catalog-files.json`. Plan 5's
+  parked residual is **closed in production**.
+- **`functions/api/submit.ts` deployed and runs**, and its import of `../../src/lib/enquiry` —
+  reaching outside `functions/` into `src/` — **resolved in a real Pages build**.
+- **Turnstile loads on exactly `/contact/` and `/request-a-sample/`**, and nowhere else.
+- **A missing URL returns 404**, `/about-2/` returns **301**, and `/2016/09/22/test-post-blah/`
+  returns **410 in both the trailing-slash and bare forms** — the one behaviour that could not be
+  verified locally.
+- **`/contact/` returns 200, not a redirect.** The identity-mapping trap stays shut in production.
+
+### ⚠ The defect that shaped Plan 8's task order
+
+Before Task 1, **every unmatched URL returned HTTP 200 with the homepage.** Cloudflare Pages treats
+a build output with no root `404.html` as a single-page app and matches all paths to `/`. That
+silently defeated any broken-link check (nothing *could* 404) and made spec §3's 410 unobservable.
+`src/pages/404.astro` is the entire fix, and it is why the 404 page is Task 1 rather than a
+cosmetic afterthought.
+
+### ⚠ Recurring lesson found three times in Plan 8 alone
+
+**Every string-containment guard written in this plan collided with prose explaining the banned
+thing:** the `_redirects` header comment mentioning `test-post-blah`, the 404 test searching for a
+phrase that only exists in `<title>`, and the favicon comment saying "rather than `<text>`". This
+is the same ruling as Plan 6's `techtextil-blog.com` collision, now confirmed as a *pattern*:
+
+> When a guard bans a string, strip or parse away the places that string may legitimately be
+> **discussed**, and assert against what the machine actually reads — rules, not comments; markup,
+> not documentation about markup.
 
 ### What Plan 7 built, in one paragraph
 
@@ -88,8 +149,15 @@ posts. The correct fix is LiTex supplying news since 2022 — see the open quest
 | 4 | Site chrome & the technology section | ✅ merged (PR #4) |
 | 5 | `/company/` ×4 · `/downloads/` · `/legal/privacy/` | ✅ merged (PR #5, `28fc138`) |
 | 6 | `/news/` index + 7 posts | ✅ merged (PR #6, `bafff91`) |
-| 7 | Contact + sample-request flow (Pages Function, Turnstile, KV, Resend) | ✅ **built** — `plan-7-contact-and-sample`, PR #7 |
-| 8 | Launch: deploy, `_redirects`, sitemap, analytics, Sveltia CMS, print stylesheet, Lighthouse/axe, broken-link check | 📝 **not written** |
+| 7 | Contact + sample-request flow (Pages Function, Turnstile, KV, Resend) | ✅ merged (PR #7, `1a2a3a6`) |
+| 8 | Launch: 404, `_redirects`, sitemap, favicon, print, link sweep, axe, analytics | 🔨 **in progress — 5 of 9 tasks merged** (PR #10, #11) |
+| 9 | **Sveltia CMS at `/admin`** + the deferred `SpecTable` "Request this grade" CTA | 📝 not written |
+
+**The roadmap grew to 9.** Sveltia CMS was deferred out of Plan 8 by decision on 2026-08-13: it
+needs a GitHub OAuth backend (a second deployable on Cloudflare) plus a `config.yml` mirroring every
+content collection's schema. That is a subsystem, not a launch chore, and **launch does not depend
+on it** — content is edited by commit until then. Spec §4's CMS row still stands; it is simply not
+Plan 8.
 
 ---
 
@@ -425,16 +493,21 @@ Ordered by how much damage the wrong answer does.
 
 ### Where things stand
 
-Plans 1–6 are merged. **Plan 7 is complete on `plan-7-contact-and-sample`** (tip `830cdd1`), with
-PR #7 open at the time of writing — **verify its state with git before assuming anything.** On the
-branch: `npm run build` → **35 pages**, `npm test` → **330 passing across 21 files**, detector →
-no findings.
+Plans 1–7 are merged and **Plan 8 is five tasks in**, all merged. `main` is at **`b3ef5fc`**, clean
+and pushed, **nothing in flight**: `npm run build` → **36 pages**, `npm test` → **359 passing across
+22 files**, detector clean. The site auto-deploys to `litex-website.pages.dev` on push to `main`.
 
 ### Do this first
 
-**Write Plan 8** with `superpowers:writing-plans`, reading `docs/deployment.md` first — it is
-already the executable half. Then run it subagent-driven from a branch off `main`. Plan 8 is the
-last plan.
+**Resume Plan 8 at Task 6** (the broken-link sweep) in
+`docs/superpowers/plans/2026-08-13-litex-launch.md`. Do not re-write the plan. See the task table at
+the top of this file for what is done and what is blocked.
+
+**Branch before committing anything.** In session 9 the Plan 8 document was committed straight to
+local `main` and never pushed; a later branch cut from that `main` dragged the unpushed commit into
+an unrelated PR (#9), which then carried two commits its title did not mention. Nothing was lost,
+but `main` had to be reset to `origin/main` and the feature branch rebased. **Committing to `main`
+looks harmless right up until someone branches from it.**
 
 Do not re-run brainstorming or the spec self-review, and do not re-derive anything under
 "Settled — do not re-raise".
