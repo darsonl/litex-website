@@ -1,60 +1,44 @@
 # Session handoff — LiTex website redesign
 
-**Written:** 2026-08-11, last updated 2026-08-13 (session 9 — Plan 7 merged, Plan 8 five tasks in)
+**Written:** 2026-08-11, last updated 2026-08-13 (session 10 — **Plan 8 complete; all nine tasks merged**)
 **Reason:** This file is the resume point between sessions.
 
 ---
 
 ## ▶ Do this first
 
-**Plans 1–7 are merged. Plan 8 is written and EIGHT of its nine tasks are merged.** Do not re-run
-brainstorming, the spec self-review, `/impeccable init`, or `writing-plans` for Plan 8.
+**Plans 1–8 are ALL merged.** Do not re-run brainstorming, the spec self-review, `/impeccable init`,
+or `writing-plans` for anything already built.
 
-### → Start here: Plan 8 Task 9, the last task
+### → Start here: write Plan 9
 
-The plan is **`docs/superpowers/plans/2026-08-13-litex-launch.md`**. Execute it with
-`superpowers:executing-plans` (sessions 9–10 ran it inline) or subagent-driven, from a branch off
-`main`.
+**Plan 9 does not exist yet.** Write it with `superpowers:writing-plans`, then execute it
+subagent-driven. Its scope was fixed by decision on 2026-08-13:
 
-| Task | What | State |
-|---|---|---|
-| 1 | Real 404 page | ✅ merged (PR #10) |
-| 2 | `_redirects` ×15 + the 410 Function | ✅ merged (PR #10) |
-| 3 | Sitemap, `robots.txt`, `noindex` | ✅ merged (PR #11) |
-| 4 | Favicon | ✅ merged (PR #11) |
-| 5 | Print stylesheet | ✅ merged (PR #11) |
-| 6 | Broken-link sweep | ✅ merged (PR #13) |
-| 7 | axe + playwright accessibility harness | ✅ merged (PR #13) |
-| 8 | Cloudflare Web Analytics + disclosure | ✅ merged (PR #14) |
-| **9** | **Final verification, docs, handoff for Plan 9** | ⬅ **START HERE** |
+1. **Sveltia CMS at `/admin`** — needs a GitHub OAuth backend (a second deployable on Cloudflare)
+   plus a `config.yml` mirroring every content collection's schema. This is a subsystem, not a
+   chore, which is why it was deferred out of Plan 8.
+2. **The deferred `SpecTable` "Request this grade" CTA** (spec §5). It reads `fieldsFor('sample')`
+   from `src/lib/enquiry.ts` — the machinery already exists.
 
-`main` is at **`fdde0ef`**, clean and pushed, nothing in flight. `npm run build` → **36 pages**,
-`npm test` → **373 passing across 23 files**.
+`main` is at **`34d86cf`** plus the Plan 8 Task 9 docs commit, clean and pushed, nothing in flight.
+`npm run build` → **36 pages**, `npm test` → **373 passing across 23 files**, `npm run test:a11y` →
+**11 passing**, detector clean.
 
-#### What Task 9 actually requires
+**Run `npx playwright install chromium` before `npm test` on a fresh checkout**, or the suite fails
+with a missing-executable error rather than a test failure.
 
-1. **Local verification** — build, `npm test`, `npm run test:a11y`, the design detector, and the
-   `compressHTML` spacing sweep over `dist/404.html dist/contact dist/request-a-sample`.
-2. **Deployed-site verification** — the `curl` block in the plan's Task 9 Step 2. Most of it has
-   **already been run and passed** (see "Verified in production" below); re-run it after the final
-   merge and record what you see.
-3. **Lighthouse — ⚠ needs the human.** Spec §4 sets a **≥95** budget for performance, accessibility
-   and SEO. It is a manual Chrome DevTools run against the deployed site (mobile preset, `/` and
-   `/products/conductive-metal-yarn/`). **You cannot run this yourself — ask.** Record whatever the
-   numbers are, including if they are below 95, with the reason. The number is evidence, not a
-   target to hit.
-4. **Update `docs/deployment.md`** with the live results and the Lighthouse figures.
-5. **Rewrite `HANDOFF.md` for Plan 9** (Sveltia CMS + the deferred `SpecTable` "Request this
-   grade" CTA).
+#### ⚠ But the highest-value work is not Plan 9 — it is finishing Cloudflare
 
-**Everything except Lighthouse is unblocked.** Do items 1, 2, 4 and the parts of 5 that do not
-depend on the numbers, then ask for the Lighthouse run.
+**The site is still on `litex-website.pages.dev`.** Plan 8 finishing means the **repo** is ready for
+launch; it does **not** mean the site is launched. Parts B, C-secret, D, E and F of
+`docs/cloudflare-setup.md` remain — see the setup table below.
 
-#### The one thing that is NOT done and is not in Plan 8
-
-**The site is still on `litex-website.pages.dev`.** Parts B, D, E, F and G of
-`docs/cloudflare-setup.md` remain — see the setup table below. Plan 8 finishing does **not** mean
-the site is launched; it means the repo is ready for launch.
+**B (KV) + the C secret + E (variables) is the fastest path to proving the enquiry pipeline, and
+none of the three needs Resend.** With those done, submitting a form writes a real KV record and
+returns the honest queued-delivery message, because delivery fails without a Resend key and the
+endpoint reports `outcome: 'stored'` rather than a false success. **That is the single most valuable
+thing in this whole system still unproven**, and it is worth doing before a line of Plan 9.
 
 ### ⚠ Three things about Plan 8 that will bite if forgotten
 
@@ -71,19 +55,23 @@ the site is launched; it means the repo is ready for launch.
 
 ---
 
-## State as of 2026-08-13 (session 9)
+## State as of 2026-08-13 (session 10)
 
-- **Plan 7 is MERGED** as PR #7 → **`1a2a3a6`**. It added the site's first server-side runtime, the
-  first `functions/` directory and the first JavaScript this site has ever shipped.
+- **Plan 8 is COMPLETE** — all nine tasks merged (PRs #10, #11, #13, #14, and Task 9's docs commit).
+  It shipped the 404 page, 15 redirects, the 410 Function, the sitemap, robots, the favicon, the
+  print stylesheet, the broken-link sweep, the axe harness and cookieless analytics.
+- **Plan 7** added the site's first server-side runtime, the first `functions/` directory and the
+  first JavaScript this site has ever shipped.
 - **The site is deployed** at **`https://litex-website.pages.dev`** — Cloudflare Pages, Git
   integration, auto-deploys on push to `main` in about 45 seconds.
-- `npm run build` → **36 pages**. `npm test` → **373 passing across 23 files**. Detector clean.
-- ⚠ **`npm test` now needs a browser binary.** Task 7 added an axe/playwright accessibility run, so
+- `npm run build` → **36 pages**. `npm test` → **373 passing across 23 files**.
+  `npm run test:a11y` → **11 passing**. Detector clean. Spacing sweep empty.
+- ⚠ **`npm test` needs a browser binary.** Task 7 added an axe/playwright accessibility run, so
   a fresh checkout must do **`npx playwright install chromium`** once or the suite fails with a
   missing-executable error rather than a test failure. CI will need it too. The run takes ~8s
   instead of ~2s. `npm run test:a11y` runs just that file.
 - `dist` is about 16 MB, of which `dist/catalogs` is ~11 MB — the six catalog PDFs.
-- Repo public at **https://github.com/darsonl/litex-website**. PRs #1–#11 merged.
+- Repo public at **https://github.com/darsonl/litex-website**. PRs #1–#15 merged.
 
 ### What is live, and what is not
 
@@ -96,7 +84,7 @@ tracks which parts are finished.
 | B — KV namespace bound as `SUBMISSIONS` | ❌ not done |
 | C — Turnstile widget | ✅ created; sitekey committed. **Secret not yet set.** |
 | D — Resend domain `send.litex.com.tw` | ❌ **blocked** — no registrar access yet |
-| E — the four Pages variables/secrets | ❌ not done |
+| E — the four Pages variables/secrets | ⚠ **partly done** — `ENQUIRY_TO` is confirmed set (a live probe echoed `sales@litex.com.tw`). The other three are unverified; a Turnstile rejection does **not** prove `TURNSTILE_SECRET` is missing. |
 | F — custom domain / nameserver move | ❌ deliberately last |
 | G — Web Analytics | ✅ site added; token committed in `BaseLayout.astro` |
 
@@ -116,17 +104,30 @@ queued-delivery message. Delivery failure yields `outcome: 'stored'`, never a fa
 
 ### Verified in production on 2026-08-13 — do not re-derive
 
-Each of these was something Plan 7 could only assert:
+Each of these was something an earlier plan could only assert. The full table is in
+**`docs/deployment.md` §6b**; this is the summary.
 
 - **All six catalog PDFs download byte-exact** against `src/data/catalog-files.json`. Plan 5's
   parked residual is **closed in production**.
 - **`functions/api/submit.ts` deployed and runs**, and its import of `../../src/lib/enquiry` —
   reaching outside `functions/` into `src/` — **resolved in a real Pages build**.
 - **Turnstile loads on exactly `/contact/` and `/request-a-sample/`**, and nowhere else.
-- **A missing URL returns 404**, `/about-2/` returns **301**, and `/2016/09/22/test-post-blah/`
-  returns **410 in both the trailing-slash and bare forms** — the one behaviour that could not be
-  verified locally.
+- **A missing URL returns 404**, `/about-2/` returns **301 → `/company/about/`**, and
+  `/2016/09/22/test-post-blah/` returns **410 in both the trailing-slash and bare forms** — the one
+  behaviour that could not be verified locally.
 - **`/contact/` returns 200, not a redirect.** The identity-mapping trap stays shut in production.
+- **`robots.txt`, `sitemap-index.xml` and `favicon.svg` all return 200.** `robots.txt` names
+  **`https://litex.com.tw/sitemap-index.xml`** — the custom domain, not the `pages.dev` host, so it
+  needs no edit at the Part F cutover.
+- **`sitemap-0.xml` carries 34 URLs** = 36 built pages − `/404` − `/enquiry-sent/`. Neither excluded
+  page appears in it; both carry `noindex` per-page instead. That arithmetic is the cheapest way to
+  re-check the exclusion after any page is added.
+- **The analytics beacon serves on the deployed homepage.**
+- **Lighthouse: 100 / 100 / 100 / 100 on both `/` and `/products/conductive-metal-yarn/`** —
+  performance, accessibility, best practices, SEO, mobile preset, run by hand 2026-08-13. Spec §4's
+  budget is ≥95, so it clears on every axis. **This is a lab measurement, not field data**, and it
+  was taken on `litex-website.pages.dev`; **re-run it after the Part F cutover** rather than assuming
+  it carries to the custom domain. Full table in `docs/deployment.md` §6b.
 
 ### ⚠ The defect that shaped Plan 8's task order
 
@@ -209,8 +210,8 @@ posts. The correct fix is LiTex supplying news since 2022 — see the open quest
 | 5 | `/company/` ×4 · `/downloads/` · `/legal/privacy/` | ✅ merged (PR #5, `28fc138`) |
 | 6 | `/news/` index + 7 posts | ✅ merged (PR #6, `bafff91`) |
 | 7 | Contact + sample-request flow (Pages Function, Turnstile, KV, Resend) | ✅ merged (PR #7, `1a2a3a6`) |
-| 8 | Launch: 404, `_redirects`, sitemap, favicon, print, link sweep, axe, analytics | 🔨 **8 of 9 tasks merged** (PR #10, #11, #13, #14) — only Task 9 left |
-| 9 | **Sveltia CMS at `/admin`** + the deferred `SpecTable` "Request this grade" CTA | 📝 not written |
+| 8 | Launch: 404, `_redirects`, sitemap, favicon, print, link sweep, axe, analytics | ✅ **merged in full** (PR #10, #11, #13, #14 + the Task 9 docs commit) |
+| 9 | **Sveltia CMS at `/admin`** + the deferred `SpecTable` "Request this grade" CTA | 📝 **not written — write it next** |
 
 **The roadmap grew to 9.** Sveltia CMS was deferred out of Plan 8 by decision on 2026-08-13: it
 needs a GitHub OAuth backend (a second deployable on Cloudflare) plus a `config.yml` mirroring every
@@ -220,11 +221,19 @@ Plan 8.
 
 ---
 
-## What Plan 8 inherits — use these, don't reinvent
+## What Plan 9 inherits — use these, don't reinvent
 
 | Thing | Where | Note |
 |---|---|---|
-| Deployment checklist | `docs/deployment.md` | Every binding, secret and variable the function reads, the build-command trap, the Turnstile test keys, the Resend DNS dependency and a five-step smoke test. **Written to be executed, not re-derived.** |
+| Deployment checklist **+ the launch verification record** | `docs/deployment.md` | Every binding, secret and variable the function reads, the build-command trap, the Turnstile test keys, the Resend DNS dependency and a five-step smoke test. **§6b holds the Plan 8 Task 9 results — local and deployed — so nobody re-runs them to find out.** Written to be executed, not re-derived. |
+| The 404 page | `src/pages/404.astro` | **Load-bearing infrastructure, not a cosmetic page.** Without a root `404.html`, Cloudflare Pages treats the whole build as a single-page app and answers *every* unmatched path with 200 + the homepage. A test asserts `dist/404.html` exists so that cannot silently return. |
+| Legacy URL map | `public/_redirects` | **Exactly 15 rules**, all 301. A test fails on a 16th that maps a path to itself. |
+| The one 410 | `functions/2016/09/22/test-post-blah.ts` | A Pages **Function**, because `_redirects` cannot express 410. Cloudflare matches both the trailing-slash and bare forms. |
+| Sitemap & robots | `@astrojs/sitemap` in `astro.config.mjs`, `public/robots.txt` | The sitemap **excludes** `/404` and `/enquiry-sent/`; both also carry per-page `noindex`. A new page joins the sitemap automatically — if it must not, exclude it **and** add the meta tag. |
+| Print stylesheet | `src/styles/global.css` `@media print` | Checked by eye on a spec-table page and on `/contact/`. A new page type with heavy chrome should be print-previewed once. |
+| Broken-link sweep | `tests/links.test.ts` | Walks **every** built page's internal hrefs and asset references against `dist`. A new route needs no registration; a dead link fails the build naming the exact URL. |
+| Accessibility harness | `tests/a11y.test.ts`, `npm run test:a11y` | axe over **eleven representative pages**. **A new page template should be added to its list** — the list is representative, not exhaustive, so an unlisted template is unmeasured. Asserts on `incomplete` as well as `violations`. |
+| Analytics + the disclosure contract | `src/layouts/BaseLayout.astro:18`, `tests/legal.test.ts` | The token is committed and the beacon is injected **manually**. Any new third party must be added to `DISCLOSED` **and** disclosed on `/legal/privacy/` in the same commit. |
 | Primary nav | `src/lib/nav.ts` | Seven items; `/contact/` is last. `tests/chrome.test.ts` **fails if a chrome link has no built page behind it** — add the route first, then the nav entry. |
 | Shared dist test helpers | `tests/helpers/dist.ts` | `DIST`, `walk`, `allHtmlFiles`, `docFor`, `routeFile` — one copy each. A new test imports them; it does not paste them. `walk` also exists in `tests/fonts.test.ts` **by design** — different function, walks `src/`. Do not merge them. |
 | Enquiry field definitions | `src/lib/enquiry.ts` | `FORM_TYPES`, `FIELDS`, `fieldsFor()`, `validateEnquiry()`, `MAX_LENGTHS`, `HONEYPOT_FIELD`. **Zero imports, deliberately** — loaded by Vitest, the Astro build *and* the Workers runtime. Do not add an Astro import to it. A product-page "Request this grade" CTA (spec §5) reads `fieldsFor('sample')` from here. |
@@ -238,7 +247,7 @@ Plan 8.
 | Catalog delivery | `public/catalogs/` (gitignored), `scripts/sync-catalogs.mjs`, `src/data/catalog-files.json` | `npm run build` is `node scripts/sync-catalogs.mjs && astro build` — an **inlined step, not an npm `prebuild` hook** — so it survives `pnpm`. It does **not** survive `npx astro build`. See the parked residual. |
 | `data-source-note` vs `data-page-note` | `company/*.astro`, `news/[slug].astro` | `SpecTable` emits its own `[data-source-note]`; a page-level note beside a `SpecTable` uses `[data-page-note]`. Tests query per page via `docFor`, never site-wide. |
 | JSON-LD | `src/lib/jsonld.ts` | `productJsonLd()` and `newsJsonLd()` (`BlogPosting`). Emitted `url` must match the page's canonical. News `datePublished` keeps `+08:00` and `tests/news.test.ts` **hardcodes it**. |
-| The third-party allowlist | `tests/legal.test.ts` | `DISCLOSED` contains exactly the Turnstile widget URL. The guard sweeps **built HTML *and* emitted JS** and fails on anything undisclosed. **Plan 8 extends the list and updates `/legal/privacy/` in the same commit.** |
+| The third-party allowlist | `tests/legal.test.ts` | `DISCLOSED` now holds **two** URLs — the Turnstile widget and the Web Analytics beacon. The guard sweeps **built HTML *and* emitted JS** and fails on anything undisclosed. **A third entry may only be added in the same commit that discloses it on `/legal/privacy/`.** |
 
 ---
 
@@ -425,14 +434,17 @@ Full detail in the `litex-verified-toolchain` memory. The ones that bite hardest
 
 ---
 
-## Parked residual — Plan 8 must handle this
+## Parked residual — ✅ CLOSED in production, but the trap is permanent
 
 `npx astro build` on a cold checkout ships a build with an unpopulated `public/catalogs/`, because
 `npx` bypasses `package.json` scripts entirely and the inlined `node scripts/sync-catalogs.mjs`
-never runs. No CI config exists yet, so nothing currently triggers this path. **Plan 8 must set the
-Cloudflare Pages build command to `npm run build`**, or the six downloads and five product catalog
-links 404 in production with no test catching it. This is now the first row of
-`docs/deployment.md`'s settings table.
+never runs. **The Cloudflare Pages build command is set to `npm run build` and all six catalog PDFs
+download byte-exact in production**, so the residual is closed.
+
+**The trap itself has not gone away.** It is the first row of `docs/deployment.md`'s settings table
+because it is invisible to every test in this repo: nothing fails, the six downloads and five
+product catalog links simply 404. **The moment CI exists, it must run `npm run build`, never
+`npx astro build`.**
 
 ---
 
@@ -441,24 +453,37 @@ links 404 in production with no test catching it. This is now the first row of
 The SDD ledgers are gitignored and deleted once their plan merges, so findings with a live trigger
 condition are preserved here. None is a bug; each is a decision that becomes wrong later.
 
-**Plan 8 should act on these:**
+**Plan 8 acted on none of these three; they carry to Plan 9.** Items 1 and 2 were re-checked
+against the code and the live site on 2026-08-13 and the notes below are corrected accordingly.
 
-1. **The function assumes all five `env` values exist.** `const contactEmail = env.ENQUIRY_TO` has
-   no fallback, so on a deployment where the variable is missing, every honest failure message
-   degrades to "please email " with nothing after it — on exactly the paths that exist to give the
-   visitor a way through. Cheapest fix is a hardcoded default equal to `COMPANY.email`.
-2. **The Turnstile test sitekey ships by default** and no test can detect the real one is missing,
-   because the real key does not exist in this repo. Soft failure: the widget renders and the form
-   works, spam filtering is simply off. Check by eye after deploy.
+1. **The function still assumes all five `env` values exist.** `submit.ts:131` is still bare
+   `const contactEmail = env.ENQUIRY_TO`, with no fallback, so on a deployment where the variable is
+   missing every honest failure message degrades to "please email " with nothing after it — on
+   exactly the paths that exist to give the visitor a way through. Cheapest fix is a hardcoded
+   default equal to `COMPANY.email`.
+   **⚠ Correction to an earlier note: `ENQUIRY_TO` IS set in production.** A probe POST on
+   2026-08-13 returned `"contactEmail":"sales@litex.com.tw"`, and a missing value would have made
+   `JSON.stringify` drop the key entirely. So the bad path is **latent, not live** — it would show up
+   on a preview deployment, or if the project were ever recreated. Fix it anyway; do not treat the
+   live site as evidence the risk is gone.
+   **That same probe proves nothing about `TURNSTILE_SECRET`**, because it sent no
+   `cf-turnstile-response` field — the rejection is what you get whether or not the secret exists.
+   Do not read a Turnstile rejection as "the secret is missing".
+2. ✅ **Resolved.** The production sitekey `0x4AAAAAAEOqzFlvFS397MkG` ships and **a test fails the
+   build if the always-passes test key reaches any page.** The gap existed only because the real key
+   did not exist in the repo yet. Do not reintroduce the test key for local convenience — add
+   `localhost` to the widget's hostname list instead.
 3. **Nothing notices a run of `stored` outcomes**, which is precisely the signal that Resend has
    stopped accepting mail. There is no alerting and no admin UI; submissions are read from the
    Cloudflare dashboard.
 4. The **dist-reading test strategy assumes `npm run build` ran immediately before `npm test`.** A
    stale `dist/` can pass some assertions vacuously. A CI-ordering constraint the moment CI exists.
 5. **Every `npm run build` rewrites `src/data/catalog-files.json` with a CRLF-only diff** and no
-   content change, dirtying the working tree on every build. It has now cost four separate agents a
-   detour into "what did I change?". Fix the line-ending handling in `scripts/sync-catalogs.mjs` or
-   `.gitattributes`. **Until then: if it shows modified with an empty `git diff`, `git checkout --` it.**
+   content change, dirtying the working tree on every build. It has now cost **five** separate agents
+   a detour into "what did I change?" — it recurred again in session 10. Fix the line-ending handling
+   in `scripts/sync-catalogs.mjs` or `.gitattributes`. **Until then: if it shows modified with an
+   empty `git diff`, `git checkout --` it.** `git diff` prints only
+   `warning: … LF will be replaced by CRLF`, which is the tell.
 6. **`/news/`'s `BlogPosting` JSON-LD omits `image` and `author`.** Both omissions are honest rather
    than lazy — `author` is genuinely unknown and `image` exists for only one of seven. If LiTex ever
    answers who wrote them, add `author`.
@@ -505,6 +530,13 @@ Ordered by how much damage the wrong answer does.
    monitored, or by whom, or how fast. `/enquiry-sent/` promises a reply "within one working day".
    **The most carefully built enquiry pipeline on earth is worth nothing if the inbox is not read** —
    and the site now makes a promise on LiTex's behalf. Ask before launch.
+1b. **Should the `*.pages.dev` preview host be de-indexed once the custom domain is live?** ⚠ **New.**
+   `robots.txt` already names the **custom** domain's sitemap (`https://litex.com.tw/sitemap-index.xml`),
+   and every canonical points at `litex.com.tw`, so the duplicate-content risk is small — but
+   `litex-website.pages.dev` is publicly crawlable today and will stay so after the cutover unless
+   something is done. The options are a Cloudflare redirect rule from the `pages.dev` host to the
+   custom domain, or leaving it. **Decide at the Part F cutover, not before** — de-indexing it now
+   would hide the only host the site currently has.
 2. **TWM545145 renewal status.** Its sibling lapsed for non-payment; this is the claim in the footer
    of every page. A confirmation would let the credibility bar say something stronger.
 3. **What is the SGS report's scope?** Not readable at the stored resolution — the site says so out
@@ -552,17 +584,20 @@ Ordered by how much damage the wrong answer does.
 
 ### Where things stand
 
-Plans 1–7 are merged and **Plan 8 is eight tasks in**, all merged (PR #10, #11, #13, #14). `main` is
-at **`fdde0ef`**, clean and pushed, **nothing in flight**: `npm run build` → **36 pages**,
-`npm test` → **373 passing across 23 files**, detector clean. The site auto-deploys to
-`litex-website.pages.dev` on push to `main`, in about 45 seconds.
+**Plans 1–8 are all merged.** `main` is clean and pushed, **nothing in flight**: `npm run build` →
+**36 pages**, `npm test` → **373 passing across 23 files**, `npm run test:a11y` → **11 passing**,
+detector clean. The site auto-deploys to `litex-website.pages.dev` on push to `main`, in about 45
+seconds. The launch verification record is `docs/deployment.md` §6b.
 
 ### Do this first
 
-**Plan 8 Task 9 is the only task left** —
-`docs/superpowers/plans/2026-08-13-litex-launch.md`. Do not re-write the plan. The task table at
-the top of this file breaks down exactly what Task 9 needs, including the **one step that requires
-the human: a manual Lighthouse run**. Everything else in it is unblocked.
+**Two candidates, and the second is worth more than the first:**
+
+1. **Write Plan 9** with `superpowers:writing-plans` — Sveltia CMS at `/admin` plus the deferred
+   `SpecTable` "Request this grade" CTA. Then execute it subagent-driven.
+2. **Finish the Cloudflare setup** — parts B, C-secret and E of `docs/cloudflare-setup.md`, none of
+   which need Resend. This is what turns the enquiry pipeline from unit-tested into proven, and it
+   is the last thing standing between the repo being launch-ready and the site being launched.
 
 **Run `npx playwright install chromium` before `npm test`** on a fresh checkout, or the suite fails
 with a missing-executable error rather than a test failure.
@@ -596,10 +631,11 @@ the content landed, then `-D`. **The refusal is not evidence of unmerged work.**
 - Do not hide `/news/` from the nav or invent posts to close the 2022 gap.
 - Do not go hunting for an eighth news post. `test-post-blah` was read, has real content, and was
   killed anyway on the merits.
-- **Do not remove or loosen the `DISCLOSED` allowlist in `tests/legal.test.ts`.** It is deliberate.
-  Plan 8 **extends** it with the Cloudflare Web Analytics URL and updates `/legal/privacy/` in the
-  same commit. Loosening the guard to make a test pass silently un-does the only mechanism that
-  keeps the privacy notice true.
+- **Do not remove or loosen the `DISCLOSED` allowlist in `tests/legal.test.ts`.** It is deliberate,
+  and it now holds **two** entries — the Turnstile widget and the Cloudflare Web Analytics beacon,
+  both disclosed on `/legal/privacy/`. Any future third party goes in the list **and** on that page
+  in the same commit. Loosening the guard to make a test pass silently un-does the only mechanism
+  that keeps the privacy notice true.
 - **Do not add a Subresource Integrity hash to the Turnstile script.** The endpoint is unversioned
   and Cloudflare rolls it in place, so a hash would guarantee a silent breakage of both forms. The
   full reasoning is in Plan 7's front matter.
@@ -607,6 +643,20 @@ the content landed, then `-D`. **The refusal is not evidence of unmerged work.**
   server.** Validation lives once, in `src/lib/enquiry.ts`, and the server is authoritative. In
   `astro dev` there is no Functions runtime, so a submission 404s and the script correctly reports
   that it could not reach the server. That is the design working, not a gap to fill.
+- **`_redirects` deliberately holds 15 rules, not the 22 rows in spec §3.** Seven of those rows are
+  **identity mappings** — a path redirecting to itself — and writing them creates redirect loops.
+  `/contact/` returning **200** on the live site is that trap staying shut, and it is asserted.
+- **The 410 is a Pages Function** (`functions/2016/09/22/test-post-blah.ts`) because `_redirects`
+  cannot express 410. **Do not "simplify" it into the redirects file** — the file has no syntax for
+  it, so the result would be a silent downgrade to a redirect or a 404.
+- **The analytics beacon and the Turnstile tag are `is:inline` so the third-party guard can see
+  them.** Astro rewrites a non-inline external `<script src>` into a local module whose body is
+  `import "https://…"`: the browser still makes the third-party request, but **no HTML attribute
+  names it**. Removing `is:inline` makes them invisible to the guard and the privacy notice can
+  silently become untrue.
+- **Do not "restore" the render-blocking rule in `tests/build.test.ts` to fail on any absolute
+  URL.** It was deliberately narrowed in Task 8 to test what its name claims. See the section on it
+  below — and note it is **not** the disclosure guard, which is separate and much stricter.
 
 ### Execution mode recommendation for Plan 8
 
