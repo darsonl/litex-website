@@ -130,3 +130,47 @@ describe('the legacy URL map', () => {
     expect(readFileSync(fn, 'utf8')).toContain('410');
   });
 });
+
+describe('discoverability', () => {
+  it('emits a sitemap index', () => {
+    // @astrojs/sitemap emits sitemap-index.xml plus sitemap-0.xml — NOT sitemap.xml.
+    // robots.txt must name the index by its real filename or it points at a 404.
+    expect(existsSync(join(DIST, 'sitemap-index.xml'))).toBe(true);
+    expect(existsSync(join(DIST, 'sitemap-0.xml'))).toBe(true);
+  });
+
+  it('lists the pages a buyer should be able to find', () => {
+    const xml = readFileSync(join(DIST, 'sitemap-0.xml'), 'utf8');
+    for (const route of [
+      'https://litex.com.tw/',
+      'https://litex.com.tw/products/',
+      'https://litex.com.tw/products/conductive-metal-yarn/',
+      'https://litex.com.tw/technology/',
+      'https://litex.com.tw/downloads/',
+      'https://litex.com.tw/news/',
+      'https://litex.com.tw/contact/',
+      'https://litex.com.tw/request-a-sample/',
+    ]) {
+      expect(xml, `sitemap is missing ${route}`).toContain(route);
+    }
+  });
+
+  // A confirmation page in search results is a page reached with no context, telling a
+  // stranger their enquiry was received when they never sent one.
+  it('excludes the enquiry confirmation and the 404 page', () => {
+    const xml = readFileSync(join(DIST, 'sitemap-0.xml'), 'utf8');
+    expect(xml).not.toContain('/enquiry-sent/');
+    expect(xml).not.toContain('/404');
+  });
+
+  it('marks the confirmation page noindex as well, not only unlisted', () => {
+    const robots = docFor('enquiry-sent/index.html').querySelector('meta[name="robots"]');
+    expect(robots?.getAttribute('content')).toContain('noindex');
+  });
+
+  it('serves a robots.txt that names the sitemap by its real filename', () => {
+    const robots = readFileSync(join(DIST, 'robots.txt'), 'utf8');
+    expect(robots).toContain('Sitemap: https://litex.com.tw/sitemap-index.xml');
+    expect(robots).toContain('User-agent: *');
+  });
+});
