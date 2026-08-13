@@ -5,24 +5,34 @@
 
 ---
 
-## ▶▶ SESSION 12 RESUME POINT — homepage redesign branch, finished and ready to merge
+## ▶▶ SESSION 13 RESUME POINT — everything merged; Plan 9 is the next work
 
-**Branch `homepage-redesign` holds two commits. It is NOT merged and has no PR.** Session 10 ran
-`/impeccable critique` on the homepage and rebuilt it; **the user reviewed that in a browser and
-approved the direction ("looks good")**. Session 11 finished the three shared-chrome fixes that were
-deliberately held back so one page could be reviewed before 36 were touched. **All three are done.**
+**`main` is at `30a62ce`, clean, nothing in flight.** PR #17 squash-merged the homepage rebuild and
+the three shared-chrome fixes; PR #19 cropped the lede figure off the catalog's page ground. Both
+feature branches are deleted. **Cloudflare parts A, B, C and E are done and the enquiry pipeline is
+PROVEN end-to-end** — a real submission reached `/enquiry-sent/?delivery=pending`, recorded in
+`docs/deployment.md` §6c.
 
-### → Do this next
+### → Do this next: write Plan 9
 
-**The branch is verified and ready. Open a PR and merge it.** Then the ranking in "Do this first"
-below still stands: finishing Cloudflare (parts B + C-secret + E) is worth more than starting Plan 9.
+**Nothing else is startable.** D (Resend) is blocked on registrar access to `litex.com.tw`, and F
+(the domain cutover) is deliberately last. So Plan 9 is the work: **Sveltia CMS at `/admin`** plus
+**the deferred `SpecTable` "Request this grade" CTA** (spec §5; it reads `fieldsFor('sample')` from
+`src/lib/enquiry.ts`, which already exists). Write it with `superpowers:writing-plans`, then execute
+it subagent-driven.
 
-Worth doing at some point, not blocking: **re-run `/impeccable critique` on the homepage** to see
-the score move off 25/40, now that both P0s and the two mobile P2s are closed.
+Two cheap things worth doing before that:
+
+1. ⚠ **Re-run Lighthouse on `/`.** The 100/100/100/100 result on record was measured on the **old,
+   image-free** homepage. The new one ships **three images**, one of them above the fold, so **LCP
+   and CLS are genuinely unmeasured** against spec §4's ≥95 budget. This is a manual Chrome DevTools
+   run — **you cannot do it yourself, ask the human.**
+2. **Re-run `/impeccable critique` on the homepage** to see the score move off 25/40, now that both
+   P0s and the two mobile P2s are closed.
 
 ### What is done — session 11, shared chrome
 
-Verified: **392 passing across 25 files** (was 373/23 — two new test files), 36 pages,
+Verified: **393 passing across 25 files** (was 373/23 — three new test files), 36 pages,
 `npm run test:a11y` 11 passing, detector clean.
 
 1. **P0 print, FIXED.** `BaseLayout` now carries a print-only letterhead — wordmark, legal name,
@@ -73,12 +83,29 @@ Verified: **392 passing across 25 files** (was 373/23 — two new test files), 3
   headline, empty box edge" to headline + lede + the full micrograph.
 - Door hover given a transition (was a hard snap); eyebrows removed (craft-floor ban).
 
-### Open decision, still not made — ASK, do not just do it
+### ✅ The white-page-ground decision is CLOSED (PR #19, `30a62ce`)
 
-**The catalog's white page ground bleeds into two images**, most visible in the micrograph on
-mobile. Honest provenance, but jarring on a near-black page. Cropping each to its dominant panel
-means new assets, new `provenance.json` entries and it touches `tests/provenance.test.ts`. **Ask
-before doing it.**
+The homepage lede figure was the catalog's three-panel composite, measured at **34% near-white**.
+It is now **cropped to the SEM micrograph alone** — `src/assets/products/cmy-cross-section.jpg`,
+`506×359`, native resolution, no upscaling.
+
+Resolution did not decide it: the macro panel is `508×354`, within a hair. The micrograph is
+grayscale on a mid-gray plate so it sits against the page instead of fighting the copper accent, it
+carries the instrument's own scale bar and ×300, and it shows what the lede actually claims — a
+metal layer over a polymer core.
+
+- **The product page keeps the whole composite.** There the caption explains all three panels and
+  the white reads as the document it came from. Do not "finish the job" by cropping it too.
+- **`archive/images/cmy-structure1.jpg` is NOT a better source.** It looks like one at 936×609, but
+  it is a slide holding the same two images placed *smaller* (~370×252 and ~433×312). Checked, so
+  nobody has to check again.
+- **The EMI thumbnail does not need this.** An earlier note here implied two images had the problem;
+  measured, `emi-shielding-woven-tube.jpg` is only **6.4%** near-white. Nothing to do.
+- **A guard now exists** in `tests/imagery.test.ts`: no homepage figure may exceed a quarter
+  near-white. ⚠ **Deliberately scoped to the homepage** — `sgs-test-report.jpg` is 74.5% near-white
+  and `taitronics-award.jpg` 74.3%, because they are photographs **of documents**, where paper is
+  supposed to be white. **Do not promote this to a site-wide rule**; it would either fail those two
+  or have to be loosened until it caught nothing.
 
 ### The critique itself
 

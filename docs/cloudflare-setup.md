@@ -181,12 +181,50 @@ MX record set to **DNS only (grey cloud)**, never proxied.)
 
 - [ ] **D6.** Wait. **Usually under 15 minutes; occasionally up to 72 hours.** The domain shows **Verified** when done.
 - [ ] **D7.** Go to **API Keys** → **Create API Key**, with **sending** permission. Copy it — **shown once**.
-- [ ] **D8.** After verification succeeds, add a **DMARC** record. Resend links its own guide; this protects the domain from being spoofed.
+- [ ] **D8.** After verification succeeds, consider a **DMARC** record. ⚠ **`litex.com.tw` publishes none today**, and Google Workspace is delivering the company's real mail — so **start at `p=none` (monitor only)** and read reports before tightening. A `p=quarantine` or `p=reject` added blind can send LiTex's own legitimate email to spam. This is a separate decision on a separate day, not a step to rush through here.
 
 > **Until D6 says Verified, every submission takes the stored-but-undelivered path.** That is the
 > design working, not a bug: the enquiry is written to KV first, and the visitor is told honestly
 > that it is queued and given the direct address. But it means **somebody must watch the KV
 > namespace** between first deploy and verification, or a real enquiry sits there unread.
+
+### ⚠ The recipient is a Google Group, and `delivered` cannot see past Resend
+
+Confirmed by LiTex 2026-08-14: **`sales@litex.com.tw` is a Google Group**, not a single mailbox, and
+the owner is a member of it. Live DNS agrees — the domain's MX is Google Workspace.
+
+Two consequences, one reassuring and one not.
+
+**Reassuring: decision 1 is now verified rather than merely sensible.** The root domain publishes
+exactly one SPF record, `v=spf1 include:_spf.google.com ~all`. Because Resend is set up on the
+**subdomain** `send.litex.com.tw`, its SPF lands there and **the root record is never touched**. The
+classic footgun — adding a second `v=spf1` TXT to the root, which is a permerror that degrades
+delivery of the company's *existing* mail — is avoided by construction. Do not "simplify" this later
+by moving Resend to the root.
+
+**Not reassuring: `outcome: 'delivered'` is a weaker claim than it looks.** `deliver()` in
+`functions/api/submit.ts` returns `res.ok` from the **Resend API**, which means only that *Resend
+accepted the message for delivery*. Everything that can go wrong at the Google Group happens
+afterwards and is invisible to the function:
+
+- the Group rejecting an external sender, depending on its "Who can post" setting;
+- the Group holding the message in a **moderation queue**;
+- Google classifying it as spam.
+
+In all three the visitor is shown a clean success and **the enquiry is never read**. The KV record
+still exists, so nothing is lost — but nobody knows to go looking.
+
+The risk is lower than for a fresh group, because `sales@` is the address published in LiTex's
+catalogs and on this site, so it demonstrably already accepts mail from strangers. **That is an
+inference, not a verified setting.**
+
+- [ ] **D9.** **Part D is not finished when Resend says Verified.** Submit a real enquiry through
+      the live form and **confirm it arrives in the Group**. If it does not, check the Group's *Who
+      can post* and *Message moderation* settings, and the spam folder, before touching any code.
+
+> Group forwarding can break DKIM on the copy each member receives, if the Group appends a footer.
+> **Today that is harmless**, because `litex.com.tw` publishes no DMARC policy, so there is nothing
+> to enforce a failure. Worth remembering if a DMARC policy is ever added.
 
 ---
 
@@ -221,14 +259,27 @@ zone: you change the nameservers at your registrar, and Cloudflare takes over **
 > **Before changing nameservers:** export or screenshot **every** existing DNS record. Cloudflare's
 > scan imports most automatically, but verify each one by eye afterwards. Do not rely on the scan.
 >
-> **The export checklist — tick every line:**
+> **The export checklist.** These are the records that were actually live on 2026-08-14, read from
+> public DNS — not a generic list. **Re-read DNS on the day; this is a snapshot.** The current
+> nameservers are **GoDaddy** (`ns29.domaincontrol.com`, `ns30.domaincontrol.com`).
 >
-> - [ ] **MX** records for `litex.com.tw` (inbound mail to `sales@`) — the critical ones
-> - [ ] **SPF** (TXT) for the root domain
-> - [ ] **The three Resend records for `send.litex.com.tw` from Part D** — SPF (TXT), DKIM (TXT), return-path (MX). ⚠ Easy to miss, because they are on a subdomain and were added months earlier. Drop them and enquiry delivery stops silently while the site keeps accepting and storing submissions.
-> - [ ] Any **DKIM/DMARC** records for the root domain
-> - [ ] Any **A / CNAME** records (the old site, webmail, anything else)
-> - [ ] Any **mail-provider or SaaS verification** TXT records
+> - [ ] **The five Google Workspace MX records** — `aspmx.l.google.com` (priority 1),
+>       `alt1`/`alt2.aspmx.l.google.com` (5), `alt3`/`alt4.aspmx.l.google.com` (10).
+>       **These deliver `sales@litex.com.tw`. Losing them kills LiTex's company email.**
+> - [ ] **SPF (TXT, root):** `v=spf1 include:_spf.google.com ~all` — exactly one, Google only.
+> - [ ] **DKIM (TXT):** `google._domainkey.litex.com.tw`. ⚠ **The value is longer than 255
+>       characters**, so it is stored as multiple quoted strings. This is the classic record for an
+>       importer to mangle or truncate — compare it character by character, not at a glance.
+> - [ ] **Two `google-site-verification=` TXT records** on the root.
+> - [ ] **The Resend records for `send.litex.com.tw` from Part D** — SPF (TXT), DKIM (TXT),
+>       return-path (MX). ⚠ Easy to miss, because they are on a subdomain and were added months
+>       earlier. Drop them and enquiry delivery stops silently while the site keeps storing
+>       submissions.
+> - [ ] Any **A / CNAME** records (the old site, webmail, anything else).
+>
+> **No `_dmarc.litex.com.tw` record exists** (confirmed NXDOMAIN 2026-08-14). That is fine and is
+> *not* a gap to fill during the migration — publishing a DMARC policy is its own decision on its own
+> day, and a careless `p=reject` would bounce legitimate company mail. Do not bundle it into Part F.
 
 - [ ] **F1.** Add `litex.com.tw` as a site in Cloudflare (**Add a site**), let it scan existing DNS.
 - [ ] **F2.** **Compare the imported records against your export, line by line.** Fix any gaps *before* step F3.
