@@ -1,6 +1,6 @@
 # Session handoff — LiTex website redesign
 
-**Written:** 2026-08-11, last updated 2026-08-14 (session 13 — **Plan 9 written, not executed; see the resume point below**)
+**Written:** 2026-08-11, last updated 2026-08-14 (session 13 — **Plan 9 written and merged, NOT executed; see the resume point below**)
 **Reason:** This file is the resume point between sessions.
 
 ---
@@ -13,11 +13,12 @@ production, and the only thing outstanding is a plan document waiting to be exec
 
 ### State
 
-- **`main` is at `3538a82`, clean.** Merged this session: **#17** homepage rebuild + the three
-  shared-chrome fixes, **#19** lede-figure crop, **#20** factory-strip background repaint, **#18**
-  and **#21** docs. All feature branches deleted.
-- **One PR open: [#22](https://github.com/darsonl/litex-website/pull/22)** — the Plan 9 document on
-  branch `docs/plan-9`. **Docs only, nothing executed.** Merge it (or not) before starting.
+- **`main` is at `a9f0f35`, clean, NO open PRs, all branches deleted.** Merged this session:
+  **#17** homepage rebuild + the three shared-chrome fixes, **#19** lede-figure crop, **#20**
+  factory-strip background repaint, **#18** / **#21** / **#22** docs.
+- **The Plan 9 document is on `main`** (merged as #22). **Nothing of it has been executed** — no
+  `@sveltia/cms` dependency, no `public/admin/`, no `scripts/sync-cms.mjs`, no CTA on the spec
+  table. Task 1 Step 1 is the next command anyone runs.
 - `npm run build` → **36 pages**. `npm test` → **393 across 25 files**. `test:a11y` → **11**.
 - **Cloudflare A, B, C, E done; the enquiry pipeline is PROVEN end-to-end** — a real submission
   reached `/enquiry-sent/?delivery=pending`. `docs/deployment.md` §6c.
@@ -27,7 +28,7 @@ production, and the only thing outstanding is a plan document waiting to be exec
 
 ### → Do this next: EXECUTE Plan 9
 
-**`docs/superpowers/plans/2026-08-14-litex-cms-and-grade-cta.md`** — written with
+**`docs/superpowers/plans/2026-08-14-litex-cms-and-grade-cta.md`** (on `main`) — written with
 `superpowers:writing-plans` and researched against live Sveltia documentation. **7 TDD tasks, real
 test code, no placeholders. Do not rewrite it; execute it** with
 `superpowers:subagent-driven-development`. Test count runs **393 → 417**.
