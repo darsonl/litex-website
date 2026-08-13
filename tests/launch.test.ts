@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, sep } from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { DIST, allHtmlFiles, docFor, routeFile, walk } from './helpers/dist';
 
@@ -246,5 +246,56 @@ describe('print stylesheet', () => {
   it('re-points the status colours for paper', () => {
     const css = bundledCss();
     expect(css, 'the in-production green survives into print').toContain('--c-in-production:#000');
+  });
+});
+
+describe('no internal link or asset is dead', () => {
+  /** Filesystem path -> the site-absolute URL path the build serves it at. */
+  const toUrlPath = (p: string) => p.split(sep).join('/');
+
+  /** Everything the build emitted, as site-absolute paths. */
+  const built = new Set(walk(DIST).map((f) => toUrlPath(f.slice(DIST.length))));
+
+  /** Does this site-absolute path resolve to something the build emitted? */
+  function resolves(path: string): boolean {
+    if (built.has(path)) return true; // a file, e.g. /catalogs/x.pdf
+    if (built.has(`${path}index.html`)) return true; // /contact/ -> /contact/index.html
+    if (built.has(`${path}/index.html`)) return true; // /contact  -> /contact/index.html
+    return false;
+  }
+
+  const relative = (file: string) => toUrlPath(file.slice(DIST.length + 1));
+
+  it('resolves every internal href on every page', () => {
+    const dead: string[] = [];
+
+    for (const file of allHtmlFiles()) {
+      const doc = docFor(relative(file));
+      for (const a of [...doc.querySelectorAll('a[href]')]) {
+        const href = a.getAttribute('href') ?? '';
+        // External links, in-page anchors, mailto: and tel: are not our routes.
+        if (!href.startsWith('/')) continue;
+        const path = href.split('#')[0].split('?')[0];
+        if (path === '') continue;
+        if (!resolves(path)) dead.push(`${relative(file)} -> ${href}`);
+      }
+    }
+
+    expect(dead, `dead internal links:\n${dead.join('\n')}`).toEqual([]);
+  });
+
+  it('resolves every image, script and stylesheet it references', () => {
+    const dead: string[] = [];
+
+    for (const file of allHtmlFiles()) {
+      const doc = docFor(relative(file));
+      for (const el of [...doc.querySelectorAll('img[src], script[src], link[href]')]) {
+        const url = el.getAttribute('src') ?? el.getAttribute('href') ?? '';
+        if (!url.startsWith('/')) continue;
+        if (!resolves(url.split('?')[0])) dead.push(`${relative(file)} -> ${url}`);
+      }
+    }
+
+    expect(dead, `dead asset references:\n${dead.join('\n')}`).toEqual([]);
   });
 });
