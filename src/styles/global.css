@@ -62,3 +62,78 @@ h3 { font-size: var(--t-20); margin: var(--s-8) 0 var(--s-3); }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Print. The realistic use is a buyer printing a specification table to take
+   into a meeting, or filing one against a purchase order — so the priorities
+   are legible tables, visible link targets, and no ink wasted on chrome.
+   --------------------------------------------------------------------------- */
+@media print {
+  :root {
+    /* Paper is white and ink is expensive. Re-point the tokens rather than
+       overriding every rule that consumes them. */
+    --c-base: #FFFFFF;
+    --c-raised: #FFFFFF;
+    --c-text-1: #000000;
+    --c-text-2: #333333;
+    --c-line: #999999;
+    --c-copper: #000000;
+    --c-copper-lift: #000000;
+    /* Status colours print too, and a green pill on a monochrome office printer
+       becomes an indistinct grey blob. Found by rendering the page in print media
+       and reading the computed colour, not by reasoning about the stylesheet.
+       Losing the hue costs nothing here: the pill spells out IN PRODUCTION or
+       LEGACY in words, so the colour was never carrying the meaning alone. */
+    --c-in-production: #000000;
+    --c-legacy: #333333;
+  }
+
+  body { background: #FFFFFF; color: #000000; }
+
+  /* Navigation, the footer, the skip link and both enquiry forms are interactive
+     surfaces with no meaning on paper.
+
+     The masthead hook is [data-masthead], NOT [data-sitenav] — verified against
+     src/components/SiteNav.astro and the built HTML. A print rule hiding a
+     selector that matches nothing fails silently, and the only person who would
+     ever notice is the one holding the paper. */
+  header[data-masthead],
+  footer[data-sitefooter],
+  .skip-link,
+  form.enquiry,
+  .cf-turnstile {
+    display: none !important;
+  }
+
+  /* Hiding the form alone strands its section heading above an empty column —
+     "Send an enquiry" followed by nothing, on half a sheet of paper. Found by
+     rendering /contact/ in print media and looking at it; no computed-style check
+     would have shown it, because every individual element was styled correctly.
+
+     Deliberately its own rule rather than another entry in the list above: one
+     unsupported selector invalidates the ENTIRE selector list it appears in, so
+     :has() must not be able to take the chrome-hiding rules down with it. */
+  section:has(> form.enquiry) { display: none; }
+
+  .page { max-width: none; padding: 0; }
+
+  /* A printed link is a dead end unless the reader can see where it went.
+     Internal links are left alone: a bare path tells them nothing without the
+     domain, and printing "(/products/)" after every link is noise. */
+  main a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    word-break: break-all;
+  }
+
+  /* Keep a specification table intact. Split across a page boundary it loses its
+     header row, which is the part carrying the units — and a spec value without
+     its unit is exactly the failure this whole site exists to prevent. */
+  table { break-inside: avoid; border-collapse: collapse; }
+  thead { display: table-header-group; }
+  tr, img, figure { break-inside: avoid; }
+
+  h1, h2, h3 { break-after: avoid; }
+
+  img { max-width: 100% !important; }
+}

@@ -1,0 +1,12 @@
+# LiTex Textile & Technology
+#
+# Everything on this site is public and meant to be found. The two exclusions are
+# handled per-page with <meta name="robots" content="noindex"> — the 404 page and the
+# enquiry confirmation — because those are about how a page should be treated once
+# reached, not about whether a crawler may fetch it. Disallowing them here would
+# instead stop crawlers reading the very tag that tells them not to index.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://litex.com.tw/sitemap-index.xml

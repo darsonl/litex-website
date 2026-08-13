@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { DIST, docFor, routeFile } from './helpers/dist';
+import { DIST, allHtmlFiles, docFor, routeFile, walk } from './helpers/dist';
 
 describe('404 handling', () => {
   // Cloudflare Pages treats a build output with no root 404.html as a single-page app
@@ -128,5 +128,123 @@ describe('the legacy URL map', () => {
     const fn = new URL('../functions/2016/09/22/test-post-blah.ts', import.meta.url);
     expect(existsSync(fn), 'the 410 Function is missing').toBe(true);
     expect(readFileSync(fn, 'utf8')).toContain('410');
+  });
+});
+
+describe('discoverability', () => {
+  it('emits a sitemap index', () => {
+    // @astrojs/sitemap emits sitemap-index.xml plus sitemap-0.xml — NOT sitemap.xml.
+    // robots.txt must name the index by its real filename or it points at a 404.
+    expect(existsSync(join(DIST, 'sitemap-index.xml'))).toBe(true);
+    expect(existsSync(join(DIST, 'sitemap-0.xml'))).toBe(true);
+  });
+
+  it('lists the pages a buyer should be able to find', () => {
+    const xml = readFileSync(join(DIST, 'sitemap-0.xml'), 'utf8');
+    for (const route of [
+      'https://litex.com.tw/',
+      'https://litex.com.tw/products/',
+      'https://litex.com.tw/products/conductive-metal-yarn/',
+      'https://litex.com.tw/technology/',
+      'https://litex.com.tw/downloads/',
+      'https://litex.com.tw/news/',
+      'https://litex.com.tw/contact/',
+      'https://litex.com.tw/request-a-sample/',
+    ]) {
+      expect(xml, `sitemap is missing ${route}`).toContain(route);
+    }
+  });
+
+  // A confirmation page in search results is a page reached with no context, telling a
+  // stranger their enquiry was received when they never sent one.
+  it('excludes the enquiry confirmation and the 404 page', () => {
+    const xml = readFileSync(join(DIST, 'sitemap-0.xml'), 'utf8');
+    expect(xml).not.toContain('/enquiry-sent/');
+    expect(xml).not.toContain('/404');
+  });
+
+  it('marks the confirmation page noindex as well, not only unlisted', () => {
+    const robots = docFor('enquiry-sent/index.html').querySelector('meta[name="robots"]');
+    expect(robots?.getAttribute('content')).toContain('noindex');
+  });
+
+  it('serves a robots.txt that names the sitemap by its real filename', () => {
+    const robots = readFileSync(join(DIST, 'robots.txt'), 'utf8');
+    expect(robots).toContain('Sitemap: https://litex.com.tw/sitemap-index.xml');
+    expect(robots).toContain('User-agent: *');
+  });
+});
+
+describe('favicon', () => {
+  it('ships an SVG icon and a touch icon', () => {
+    expect(existsSync(join(DIST, 'favicon.svg'))).toBe(true);
+    expect(existsSync(join(DIST, 'apple-touch-icon.png'))).toBe(true);
+  });
+
+  it("uses the site's own copper, not an arbitrary colour", () => {
+    expect(readFileSync(join(DIST, 'favicon.svg'), 'utf8')).toContain('#C87941');
+  });
+
+  // Drawn as paths deliberately: an SVG favicon containing a text element renders in
+  // whatever font the viewer happens to have installed, which is not a design decision
+  // anyone made. Archivo is self-hosted for the page and unavailable to a favicon.
+  //
+  // Comments are stripped before the check. The file documents why it contains no text
+  // element, and that explanation itself contains the banned string — a containment ban
+  // cannot tell markup from prose about markup. Third time this pattern has bitten in
+  // this plan (see the _redirects header comment and the 404 homepage check): when a
+  // guard bans a string, strip or parse away the places the string may legitimately be
+  // discussed, and assert against what the machine actually reads.
+  it('depends on no font being installed', () => {
+    const markup = readFileSync(join(DIST, 'favicon.svg'), 'utf8')
+      .replace(/<!--[\s\S]*?-->/g, '');
+    expect(markup).not.toContain('<text');
+  });
+
+  it('is linked from every page', () => {
+    for (const file of allHtmlFiles()) {
+      expect(readFileSync(file, 'utf8'), `${file} has no favicon link`).toContain('rel="icon"');
+    }
+  });
+});
+
+describe('print stylesheet', () => {
+  const bundledCss = () =>
+    walk(join(DIST, '_astro'))
+      .filter((f) => f.endsWith('.css'))
+      .map((f) => readFileSync(f, 'utf8'))
+      .join('\n');
+
+  it('ships print rules in the built CSS', () => {
+    expect(bundledCss(), 'no @media print rules reached the build').toContain('@media print');
+  });
+
+  // The plan specified header[data-sitenav]. The real attribute is data-masthead —
+  // verified against src/components/SiteNav.astro and the built HTML. A print rule
+  // hiding a selector that matches nothing fails silently and would only ever be
+  // noticed by someone holding the paper, so the attributes are pinned here.
+  it('hides chrome using the attributes the chrome actually has', () => {
+    const css = bundledCss();
+    expect(css, 'masthead would still print').toContain('data-masthead');
+    expect(css, 'footer would still print').toContain('data-sitefooter');
+  });
+
+  it('still carries those hooks in the built HTML', () => {
+    const doc = docFor('index.html');
+    expect(doc.querySelector('header[data-masthead]')).toBeTruthy();
+    expect(doc.querySelector('footer[data-sitefooter]')).toBeTruthy();
+  });
+
+  // Hiding the form alone strands "Send an enquiry" above an empty column on
+  // /contact/. Confirmed by rendering the page in print media and looking at it.
+  // Note the minifier removes the space inside the combinator.
+  it('hides the section a hidden form would otherwise leave headed and empty', () => {
+    expect(bundledCss()).toContain('section:has(>form.enquiry)');
+  });
+
+  // A green status pill is an indistinct grey blob on an office laser printer.
+  it('re-points the status colours for paper', () => {
+    const css = bundledCss();
+    expect(css, 'the in-production green survives into print').toContain('--c-in-production:#000');
   });
 });
