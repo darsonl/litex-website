@@ -198,8 +198,8 @@ Now restore and confirm the tree is exactly as it was:
 
 ```bash
 cp /tmp/SiteNav.astro.bak src/components/SiteNav.astro
-git diff --stat src/components/SiteNav.astro   # the new block only
-grep -c '56\.25rem' src/components/SiteNav.astro   # must be 1
+git diff --stat src/components/SiteNav.astro   # the new block only, insertions only
+grep -c 'min-width: 56\.25rem' src/components/SiteNav.astro   # must be 1
 npm run build && npx vitest run tests/responsive.test.ts
 ```
 
