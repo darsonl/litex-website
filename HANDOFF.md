@@ -67,11 +67,20 @@ heroImage guard and the two CTA sweeps.
 
 - **Re-run `/impeccable critique` on the homepage** to see the score move off 25/40, now that both
   P0s, the two mobile P2s and the white-page-ground decision are all closed.
-- **Nobody has confirmed the Google Group's posting settings.** `sales@litex.com.tw` is a Google
-  Group with the owner as a member — but `outcome: 'delivered'` only means the Resend API accepted
-  the message, so a Group rejection, moderation hold or spam classification is invisible to the
-  endpoint. `docs/cloudflare-setup.md` **D9** covers it: Part D is finished when an enquiry is
-  confirmed to *arrive*, not when Resend says Verified.
+- ✅ **The inbox is confirmed, 2026-08-14.** `sales@litex.com.tw` is a Google Group with **two
+  members — the owner and a colleague**, both of whom read it. This closes what was the most urgent
+  open question on the list: the site's "reply within one working day" promise is made to a mailbox
+  that real people monitor.
+- ✅ **KV storage confirmed by hand, 2026-08-14.** Queued submissions are present in the store.
+- ⚠ **Still unconfirmed, and now the single most consequential unchecked setting: the Group's
+  *Who can post*.** Being monitored is not the same as accepting the mail. Resend will send from
+  **`website@send.litex.com.tw`**, which is **not a Group member**, so a members-only posting
+  policy — a common default — will bounce or moderate every enquiry. **The endpoint cannot detect
+  this**: `outcome: 'delivered'` means only that Resend's API accepted the message, so a Group
+  rejection, moderation hold or spam classification is invisible and `delivered` would be untrue.
+  **This is checkable today, with no registrar access and before Resend exists.** See
+  `docs/cloudflare-setup.md` **D9**: Part D is finished when an enquiry is confirmed to *arrive*,
+  not when Resend says Verified.
 
 ### What is done — session 11, shared chrome
 
@@ -683,11 +692,14 @@ against the code and the live site on 2026-08-13 and the notes below are correct
 
 Ordered by how much damage the wrong answer does.
 
-1. **Who actually receives enquiries?** ⚠ **New, and now the most urgent of all of these.** The
-   whole contact flow delivers to `sales@litex.com.tw`. Nobody has confirmed that inbox is
-   monitored, or by whom, or how fast. `/enquiry-sent/` promises a reply "within one working day".
-   **The most carefully built enquiry pipeline on earth is worth nothing if the inbox is not read** —
-   and the site now makes a promise on LiTex's behalf. Ask before launch.
+1. ✅ **ANSWERED 2026-08-14 — who receives enquiries.** `sales@litex.com.tw` is a Google Group with
+   **two members, the owner and a colleague**, both of whom read it. The site's "reply within one
+   working day" promise is therefore made to a monitored mailbox. **Do not re-raise this.**
+   ⚠ **What replaces it as the live risk is narrower and still open: the Group's *Who can post*.**
+   Resend sends from `website@send.litex.com.tw`, not a Group member, so a members-only policy
+   bounces or moderates every enquiry — and the endpoint reports `delivered` regardless, because
+   that word only means Resend's API accepted it. Checkable today without registrar access.
+   `docs/cloudflare-setup.md` **D9**.
 1b. **Should the `*.pages.dev` preview host be de-indexed once the custom domain is live?** ⚠ **New.**
    `robots.txt` already names the **custom** domain's sitemap (`https://litex.com.tw/sitemap-index.xml`),
    and every canonical points at `litex.com.tw`, so the duplicate-content risk is small — but
