@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  FORM_TYPES, fieldsFor, validateEnquiry, HONEYPOT_FIELD,
+  FORM_TYPES, fieldsFor, validateEnquiry, HONEYPOT_FIELD, PREFILLABLE, MAX_LENGTHS,
 } from '../src/lib/enquiry';
 
 const validContact = {
@@ -107,5 +107,40 @@ describe('validateEnquiry', () => {
   it('never returns values for fields the form did not define', () => {
     const r = validateEnquiry('contact', { ...validContact, isAdmin: 'true' });
     expect(r.values).not.toHaveProperty('isAdmin');
+  });
+});
+
+describe('query-string prefill', () => {
+  it('allows only fields the sample form actually has', () => {
+    const sampleFields = fieldsFor('sample').map((f) => f.name);
+    for (const name of PREFILLABLE) {
+      expect(sampleFields, `${name} is prefillable but is not a sample field`).toContain(
+        name,
+      );
+    }
+  });
+
+  // The honeypot is the whole spam defence. A URL that could fill it would let anyone
+  // hand out a link that makes every submission look like a bot.
+  it('never allows the honeypot', () => {
+    expect(PREFILLABLE).not.toContain(HONEYPOT_FIELD);
+  });
+
+  // Prefilling an identity field from a URL means a link can put words in the sender's
+  // mouth. Only the two fields describing what they are asking about are allowed.
+  it('never allows an identity field', () => {
+    for (const name of ['name', 'company', 'email']) {
+      expect(PREFILLABLE, `${name} must not be settable from a URL`).not.toContain(name);
+    }
+  });
+
+  it('covers exactly product and grade', () => {
+    expect([...PREFILLABLE].sort()).toEqual(['grade', 'product']);
+  });
+
+  it('has a length ceiling for every prefillable field', () => {
+    for (const name of PREFILLABLE) {
+      expect(MAX_LENGTHS[name], `${name} has no MAX_LENGTHS ceiling`).toBeGreaterThan(0);
+    }
   });
 });

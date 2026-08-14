@@ -36,6 +36,19 @@ export const MAX_LENGTHS: Readonly<Record<string, number>> = {
  */
 export const HONEYPOT_FIELD = 'website';
 
+/**
+ * The only fields a query string may fill in, so the spec table's "Request this grade"
+ * CTA can carry the product forward instead of handing the engineer a blank form.
+ *
+ * An allowlist rather than a denylist, and deliberately just these two. Both describe
+ * what is being asked about; neither says anything about who is asking. Identity fields
+ * are excluded because a prefilled URL is a link anyone can hand out, and a link that
+ * fills in `name` or `email` puts words in the sender's mouth. The honeypot is excluded
+ * for the obvious reason: a URL that filled it would make every submission look like a
+ * bot. tests/enquiry.test.ts asserts all three properties.
+ */
+export const PREFILLABLE: readonly string[] = ['product', 'grade'];
+
 const SHARED: readonly Field[] = [
   { name: 'name', label: 'Your name', type: 'text', required: true, autocomplete: 'name' },
   { name: 'company', label: 'Company', type: 'text', required: true, autocomplete: 'organization' },

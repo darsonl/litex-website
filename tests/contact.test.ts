@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { allHtmlFiles, docFor } from './helpers/dist';
+import { DIST, allHtmlFiles, docFor } from './helpers/dist';
 
 describe('/contact/', () => {
   const doc = docFor('contact/index.html');
@@ -203,5 +204,38 @@ describe('every product spec table routes to a sample request — and only those
       'a non-product spec table is inviting a sample request. Compliance claims, patents\n' +
         'and the heating comparison are not grades anyone can ask for a sample of:',
     ).toEqual([]);
+  });
+});
+
+describe('the sample form prefill script', () => {
+  const html = () => readFileSync(join(DIST, 'request-a-sample', 'index.html'), 'utf8');
+
+  it('ships a prefill script on the sample form', () => {
+    expect(html()).toContain('data-prefill');
+  });
+
+  // The value comes from a URL a stranger can hand out. Assigning it to .value is inert;
+  // building markup from it is an injection. Asserted on the shipped source because this
+  // is the kind of line a later refactor "simplifies".
+  //
+  // Found by content, because the marker cannot live on the script tag: Astro strips
+  // every other attribute from a <script> carrying define:vars, and even without it the
+  // tag is emitted bare. data-prefill is on the FORM, and the script names it in its own
+  // selector — so this search is for the code that reads the allowlist, which is exactly
+  // the code these assertions are about.
+  it('assigns values rather than building markup from them', () => {
+    const doc = docFor('request-a-sample/index.html');
+    const script = [...doc.querySelectorAll('script')]
+      .map((s) => s.textContent ?? '')
+      .find((t) => t.includes('data-prefill')) ?? '';
+    expect(script, 'no prefill script found').not.toBe('');
+    expect(script, 'prefill must not write markup').not.toContain('innerHTML');
+    expect(script, 'prefill must not write markup').not.toContain('insertAdjacentHTML');
+  });
+
+  it('does not put a prefill script on the contact form, which has no such fields', () => {
+    expect(readFileSync(join(DIST, 'contact', 'index.html'), 'utf8')).not.toContain(
+      'data-prefill',
+    );
   });
 });

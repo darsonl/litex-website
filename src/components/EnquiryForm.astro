@@ -1,6 +1,8 @@
 ---
 // src/components/EnquiryForm.astro
-import { fieldsFor, HONEYPOT_FIELD, MAX_LENGTHS, type FormType } from '../lib/enquiry';
+import {
+  fieldsFor, HONEYPOT_FIELD, MAX_LENGTHS, PREFILLABLE, type FormType,
+} from '../lib/enquiry';
 import { COMPANY } from '../lib/company';
 
 interface Props {
@@ -26,6 +28,27 @@ interface Props {
 // — the server verifies every token independently.
 const { formType, submitLabel, sitekey = '0x4AAAAAAEOqzFlvFS397MkG' } = Astro.props;
 const fields = fieldsFor(formType);
+
+// Only the sample form has fields worth carrying in from a link; the contact form has
+// none, so it ships no prefill script at all rather than one that can never do anything.
+const prefillable = formType === 'sample' ? PREFILLABLE : [];
+
+/**
+ * The allowlist and its length ceilings, as one object the script reads off the form:
+ * {"product":80,"grade":40}.
+ *
+ * Carried in a data attribute rather than through define:vars, and that is not a style
+ * choice — Astro strips every other attribute off a <script> that uses define:vars, so
+ * the data-prefill marker silently vanished from the built page and could not be found
+ * by a test or by anything else. Verified by building it both ways.
+ *
+ * Keeping the names and the ceilings in a single object also means they cannot drift
+ * apart: a field that is prefillable but has no ceiling cannot be expressed here.
+ */
+const prefillConfig =
+  prefillable.length > 0
+    ? JSON.stringify(Object.fromEntries(prefillable.map((n) => [n, MAX_LENGTHS[n] ?? 80])))
+    : undefined;
 ---
 <form
   class="enquiry"
@@ -34,6 +57,7 @@ const fields = fieldsFor(formType);
   novalidate
   data-enquiry-form
   data-contact-email={COMPANY.email}
+  data-prefill={prefillConfig}
 >
   <input type="hidden" name="formType" value={formType} />
 
@@ -91,6 +115,34 @@ const fields = fieldsFor(formType);
 
   <p class="status" data-form-status role="status" aria-live="polite" hidden></p>
 </form>
+
+{prefillConfig && (
+  <script is:inline>
+    // The spec table links here with ?product=… so the engineer does not retype what
+    // they were just reading.
+    //
+    // Everything here is untrusted: the query string comes from a URL a stranger can
+    // hand out. Three rules follow. Only names in the form's data-prefill allowlist are
+    // read, so a crafted link cannot reach the honeypot or an identity field. The value
+    // is ASSIGNED to .value — never used to build markup — so it is inert text rather
+    // than a script. And the same length ceilings the server enforces are applied here,
+    // so a link cannot push a field past what validateEnquiry() would accept.
+    (function () {
+      const form = document.querySelector('form[data-prefill]');
+      if (!form) return;
+      const limits = JSON.parse(form.dataset.prefill);
+      const params = new URLSearchParams(window.location.search);
+      for (const name of Object.keys(limits)) {
+        const raw = params.get(name);
+        if (raw === null) continue;
+        const field = form.querySelector('[name="' + name + '"]');
+        if (!(field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement)) continue;
+        if (field.value !== '') continue; // never overwrite something already typed
+        field.value = raw.slice(0, limits[name]);
+      }
+    })();
+  </script>
+)}
 
 <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
