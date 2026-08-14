@@ -1,39 +1,73 @@
 # Session handoff — LiTex website redesign
 
-**Written:** 2026-08-11, last updated 2026-08-14 (session 14 — **Plan 9 EXECUTED; one human check outstanding**)
+**Written:** 2026-08-11, last updated 2026-08-14 (session 15 — **sticky masthead shipped; the CMS round-trip was RUN and found three real defects, all fixed**)
 **Reason:** This file is the resume point between sessions.
 
 ---
 
-## ▶▶ SESSION 15 RESUME POINT — Plan 9 is BUILT
+## ▶▶ SESSION 16 RESUME POINT
 
-All seven Plan 9 tasks are implemented and committed on **`feat/plan-9-cms`**. The CMS exists at
-`/admin`, the spec table has its CTA, and the sample form prefills from it.
+**`main` is at `bdc858c`, clean, no open PRs, all work merged.**
+`npm run build` → **36 pages** · `npm test` → **445 across 27 files** · `test:a11y` → **11** ·
+detector clean. The `cms` branch exists and is reset to `main`.
 
-### State
+### What session 15 did
 
-- `npm run build` → **36 pages** (unchanged — `/admin` is static, not a route), plus
-  `dist/admin/{index.html,config.yml,sveltia-cms.js}`.
-- `npm test` → **426 across 26 files** (was 393/25). `npm run test:a11y` → **11**. Detector clean.
-- **Cloudflare A, B, C, E done; the enquiry pipeline is PROVEN end-to-end.** `docs/deployment.md` §6c.
-- ✅ Lighthouse still 100 across the board as of 2026-08-14. Re-run after the Part F cutover.
+1. **Sticky masthead**, brainstormed → spec → plan → subagent-driven → merged (#25), then **fixed**
+   (#26) because the drop shadow was **invisible**: black at 45% over `--c-base #0A0C0D` is contrast
+   **1.035**. Replaced by a surface lift plus a brighter edge (`--c-line-lift #3A4145`). ⚠ **On this
+   palette the BORDER separates surfaces, not the fill** — `--c-raised` over `--c-base` is only 1.042.
+2. **The CMS round-trip was RUN** — and `/admin` was comprehensively broken. Three defects, all
+   fixed in #28/#29/#30. See the block below; it is the most important thing in this file.
 
-### ⚠ The one thing left: a round-trip through the real CMS
+### 🔴 What the CMS round-trip found — do not re-derive, do not re-trust the old claims
 
-**Nothing in the repo can prove what Sveltia WRITES.** Two specific questions, both needing a human,
-a browser and a GitHub PAT — sign in at `/admin`, save an entry, read the pull request diff:
+1. **Sveltia does NOT implement Editorial Workflow.** Its own schema: *"Note that Editorial Workflow
+   is not yet supported in Sveltia CMS."* `publish_mode` is accepted and does nothing. **Plan 9's
+   whole safety argument was false.** The first real save committed **straight to `main`**, broke the
+   build (`Expected type "string", received "object"`), and froze deploys until it was deleted (#29).
+   **Now: the CMS writes to a `cms` branch that nothing deploys**, and a human opens the PR to `main`.
+   `publish_mode` must stay ABSENT — a test enforces it, because setting it restores false confidence
+   rather than safety.
+2. **Sveltia writes `publishedAt` UNQUOTED.** A string widget governs what may be TYPED, not how the
+   value is SERIALIZED. `scripts/normalize-frontmatter.mjs` quotes it inside `npm run build`.
+   **Do NOT loosen the schema to accept a `Date`** — reconstructing `+08:00` from an instant is only
+   correct while every post is Taiwanese.
+3. **`media_folder` is REQUIRED** or Sveltia refuses to start at all. Omitting it — and asserting its
+   absence — made `/admin` totally unusable (#28).
 
-1. **Is `publishedAt` quoted?** If it writes `publishedAt: 2017-…` unquoted, Astro parses it as a
-   `Date` and the schema rejects it. That failure is visible on the PR's Pages check, which is the
-   safety net working. **The fix is a normalizer that quotes the value — `scripts/normalize-frontmatter.mjs`
-   — never a looser regex and never accepting a `Date`.**
-2. **Does editing a product preserve `heroImage`?** The CMS has no field for it by policy. If
-   Sveltia drops front matter it does not know about, the product silently loses its photograph and
-   *nothing else would notice*, because `heroImage` is `.optional()`. A guard added in Task 3 now
-   requires every product entry to have one, so this shows up as a red check instead of a missing
-   image. If that test fails after a CMS edit, this is the cause.
+### 🔴 The pattern behind all of them, and the shadow bug too
 
-`docs/cms.md` is the full account — sign-in, what the CMS deliberately cannot do, and why.
+**A test that reads configuration or a value AS DATA passes while the behaviour it names does not
+exist.** `publish_mode` asserted present. `media_folder` asserted absent. Shadow alpha asserted 0.45.
+All green; all broken; every one found by a human opening the page. **`tests/cms-boot.test.ts` boots
+the real bundle in a real browser** — that is the shape of guard that catches this class. Prefer
+exercising behaviour over asserting values.
+
+### → Do this next
+
+1. **Finish the round-trip — the `heroImage` half is still unanswered.** Edit a product through
+   `/admin`, and read the diff on the `cms` branch: does `heroImage` survive, or does Sveltia drop
+   front matter it has no widget for? `tests/cms.test.ts` requires every product to have one, but
+   **there is NO CI** — Pages runs `npm run build`, never `npm test` — so nothing checks it
+   automatically. Read the diff by eye.
+2. **Check the Google Group's *Who can post*.** `sales@litex.com.tw` is confirmed as a Group with two
+   readers. But Resend will send from `website@send.litex.com.tw`, **not a member**, so a members-only
+   policy bounces or moderates every enquiry — and the endpoint reports `delivered` regardless,
+   because that only means Resend's API accepted it. **Checkable today, no registrar access needed.**
+3. **`ENQUIRY_TO` has no fallback** (`functions/api/submit.ts:131`). Latent, not live. One-line fix.
+4. **Re-run `/impeccable critique`** on the homepage; it has not been scored since 25/40.
+
+### ⚠ One unexplained observation, recorded rather than resolved
+
+`npm run test:a11y` failed once (`1 failed | 10 passed`) and **could not be reproduced in 10
+subsequent runs**, and the failing assertion was not captured. Plausible but unproven: PR #26 made the
+masthead's `background-color` scroll-animated, and `tests/a11y.test.ts` asserts on axe's `incomplete`
+results as well as violations — a contrast check sampled mid-animation could land there. **If it
+recurs, capture the full output**; the assertion name identifies the page and rule immediately.
+
+`docs/cms.md` is the full account of the CMS — sign-in, the branch workflow, and what it deliberately
+cannot do.
 
 ### Where the plan was wrong, and what was done instead
 
