@@ -88,6 +88,12 @@ Set all five for **both** the Production and Preview environments. A preview dep
 `SUBMISSIONS` binding throws on the KV write and returns the honest `failed` outcome — correct
 behaviour, confusing to debug if you have forgotten why.
 
+**`/admin` needs none of this.** The content editor added in Plan 9 is three static files
+under `public/` — a shell, a `config.yml` and a vendored JS bundle — copied verbatim into
+`dist/`. No binding, no variable, no secret, no build setting and no route. It authenticates
+against GitHub with a personal access token the editor pastes in, so there is **no OAuth
+backend and no second deployable**; see `docs/cms.md`.
+
 **Retention.** Records are written with `expirationTtl` = `RETENTION_SECONDS` =
 `180 * 24 * 60 * 60` (**180 days**), after which Cloudflare deletes them automatically.
 `/legal/privacy/` states 180 days in prose and `tests/legal.test.ts` asserts that string is on the
