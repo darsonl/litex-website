@@ -179,11 +179,34 @@ describe('newsSchema', () => {
       .toBe(false);
   });
 
-  it('requires provenance, because every post is a republication', () => {
-    const { sourceUrl, ...noUrl } = validPost;
-    expect(news.safeParse(noUrl).success).toBe(false);
-    const { sourceNote, ...noNote } = validPost;
-    expect(news.safeParse(noNote).success).toBe(false);
+  /**
+   * ⚠ This block replaces a test called "requires provenance, because every post is a
+   * republication", which asserted that a post missing either sourceUrl or sourceNote was
+   * invalid. That premise died on 2026-08-14: litextextile.wordpress.com is being retired
+   * and this site is now where LiTex publishes news, so an original post has no original
+   * to point at and inventing one would be worse than omitting it.
+   *
+   * The obligation did not disappear — it narrowed to the thing that creates it.
+   * Republishing someone's words means saying what you changed; writing your own does not.
+   */
+  it('lets an original post stand with no source at all', () => {
+    const { sourceUrl, sourceNote, ...original } = validPost;
+    expect(news.safeParse(original).success).toBe(true);
+  });
+
+  it('still demands a source note from anything that names a source', () => {
+    const { sourceNote, ...urlOnly } = validPost;
+    const result = news.safeParse(urlOnly);
+    expect(result.success, 'a republished post escaped without disclosing what changed')
+      .toBe(false);
+    if (!result.success) expect(JSON.stringify(result.error.issues)).toContain('sourceNote');
+  });
+
+  // A note without a URL is harmless and occasionally useful — an editorial aside about
+  // an original post. Only the URL creates the obligation.
+  it('accepts a note with no source URL', () => {
+    const { sourceUrl, ...noteOnly } = validPost;
+    expect(news.safeParse(noteOnly).success).toBe(true);
   });
 
   it('holds the summary to the meta-description budget', () => {

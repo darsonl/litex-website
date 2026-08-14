@@ -22,7 +22,25 @@
 backend:
   name: github
   repo: darsonl/litex-website
-  branch: main
+  # ⚠ NOT main, and this is the whole safety story. Read before changing it.
+  #
+  # This config used to say `publish_mode: editorial_workflow` and `branch: main`, on the
+  # belief that every save would open a pull request whose preview build would enforce the
+  # zod rules a YAML config cannot express. That belief was false. Sveltia's own schema
+  # says so outright: "Note that Editorial Workflow is not yet supported in Sveltia CMS."
+  # The option is accepted and silently does nothing.
+  #
+  # What actually happened the first time anyone saved a post: it committed straight to
+  # main with an unquoted timestamp and `sourceUrl: n/a`, main stopped building, and
+  # deploys were frozen until the entry was deleted. There was no safety net at all.
+  #
+  # So the net is this branch. Saves land on `cms`, which nothing deploys. A human opens a
+  # pull request from `cms` to `main`, and THAT build is the check — the same enforcement
+  # the editorial workflow was supposed to provide, using the one mechanism Sveltia has.
+  #
+  # The branch must exist before anyone signs in. After merging cms -> main, reset cms to
+  # main so the next edit starts from what is live. docs/cms.md carries the procedure.
+  branch: cms
 
 # ⚠ Required by Sveltia, and it must stay pointed at a folder nothing uses.
 #
@@ -40,15 +58,19 @@ backend:
 # on purpose: anything landing here shows up in the pull request, which is the point.
 media_folder: uploads
 
-# Every save becomes a pull request instead of a commit to main.
+# ⚠ DELIBERATELY ABSENT: publish_mode.
 #
-# This is the safety net for everything the config below cannot express. The zod schemas
-# carry cross-field rules — a specTable requires a sourceNote, publishedAt must be a real
-# calendar date and not just a well-formed one, a heroImage may not be AI generated — and
-# no YAML config can enforce those. What CAN enforce them is the build, and Cloudflare
-# Pages builds every pull request. So a bad entry fails a visible check on a PR rather
-# than breaking production the moment someone clicks Save.
-publish_mode: editorial_workflow
+# It used to say `editorial_workflow`, and a test asserted it. Sveltia's own schema
+# documents the truth — "Editorial Workflow is not yet supported in Sveltia CMS" — so the
+# setting was accepted, did nothing, and every save went straight to the deploy branch.
+# Setting it again would restore a false sense of safety, not the safety. The `branch: cms`
+# above is what actually provides it. tests/cms.test.ts now fails if this key comes back.
+#
+# The rules it was supposed to enforce are still unenforceable in YAML — a specTable
+# requires a sourceNote, a republished post requires a source note, publishedAt must be a
+# real calendar date and not merely a well-formed one, a heroImage may not be AI generated.
+# They live in src/schemas/*.ts and only the build runs them, which is why the CMS must
+# write somewhere that is not what deploys.
 
 collections:
   - name: products
@@ -177,6 +199,15 @@ collections:
     extension: md
     format: yaml-frontmatter
     identifier_field: title
+    # Newest first by default, because the question an editor almost always has is "what
+    # did we publish most recently" — and because /news/ itself is ordered that way, so
+    # the list here matches the list a visitor sees. Sorting by title is offered for
+    # finding a known post by name.
+    sortable_fields:
+      fields: ['publishedAt', 'title']
+      default:
+        field: publishedAt
+        direction: descending
     fields:
       - { name: title, label: Title, widget: string }
 
@@ -199,17 +230,31 @@ collections:
 
       - { name: summary, label: Summary, widget: text, maxlength: 160 }
 
+      # Both optional since 2026-08-14: WordPress is being retired and this site is now
+      # where news is published, so a new post has no original to point at. The seven
+      # archived posts keep theirs.
+      #
+      # ⚠ They are not independent. src/schemas/news.ts requires a source note whenever a
+      # source URL is given — the disclosure obligation belongs to republishing, not to
+      # publishing — and no YAML config can express that. Fill in one and the build will
+      # ask for the other.
       - name: sourceUrl
         label: Original URL
         widget: string
-        hint: The WordPress permalink this was republished from. Must be a full URL.
+        required: false
+        hint: >-
+          Only for a post reproduced from the old WordPress site — its permalink there,
+          as a full URL. Leave empty for anything written here. Do not put "n/a" in it:
+          the build rejects a value that is not a URL.
 
       - name: sourceNote
         label: Source note
         widget: string
+        required: false
         hint: >-
-          What was changed in republishing, and what was left out. Never optional — it is
-          what keeps the archive honest.
+          Required if you filled in the Original URL above: say what was changed in
+          reproducing it, and what was left out. That sentence is what keeps the archive
+          honest. Leave empty for an original post.
 
       - name: relatedProducts
         label: Related products

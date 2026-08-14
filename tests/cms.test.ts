@@ -83,17 +83,45 @@ describe('the CMS config', () => {
     expect(backend.repo).toBe('darsonl/litex-website');
   });
 
-  // The single most important line in the file. The zod schemas carry rules no YAML
-  // config can express — a specTable requires a sourceNote, a heroImage may not be AI
-  // generated, publishedAt must be a real calendar date. Editorial Workflow turns every
-  // save into a pull request, so the Cloudflare Pages preview build is what catches all
-  // of them, before anything reaches production.
-  it('routes every edit through a pull request rather than straight to main', () => {
+  /**
+   * The single most important assertion in this file, and it is the inverse of what it
+   * used to be.
+   *
+   * It used to require `publish_mode: editorial_workflow`, on the belief that every save
+   * became a pull request whose build enforced the zod rules. Sveltia's own schema says
+   * "Editorial Workflow is not yet supported in Sveltia CMS": the option is accepted and
+   * does nothing. The assertion passed for weeks while the guarantee did not exist, and
+   * the first real save committed straight to main, broke the build with an unquoted
+   * timestamp, and froze deploys.
+   *
+   * So: the key must stay ABSENT, because setting it restores the false confidence rather
+   * than the safety. And the CMS must not write to whatever branch deploys.
+   */
+  it('does not claim an editorial workflow that Sveltia does not implement', () => {
     expect(
       cmsConfig().publish_mode,
-      'without editorial_workflow a bad entry commits directly to main and breaks the ' +
-        'production build, because the CMS cannot enforce the schema superRefine rules',
-    ).toBe('editorial_workflow');
+      'publish_mode is back. Sveltia ignores it — it does not open pull requests — so ' +
+        'this only re-creates the belief that saves are reviewed. The branch below is ' +
+        'what actually keeps a bad entry away from production.',
+    ).toBeUndefined();
+  });
+
+  it('writes to a branch that nothing deploys', () => {
+    const { backend } = cmsConfig();
+    expect(
+      backend.branch,
+      'the CMS is committing to the deploy branch. A single bad save then breaks the ' +
+        'production build immediately — which is exactly what happened on 2026-08-14.',
+    ).not.toBe('main');
+    expect(backend.branch, 'no CMS branch is configured at all').toBeTruthy();
+  });
+
+  it('offers newest-first sorting on the news collection', () => {
+    const news = cmsConfig().collections.find((c: any) => c.name === 'news');
+    expect(news.sortable_fields?.fields, 'news cannot be sorted by date').toContain(
+      'publishedAt',
+    );
+    expect(news.sortable_fields?.default?.direction).toBe('descending');
   });
 
   // Enforcing the imagery policy through absence. Every raster on this site needs a
@@ -279,5 +307,42 @@ describe('the CMS config — applications and news', () => {
     const re = new RegExp(field.pattern[0]);
     expect(re.test('2017-02-23T14:47:55+08:00')).toBe(true);
     expect(re.test('2017-02-23 14:47:55')).toBe(false);
+  });
+});
+
+/**
+ * The normalizer that keeps the CMS's output loadable.
+ *
+ * Sveltia writes `publishedAt: 2026-08-14T10:30:00+08:00` unquoted. YAML auto-types that
+ * as a timestamp, Astro hands the schema a Date, and src/schemas/news.ts rejects it
+ * because a Date has already discarded the +08:00 offset. That is not hypothetical: it
+ * took production down on 2026-08-14, the first time a post was saved through the CMS.
+ *
+ * scripts/normalize-frontmatter.mjs quotes it, and runs as part of `npm run build`.
+ */
+describe('the news front matter the CMS writes stays loadable', () => {
+  const NEWS = fileURLToPath(new URL('../src/content/news', import.meta.url));
+  const entries = () => readdirSync(NEWS).filter((f) => f.endsWith('.md'));
+
+  it('has every publishedAt quoted after a build', () => {
+    const unquoted = entries().filter((f) =>
+      /^publishedAt:[ \t]*\d{4}-\d{2}-\d{2}T/m.test(readFileSync(join(NEWS, f), 'utf8')),
+    );
+    expect(
+      unquoted,
+      'an unquoted publishedAt survived the build. YAML will parse it into a Date and ' +
+        'the schema will reject it, failing the build for the whole site:\n' +
+        unquoted.join('\n'),
+    ).toEqual([]);
+  });
+
+  // Guards the guard. If the normalizer stopped running, the assertion above would still
+  // pass on a repository whose files happen to be quoted already, and would only fail
+  // later, on someone else's machine, after a CMS edit.
+  it('runs the normalizer as part of the build', () => {
+    const pkg = JSON.parse(readFileSync(join(DIST, '..', 'package.json'), 'utf8'));
+    expect(pkg.scripts.build, 'the build does not normalize front matter').toContain(
+      'normalize-frontmatter',
+    );
   });
 });
