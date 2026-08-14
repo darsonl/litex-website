@@ -29,18 +29,45 @@ There are no CMS accounts, no invitations and no roles. Anyone with **write acce
 `darsonl/litex-website`** can edit; nobody else can. Granting access is a GitHub
 collaborator change, and so is revoking it.
 
-## 3. Saving opens a pull request
+## 3. Saving commits to the `cms` branch. You open the pull request.
 
-The CMS runs in **Editorial Workflow** (`publish_mode: editorial_workflow`), so a save
-never commits to `main`. It opens a pull request, and Cloudflare Pages builds it.
+**Saving does not open a pull request, and it does not review anything.** It commits
+straight to the branch the CMS is pointed at, which is **`cms`** — a branch nothing
+deploys.
 
-**That build is the real validation.** The reason is in §4: the CMS can check that a field
-is filled in and matches a pattern, but it cannot check the rules that span fields. Those
+To publish, open a pull request from `cms` to `main` on GitHub, let the Cloudflare Pages
+check run, and merge it. **After merging, reset `cms` to `main`** so the next edit starts
+from what is live:
+
+```bash
+git checkout cms && git reset --hard origin/main && git push --force-with-lease origin cms
+```
+
+**The Pages check on that pull request is the real validation.** The CMS can check that a
+field is filled in and matches a pattern, but not the rules that span fields (§4). Those
 live in the zod schemas and only run at build time.
 
-> **A red check on the PR means the entry is invalid. Read the build log; do not merge.**
-> The failure message names the field and says what is wrong with it — those messages are
-> written for this moment.
+> **A red check means the entry is invalid. Read the build log; do not merge.** The
+> failure names the field and says what is wrong with it.
+
+### ⚠ Why it is not the editorial workflow this was designed around
+
+This config originally set `publish_mode: editorial_workflow`, and both the plan and this
+document promised that every save became a pull request. **Sveltia does not implement
+it.** Its own configuration schema says so:
+
+> `publish_mode` — *"Note that Editorial Workflow is not yet supported in Sveltia CMS."*
+
+The setting is accepted as valid and does nothing. A test asserted it was present and
+passed for weeks while the guarantee it stood for did not exist.
+
+What that cost, on 2026-08-14: the first post ever saved through the CMS went **directly
+to `main`**, with an unquoted timestamp and `sourceUrl: n/a`. `main` stopped building and
+every deploy was frozen until the entry was deleted by hand.
+
+So the branch is the safety net — the same enforcement by the only mechanism Sveltia
+actually has. `tests/cms.test.ts` now fails if `publish_mode` returns, or if the CMS is
+pointed at `main`.
 
 ## 4. What the CMS deliberately cannot do
 
@@ -92,6 +119,21 @@ them:
 
 The CMS lets you save all of these. The build rejects them.
 
+### A news post no longer needs a source
+
+`sourceUrl` and `sourceNote` are **optional** as of 2026-08-14. The site has stopped being
+a republication of `litextextile.wordpress.com` and become where LiTex publishes news;
+WordPress is being retired, so a post written here has no original to point at.
+
+⚠ **They are not independent, and the CMS cannot say so.** `src/schemas/news.ts` requires
+a source note **whenever a source URL is given** — the disclosure obligation belongs to
+republishing, not to publishing. Fill in one and the build asks for the other. The seven
+archived posts keep both.
+
+**Do not put `n/a` in the Original URL.** It is validated as a URL and the build rejects
+it; leave it empty instead. That exact value is half of what broke production on
+2026-08-14.
+
 ### `publishedAt` is a text field on purpose
 
 It looks like it wants a date picker. It must not have one.
@@ -103,6 +145,25 @@ prevent. A `datetime` widget invites the CMS to write that value.
 
 So the field is a `string` widget carrying the same regex, and `tests/cms.test.ts` fails if
 the two ever drift apart.
+
+⚠ **That is not sufficient on its own, and finding out cost a production outage.** A string
+widget controls what you may type; it does not control how Sveltia serializes it. It writes
+
+```yaml
+publishedAt: 2026-08-14T10:30:00+08:00      # unquoted
+```
+
+and YAML auto-types that scalar as a timestamp regardless of which widget produced it. The
+build then fails with `Expected type "string", received "object"`.
+
+`scripts/normalize-frontmatter.mjs` quotes it, and runs as part of `npm run build` — so a
+build never fails for this reason, and the corrected file is picked up by whoever next
+commits. It touches only this one key, only when the value is an unquoted ISO timestamp
+carrying an offset.
+
+**Do not "simplify" this by loosening the schema to accept a `Date`.** Reconstructing the
+offset from an instant is only correct while every post is Taiwanese, and is a silent wrong
+answer the day one is not.
 
 ## 5. Adding a field
 

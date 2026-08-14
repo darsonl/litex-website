@@ -72,11 +72,26 @@ const jsonLd = newsJsonLd({
       </section>
     )}
 
+    {/*
+      Two shapes, because a post is now either republished from the old WordPress site or
+      written here. A republished one says where it came from and what changed; an
+      original one states its date and stops. The alternative — printing "Published <date>
+      at ." with an empty link — is how a provenance line stops meaning anything.
+    */}
     <p class="provenance" data-source-note>
       <small>
-        Published {displayDate(post.data.publishedAt)} at{' '}
-        <a href={post.data.sourceUrl}>{post.data.sourceUrl}</a>.{' '}
-        {post.data.sourceNote}
+        {post.data.sourceUrl ? (
+          <>
+            Published {displayDate(post.data.publishedAt)} at{' '}
+            <a href={post.data.sourceUrl}>{post.data.sourceUrl}</a>.{' '}
+            {post.data.sourceNote}
+          </>
+        ) : (
+          <>
+            Published {displayDate(post.data.publishedAt)}.{post.data.sourceNote ? ' ' : ''}
+            {post.data.sourceNote}
+          </>
+        )}
       </small>
     </p>
   </article>

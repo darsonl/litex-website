@@ -6,9 +6,9 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "predev": "node scripts/sync-catalogs.mjs && node scripts/sync-cms.mjs",
+    "predev": "node scripts/sync-catalogs.mjs && node scripts/sync-cms.mjs && node scripts/normalize-frontmatter.mjs",
     "dev": "astro dev",
-    "build": "node scripts/sync-catalogs.mjs && node scripts/sync-cms.mjs && astro build",
+    "build": "node scripts/sync-catalogs.mjs && node scripts/sync-cms.mjs && node scripts/normalize-frontmatter.mjs && astro build",
     "preview": "astro preview",
     "favicon": "node scripts/make-favicon.mjs",
     "test": "vitest run",

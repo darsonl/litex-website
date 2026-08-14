@@ -18,10 +18,22 @@ export function newsSchema({ reference, image }: SchemaDeps) {
         .string()
         .regex(STORED, 'publishedAt must be ISO 8601 with an offset, e.g. 2017-02-23T14:47:55+08:00.'),
       summary: z.string().max(160), // doubles as the meta description
-      /** The WordPress permalink this was republished from. */
-      sourceUrl: z.string().url(),
-      /** What was changed in republishing, and what was left out. Never optional. */
-      sourceNote: z.string().min(1),
+      /**
+       * The WordPress permalink this was republished from.
+       *
+       * Optional since 2026-08-14, because the site has stopped being a republication of
+       * litextextile.wordpress.com and started being where news is published. WordPress
+       * is being retired; a post written here has no original to point at, and inventing
+       * one would be worse than omitting it.
+       *
+       * The seven archived posts still carry theirs, and the superRefine below keeps the
+       * disclosure obligation attached to the thing that creates it — republishing —
+       * rather than to every post forever.
+       */
+      sourceUrl: z.string().url().optional(),
+      /** What was changed in republishing, and what was left out. Required whenever
+       *  sourceUrl is present; see the superRefine. */
+      sourceNote: z.string().min(1).optional(),
       relatedProducts: z.array(reference('products')).default([]),
       externalLinks: z
         .array(z.object({ label: z.string().min(1), href: z.string().url() }))
@@ -41,6 +53,20 @@ export function newsSchema({ reference, image }: SchemaDeps) {
           code: 'custom',
           path: ['publishedAt'],
           message: `"${data.publishedAt}" is not a real date.`,
+        });
+      }
+      // The disclosure obligation belongs to republishing, not to publishing. An
+      // original post has no original to describe. But a post that DOES name a source
+      // must say what changed in reproducing it — that sentence is the whole reason a
+      // reader can trust the archive, and losing it silently as posts are added through
+      // a CMS is exactly how an archive stops being honest.
+      if (data.sourceUrl && !data.sourceNote) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['sourceNote'],
+          message:
+            'A post that names a sourceUrl must carry a sourceNote saying what was ' +
+            'changed in republishing it, and what was left out.',
         });
       }
       if (data.image?.aiGenerated) {
