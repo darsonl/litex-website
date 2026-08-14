@@ -287,6 +287,18 @@ describe('the stuck masthead acknowledges content passing under it', () => {
     if (px > 0) {
       await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), px);
       await page.waitForFunction((y) => window.scrollY === y, px);
+
+      // scrollTo resolving only proves the main-thread scroll offset moved; it does not
+      // prove the compositor has sampled the scroll-driven timeline against that new
+      // offset yet. Reading box-shadow too early can still see the pre-scroll frame —
+      // measured at 2/30 (~7%) failures on 'lifts once the page has scrolled' without
+      // this wait, 0/30 with it. Two nested rAFs is the standard settle for "wait for
+      // the next composited frame": the outer one waits out the frame already in
+      // flight, the inner one is the first frame guaranteed to reflect the new scroll
+      // offset. Don't delete this as a redundant wait — waitForFunction above already
+      // proves the scroll happened; this proves the timeline caught up to it.
+      await page.evaluate(() => new Promise((r) =>
+        requestAnimationFrame(() => requestAnimationFrame(r))));
     }
     const shadow = await page.evaluate(
       () => getComputedStyle(document.querySelector('header[data-masthead]')!).boxShadow,
