@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { parse } from 'yaml';
 import { DIST, allHtmlFiles, appHtmlFiles, docFor } from './helpers/dist';
+import { STORED } from '../src/lib/dates';
 
 function cmsConfig(): any {
   return parse(readFileSync(join(DIST, 'admin', 'config.yml'), 'utf8'));
@@ -204,5 +205,62 @@ describe('the fields the CMS cannot edit survive the fields it can', () => {
         'docs/cms.md. The schema makes it optional, so nothing else will fail:\n' +
         `${missing.join('\n')}`,
     ).toEqual([]);
+  });
+});
+
+describe('the CMS config — applications and news', () => {
+  const find = (name: string) =>
+    cmsConfig().collections.find((c: any) => c.name === name);
+
+  it('mirrors the application schema', () => {
+    const apps = find('applications');
+    expect(apps.folder).toBe('src/content/applications');
+    const names = apps.fields.map((f: any) => f.name);
+    for (const key of ['name', 'summary', 'evidence', 'needsDetail', 'body']) {
+      expect(names, `applications is missing ${key}`).toContain(key);
+    }
+  });
+
+  it('keeps evidence required, because an unevidenced end-use is the whole risk', () => {
+    const evidence = find('applications').fields.find((f: any) => f.name === 'evidence');
+    expect(evidence.required, 'evidence must stay required').not.toBe(false);
+  });
+
+  it('mirrors the news schema', () => {
+    const news = find('news');
+    expect(news.folder).toBe('src/content/news');
+    const names = news.fields.map((f: any) => f.name);
+    for (const key of [
+      'title', 'publishedAt', 'summary', 'sourceUrl', 'sourceNote',
+      'relatedProducts', 'externalLinks', 'body',
+    ]) {
+      expect(names, `news is missing ${key}`).toContain(key);
+    }
+    expect(names, 'news imagery must not be editable').not.toContain('image');
+  });
+
+  // The trap this task exists for. A datetime widget would be the obvious choice and is
+  // the wrong one: YAML turns an unquoted timestamp into a Date, and src/schemas/news.ts
+  // requires a STRING matching src/lib/dates.ts's own regex. A string widget with the
+  // same pattern keeps the CMS and the schema agreeing on one definition.
+  it('validates publishedAt with the same regex the schema uses', () => {
+    const field = find('news').fields.find((f: any) => f.name === 'publishedAt');
+    expect(field.widget, 'a datetime widget will write a value the schema rejects').toBe(
+      'string',
+    );
+    const [pattern] = field.pattern;
+    expect(
+      new RegExp(pattern).source,
+      'the CMS pattern has drifted from STORED in src/lib/dates.ts',
+    ).toBe(STORED.source);
+  });
+
+  // Proves the pattern admits what the site already publishes, rather than merely
+  // being identical to a regex that might itself be wrong.
+  it('accepts the timestamps already in the repository', () => {
+    const field = find('news').fields.find((f: any) => f.name === 'publishedAt');
+    const re = new RegExp(field.pattern[0]);
+    expect(re.test('2017-02-23T14:47:55+08:00')).toBe(true);
+    expect(re.test('2017-02-23 14:47:55')).toBe(false);
   });
 });

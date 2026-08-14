@@ -127,3 +127,90 @@ collections:
         hint: Renders a visible warning under the table. Leave off unless it is true.
 
       - { name: body, label: Page body, widget: markdown, required: false }
+
+  - name: applications
+    label: Applications
+    label_singular: Application
+    folder: src/content/applications
+    create: true
+    extension: md
+    format: yaml-frontmatter
+    identifier_field: name
+    fields:
+      - { name: name, label: Application name, widget: string }
+      - { name: summary, label: Summary, widget: text, maxlength: 160 }
+      - name: evidence
+        label: Evidence
+        widget: string
+        hint: >-
+          Where LiTex itself claims this end-use — a catalog page, a news post, an
+          exhibition. Required: publishing an unevidenced application fails exactly the
+          diligence a serious buyer applies.
+      - name: needsDetail
+        label: Still needs detail
+        widget: boolean
+        required: false
+        default: false
+      - { name: body, label: Page body, widget: markdown, required: false }
+
+  - name: news
+    label: News
+    label_singular: Post
+    folder: src/content/news
+    create: true
+    extension: md
+    format: yaml-frontmatter
+    identifier_field: title
+    fields:
+      - { name: title, label: Title, widget: string }
+
+      # ⚠ A string, not a datetime widget, and this is deliberate.
+      #
+      # src/schemas/news.ts requires publishedAt to be a STRING matching the STORED regex
+      # in src/lib/dates.ts. YAML parses an unquoted 2017-02-23T14:47:55+08:00 into a Date
+      # object, which is precisely what that schema exists to prevent — the whole date
+      # layer stores calendar fields as text so a timezone cannot silently shift a
+      # published date. A datetime widget invites the CMS to write the value that breaks
+      # it. The pattern below is the same regex, and tests/cms.test.ts fails if the two
+      # ever drift.
+      - name: publishedAt
+        label: Published at
+        widget: string
+        pattern:
+          - '^(\d{4})-(\d{2})-(\d{2})T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$'
+          - 'Must be ISO 8601 with an offset, e.g. 2017-02-23T14:47:55+08:00'
+        hint: 'Taiwan is +08:00. Example: 2017-02-23T14:47:55+08:00'
+
+      - { name: summary, label: Summary, widget: text, maxlength: 160 }
+
+      - name: sourceUrl
+        label: Original URL
+        widget: string
+        hint: The WordPress permalink this was republished from. Must be a full URL.
+
+      - name: sourceNote
+        label: Source note
+        widget: string
+        hint: >-
+          What was changed in republishing, and what was left out. Never optional — it is
+          what keeps the archive honest.
+
+      - name: relatedProducts
+        label: Related products
+        widget: relation
+        collection: products
+        value_field: '{{slug}}'
+        display_fields: ['name']
+        search_fields: ['name', 'summary']
+        multiple: true
+        required: false
+
+      - name: externalLinks
+        label: External links
+        widget: list
+        required: false
+        fields:
+          - { name: label, label: Label, widget: string }
+          - { name: href, label: URL, widget: string }
+
+      - { name: body, label: Post body, widget: markdown, required: false }
