@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>LiTex content editor</title>
+  </head>
+  <body>
+    <!--
+      Vendored by scripts/sync-cms.mjs, deliberately NOT the unpkg.com URL in Sveltia's
+      documentation. A third-party script here would have to be added to DISCLOSED in
+      tests/legal.test.ts and to /legal/privacy/, and the privacy notice would stop being
+      true the moment someone forgot. The path is relative so it works unchanged on
+      litex-website.pages.dev and on litex.com.tw after the domain cutover.
+
+      No type="module" and no stylesheet link: Sveltia bundles its styles into the JS,
+      and the vendored file is the IIFE build rather than the ES module one.
+    -->
+    <script src="sveltia-cms.js"></script>
+  </body>
+</html>

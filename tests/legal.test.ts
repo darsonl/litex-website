@@ -31,8 +31,16 @@ describe('privacy notice', () => {
     expect(text).toContain('this information will not be shared with any third parties');
   });
 
+  // allHtmlFiles(), not a raw walk of dist/: "every page" means every page of the LiTex
+  // website. The /admin content editor is served from this origin but is an application,
+  // not a page — its whole body is one <script> and it has no footer to carry a link.
+  //
+  // Proved rather than assumed: with this reading dist/ directly, the guard fails with
+  // "dist\admin\index.html has no privacy link". The two sweeps below deliberately keep
+  // walking dist/ directly, because "no undisclosed third party" and "Turnstile only
+  // where there is a form" DO apply to the admin app and must keep covering it.
   it('is reachable from the footer of every page', () => {
-    for (const file of walk(DIST).filter((f) => f.endsWith('.html'))) {
+    for (const file of allHtmlFiles()) {
       const doc = parseHTML(readFileSync(file, 'utf8')).document;
       const hrefs = [...doc.querySelectorAll('footer[data-sitefooter] a')]
         .map((a) => a.getAttribute('href'));
