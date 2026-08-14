@@ -195,4 +195,80 @@ const isCurrent = (href: string) => here === href || here.startsWith(href);
     }
     .menu > nav a[aria-current='page'] { border-bottom-color: var(--c-copper); }
   }
+
+  /* ---- 56.25rem and up: the row stays with the reader ---- */
+
+  /* The breakpoint is measured, not chosen. The seven-link row wraps to two rows from
+     40rem to 55rem — 111.59px, a seventh of an 800px window — and only fits on one line
+     at 900px, where the masthead is 64.00px. So the masthead sticks only where sticking
+     is cheap; below this it scrolls away exactly as it always has.
+
+     Overriding position here is safe: the `relative` above exists to be the containing
+     block for the phone menu panel, and at 40rem and up that panel is already `static`
+     and its control `display: none`. Nothing above this breakpoint is absolutely
+     positioned against the masthead.
+
+     ⚠ position:sticky is defeated by an ancestor that is itself a scroll container — NOT
+     by an `overflow` value on any ancestor per se. Measured at 900px, scrolled to 600px:
+     `overflow-x: hidden` on html, `overflow-x: clip` on body, and `overflow: clip` on
+     html all leave the masthead stuck, because overflow on html/body propagates to the
+     viewport instead of creating a scroll container there. What actually un-sticks it is
+     making body a genuine non-propagating scroll container, e.g. `html { overflow: auto }
+     body { overflow: hidden }`. That distinction can't be read off a stylesheet by eye,
+     which is why tests/responsive.test.ts scrolls the page rather than reading the
+     computed position — computed style alone cannot tell a stuck masthead from an
+     un-stuck one. */
+  @media (min-width: 56.25rem) {
+    .masthead { position: sticky; top: 0; z-index: 10; }
+  }
+
+  /* The shadow is the only part of this that needs to know the page has scrolled, and a
+     scroll-driven animation is how it finds out without shipping JavaScript.
+
+     Guarded because support is not universal: Chrome/Edge 115+ and Safari 26+ have it,
+     but Firefox stable still keeps it behind layout.css.scroll-driven-animations.enabled
+     as of Firefox 152 (June 2026) — roughly 83% of visitors. Where it is absent the
+     animation simply never runs and the masthead keeps the opaque background and 1px
+     rule it already has, which separates it from content perfectly well. That degraded
+     state is a good design, not a broken one.
+
+     ⚠ Do not "fix" Firefox with a script. It would be the first JavaScript this site
+     ships for chrome rather than for the enquiry forms, and it would buy a decoration.
+
+     Two things below depart from the shorthand a first draft would reach for, and both
+     are load-bearing rather than stylistic:
+
+     1. Longhand animation-name/-timing-function/-fill-mode instead of the `animation`
+        shorthand. This build's CSS minifier (lightningcss, via Vite) folds a longhand
+        `animation-timeline: scroll()` back into the `animation` shorthand whenever one
+        is present — but Chromium's parser does not yet accept `scroll()` inside that
+        shorthand, so it discards the whole merged declaration and the masthead never
+        animates at all. Longhand-only gives the minifier nothing to fold, so it survives
+        the build unmerged. Verified in dist/_astro/*.css after each build.
+
+     2. `animation-range: 1px 4rem` (not `0 4rem`) with `fill-mode: forwards` (not
+        `both`). At scroll 0 with a range starting at 0, the animation is already inside
+        its active phase, and Chromium reports the interpolated progress-0 box-shadow as
+        an explicit transparent shadow (`rgba(0 0 0 / 0) 0 0 0 0`) rather than the
+        keyword `none` — cosmetically identical but a different computed-style string,
+        which is what tests/responsive.test.ts asserts on. Starting the range 1px later
+        puts scroll 0 in the animation's *before* phase; `forwards` fill (unlike `both`)
+        applies no effect there, so box-shadow falls through to its true un-animated
+        value, `none`. The one-pixel shift is invisible and the fade still spans
+        essentially the first 64px of scroll. */
+  @supports (animation-timeline: scroll()) {
+    @media (min-width: 56.25rem) {
+      .masthead {
+        animation-name: masthead-lift;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+        animation-timeline: scroll();
+        animation-range: 1px 4rem;
+      }
+    }
+  }
+  @keyframes masthead-lift {
+    from { box-shadow: none; }
+    to { box-shadow: 0 1px 12px rgb(0 0 0 / 0.45); }
+  }
 </style>

@@ -40,6 +40,19 @@ a:hover { color: var(--c-copper-lift); }
 }
 .skip-link:focus { top: var(--s-2); }
 
+/* The masthead sticks at 56.25rem and up, so an anchor that scrolls to y=0 lands
+   underneath it. #main is the skip link's target and the only in-page anchor on the
+   site, which makes this an accessibility fix rather than a cosmetic one: the visitor
+   who most needs the skip link is the one it would strand behind the header.
+
+   scroll-padding-top on the scroll container rather than scroll-margin-top on #main, so
+   any anchor added later inherits the fix instead of having to remember it. Inside the
+   same media query as the sticking — below it nothing sticks, and an offset would push
+   content down for no reason. */
+@media (min-width: 56.25rem) {
+  html { scroll-padding-top: 4.5rem; } /* 72px: the 64px masthead, plus air */
+}
+
 /* Every page's content column. Pages had no width constraint before Plan 4 —
    long paragraphs ran the full viewport. */
 .page {
