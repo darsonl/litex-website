@@ -1,55 +1,67 @@
 # Session handoff — LiTex website redesign
 
-**Written:** 2026-08-11, last updated 2026-08-14 (session 13 — **Plan 9 written and merged, NOT executed; see the resume point below**)
+**Written:** 2026-08-11, last updated 2026-08-14 (session 14 — **Plan 9 EXECUTED; one human check outstanding**)
 **Reason:** This file is the resume point between sessions.
 
 ---
 
-## ▶▶ SESSION 14 RESUME POINT — Plan 9 is WRITTEN but NOT EXECUTED
+## ▶▶ SESSION 15 RESUME POINT — Plan 9 is BUILT
 
-**Session 13 ended here because the human ran out of budget, mid-plan-9, with nothing half-built.**
-The tree is clean and the stopping point is tidy: everything shipped is merged and verified in
-production, and the only thing outstanding is a plan document waiting to be executed.
+All seven Plan 9 tasks are implemented and committed on **`feat/plan-9-cms`**. The CMS exists at
+`/admin`, the spec table has its CTA, and the sample form prefills from it.
 
 ### State
 
-- **`main` is at `a9f0f35`, clean, NO open PRs, all branches deleted.** Merged this session:
-  **#17** homepage rebuild + the three shared-chrome fixes, **#19** lede-figure crop, **#20**
-  factory-strip background repaint, **#18** / **#21** / **#22** docs.
-- **The Plan 9 document is on `main`** (merged as #22). **Nothing of it has been executed** — no
-  `@sveltia/cms` dependency, no `public/admin/`, no `scripts/sync-cms.mjs`, no CTA on the spec
-  table. Task 1 Step 1 is the next command anyone runs.
-- `npm run build` → **36 pages**. `npm test` → **393 across 25 files**. `test:a11y` → **11**.
-- **Cloudflare A, B, C, E done; the enquiry pipeline is PROVEN end-to-end** — a real submission
-  reached `/enquiry-sent/?delivery=pending`. `docs/deployment.md` §6c.
-- ✅ **Lighthouse re-run by hand 2026-08-14: still 100 across the board**, on the homepage that now
-  ships three photographs rather than the image-free one the original result came from. LCP and CLS
-  held. §6b. Still needs re-running after the Part F cutover — different host, different question.
+- `npm run build` → **36 pages** (unchanged — `/admin` is static, not a route), plus
+  `dist/admin/{index.html,config.yml,sveltia-cms.js}`.
+- `npm test` → **426 across 26 files** (was 393/25). `npm run test:a11y` → **11**. Detector clean.
+- **Cloudflare A, B, C, E done; the enquiry pipeline is PROVEN end-to-end.** `docs/deployment.md` §6c.
+- ✅ Lighthouse still 100 across the board as of 2026-08-14. Re-run after the Part F cutover.
 
-### → Do this next: EXECUTE Plan 9
+### ⚠ The one thing left: a round-trip through the real CMS
 
-**`docs/superpowers/plans/2026-08-14-litex-cms-and-grade-cta.md`** (on `main`) — written with
-`superpowers:writing-plans` and researched against live Sveltia documentation. **7 TDD tasks, real
-test code, no placeholders. Do not rewrite it; execute it** with
-`superpowers:subagent-driven-development`. Test count runs **393 → 417**.
+**Nothing in the repo can prove what Sveltia WRITES.** Two specific questions, both needing a human,
+a browser and a GitHub PAT — sign in at `/admin`, save an entry, read the pull request diff:
 
-The plan's own research corrected the scope that was recorded here for months:
+1. **Is `publishedAt` quoted?** If it writes `publishedAt: 2017-…` unquoted, Astro parses it as a
+   `Date` and the schema rejects it. That failure is visible on the PR's Pages check, which is the
+   safety net working. **The fix is a normalizer that quotes the value — `scripts/normalize-frontmatter.mjs`
+   — never a looser regex and never accepting a `Date`.**
+2. **Does editing a product preserve `heroImage`?** The CMS has no field for it by policy. If
+   Sveltia drops front matter it does not know about, the product silently loses its photograph and
+   *nothing else would notice*, because `heroImage` is `.optional()`. A guard added in Task 3 now
+   requires every product entry to have one, so this shows up as a red check instead of a missing
+   image. If that test fails after a CMS edit, this is the cause.
 
-- ⚠ **There is NO OAuth backend and no second Cloudflare deployable.** Sveltia signs in with a
-  **personal access token** ("Sign In with Token" links to GitHub with the scopes pre-selected).
-  The old note in this file claiming otherwise was written before anyone checked. **Do not go
-  looking for `sveltia-cms-auth`; you do not need it.**
-- ⚠ **Sveltia's documented install is a `unpkg.com` CDN script. Do not use it.** It would break the
-  `DISCLOSED` guard in `tests/legal.test.ts` or make `/legal/privacy/` untrue. Task 1 vendors the
-  bundle from npm at build time, the same way the catalog PDFs and the fonts already are.
-- ⚠ **`allHtmlFiles()` in `tests/helpers/dist.ts` returns EVERY `.html` in `dist/`.** Four guards
-  read "every generated page" as every page of the *website* — masthead, footer, contact details,
-  one `h1`. `/admin` has none of them, so **Task 2 splits app pages from site pages BEFORE `/admin`
-  exists.** Do not reorder the tasks past this.
-- **Editorial Workflow is the safety net.** The zod `superRefine` rules cannot be expressed in YAML,
-  so every CMS save becomes a PR and the Pages preview build enforces them.
-- **Two steps need a human and a browser** and cannot be done by an agent: Task 4 Step 6 (the
-  `publishedAt` quoting round-trip, using a real GitHub PAT) and Task 6 Step 6.
+`docs/cms.md` is the full account — sign-in, what the CMS deliberately cannot do, and why.
+
+### Where the plan was wrong, and what was done instead
+
+The plan was good and was followed closely. Four corrections, all found by checking against the
+code rather than by reasoning about it:
+
+- **`tests/legal.test.ts:35` inlined `walk(DIST)` instead of calling `allHtmlFiles()`**, so Task 2's
+  helper split did not protect it and `/admin` failed the footer guard. Fixed in Task 2 and proved
+  by reverting the line. **The other three direct walks in that file were deliberately left alone** —
+  the `DISCLOSED` and Turnstile sweeps *should* keep covering the admin app.
+- **`SpecTable` has four call sites and only ONE is a product.** The plan made `productName` a
+  required prop as a forcing function; that would have put "Request this grade" under the patents,
+  compliance and heating-comparison tables. It is **optional**, and the forcing function is replaced
+  by a build-output sweep in `tests/contact.test.ts` asserting every `/products/` page with a spec
+  table has a CTA and no other spec table does. Both directions proved by probe.
+- **The plan's `config.yml` comment tripped the plan's own guard.** It said "there is deliberately no
+  `media_folder`…" while the test asserted the raw file `.not.toContain('media_folder')` — the exact
+  collision this file has warned about since Plan 6. The guard now reads the **parsed** config, which
+  also catches an upload widget nested inside `specTable`.
+- **`define:vars` strips every other attribute from a `<script>`.** The plan marked the prefill
+  script `data-prefill`; it vanished from the built page. The allowlist now travels as a data
+  attribute on the **form** and the script reads it — which also keeps the field names and their
+  length ceilings in one object that cannot drift apart.
+
+**The plan's test-count arithmetic is off by six from Task 4 onward** — its running total skips
+Task 3's six tests. Real numbers: 393 → 396 → 401 → 408 → 413 → 418 → 426. The Definition of Done's
+"417 across 26 files" should read **426**; the extra tests over the plan's own count are the
+heroImage guard and the two CTA sweeps.
 
 ### Also still open, both cheap, neither blocking
 
@@ -152,23 +164,20 @@ gotcha 12. Nothing depends on it yet; anything that ever does would pass silentl
 
 ## ▶ Do this first
 
-**Plans 1–8 are ALL merged.** Do not re-run brainstorming, the spec self-review, `/impeccable init`,
-or `writing-plans` for anything already built.
+**Plans 1–9 are ALL written and built.** Do not re-run brainstorming, the spec self-review,
+`/impeccable init`, or `writing-plans` for anything already built.
 
-### → Start here: write Plan 9
+### ✅ Plan 9 is DONE — both halves
 
-**Plan 9 does not exist yet.** Write it with `superpowers:writing-plans`, then execute it
-subagent-driven. Its scope was fixed by decision on 2026-08-13:
+This section used to say "write Plan 9", and described the CMS as needing **a GitHub OAuth backend,
+a second deployable on Cloudflare**. **That was wrong and is now settled: Sveltia authenticates with
+a personal access token. No OAuth app, no proxy, no second deployable, no config for one.** Do not
+go looking for `sveltia-cms-auth`.
 
-1. **Sveltia CMS at `/admin`** — needs a GitHub OAuth backend (a second deployable on Cloudflare)
-   plus a `config.yml` mirroring every content collection's schema. This is a subsystem, not a
-   chore, which is why it was deferred out of Plan 8.
-2. **The deferred `SpecTable` "Request this grade" CTA** (spec §5). It reads `fieldsFor('sample')`
-   from `src/lib/enquiry.ts` — the machinery already exists.
-
-`main` is at **`34d86cf`** plus the Plan 8 Task 9 docs commit, clean and pushed, nothing in flight.
-`npm run build` → **36 pages**, `npm test` → **373 passing across 23 files**, `npm run test:a11y` →
-**11 passing**, detector clean.
+1. **Sveltia CMS at `/admin`** — vendored from npm, `config.yml` mirroring all three collections,
+   Editorial Workflow so every save is a pull request. `docs/cms.md`.
+2. **The `SpecTable` "Request this grade" CTA** (spec §5) — with query-string prefill of the sample
+   form, allowlisted to `product` and `grade`.
 
 **Run `npx playwright install chromium` before `npm test` on a fresh checkout**, or the suite fails
 with a missing-executable error rather than a test failure.
@@ -360,13 +369,13 @@ posts. The correct fix is LiTex supplying news since 2022 — see the open quest
 | 6 | `/news/` index + 7 posts | ✅ merged (PR #6, `bafff91`) |
 | 7 | Contact + sample-request flow (Pages Function, Turnstile, KV, Resend) | ✅ merged (PR #7, `1a2a3a6`) |
 | 8 | Launch: 404, `_redirects`, sitemap, favicon, print, link sweep, axe, analytics | ✅ **merged in full** (PR #10, #11, #13, #14 + the Task 9 docs commit) |
-| 9 | **Sveltia CMS at `/admin`** + the deferred `SpecTable` "Request this grade" CTA | 📝 **not written — write it next** |
+| 9 | **Sveltia CMS at `/admin`** + the `SpecTable` "Request this grade" CTA | ✅ **built** (`feat/plan-9-cms`) — one human round-trip check outstanding |
 
-**The roadmap grew to 9.** Sveltia CMS was deferred out of Plan 8 by decision on 2026-08-13: it
-needs a GitHub OAuth backend (a second deployable on Cloudflare) plus a `config.yml` mirroring every
-content collection's schema. That is a subsystem, not a launch chore, and **launch does not depend
-on it** — content is edited by commit until then. Spec §4's CMS row still stands; it is simply not
-Plan 8.
+**The roadmap grew to 9.** Sveltia CMS was deferred out of Plan 8 by decision on 2026-08-13, on the
+belief that it needed a GitHub OAuth backend and a second Cloudflare deployable. **That belief was
+false** — it needs a personal access token and nothing else — but deferring it was still right: the
+`config.yml` mirroring three schemas, and the test-suite split between site pages and app pages, are
+a subsystem rather than a launch chore. **Launch never depended on it.** See `docs/cms.md`.
 
 ---
 

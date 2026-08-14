@@ -6,9 +6,9 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "predev": "node scripts/sync-catalogs.mjs",
+    "predev": "node scripts/sync-catalogs.mjs && node scripts/sync-cms.mjs",
     "dev": "astro dev",
-    "build": "node scripts/sync-catalogs.mjs && astro build",
+    "build": "node scripts/sync-catalogs.mjs && node scripts/sync-cms.mjs && astro build",
     "preview": "astro preview",
     "favicon": "node scripts/make-favicon.mjs",
     "test": "vitest run",
@@ -23,9 +23,11 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
+    "@sveltia/cms": "0.189.1",
     "linkedom": "0.18.13",
     "playwright": "1.62.1",
     "sharp": "0.35.3",
-    "vitest": "4.1.10"
+    "vitest": "4.1.10",
+    "yaml": "2.9.0"
   }
 }

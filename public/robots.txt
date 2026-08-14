@@ -9,4 +9,15 @@
 User-agent: *
 Allow: /
 
+# The content editor. Not secret — it is useless without a GitHub account holding write
+# access to the repository — but there is nothing here for a search engine to index.
+#
+# This one IS disallowed, unlike the two pages above, and the difference is deliberate.
+# The note above applies to pages that must be FETCHED for their noindex tag to be
+# obeyed. /admin/ is not a page of the website at all: it is an application shell whose
+# body is a single <script>, nothing links to it, and there is no content whose indexing
+# state matters. It carries a noindex tag as well, for a crawler that reaches it by some
+# route this file does not cover.
+Disallow: /admin/
+
 Sitemap: https://litex.com.tw/sitemap-index.xml
