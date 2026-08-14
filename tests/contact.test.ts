@@ -130,3 +130,78 @@ describe('the form works without JavaScript', () => {
     expect(required).toEqual(expect.arrayContaining(['name', 'company', 'email', 'message']));
   });
 });
+
+describe('the spec table asks for a sample', () => {
+  it('offers a Request this grade link beside Copy as CSV', () => {
+    const doc = docFor('products/conductive-metal-yarn/index.html');
+    const cta = doc.querySelector('[data-request-grade]');
+    expect(cta, 'the spec table has no Request this grade CTA').toBeTruthy();
+    expect(cta?.textContent).toContain('Request this grade');
+  });
+
+  // The point of the CTA is that the engineer does not retype what they were just
+  // reading. A bare link to the form would be a link to the form, not a CTA.
+  it('carries the product forward so the form is not a blank page', () => {
+    const href = docFor('products/conductive-metal-yarn/index.html')
+      .querySelector('[data-request-grade]')
+      ?.getAttribute('href') ?? '';
+    expect(href.startsWith('/request-a-sample/?'), `href was ${href}`).toBe(true);
+    const product = new URLSearchParams(href.split('?')[1]).get('product');
+    expect(product).toBe('Conductive Metal Yarn');
+  });
+
+  // Copy as CSV is the component's most valuable feature. A CTA that leaked into the
+  // exported table would put a button caption into a procurement spreadsheet.
+  it('keeps the CTA out of the copied CSV', () => {
+    const csv = docFor('products/conductive-metal-yarn/index.html')
+      .querySelector('[data-copy-csv]')
+      ?.getAttribute('data-csv') ?? '';
+    expect(csv, 'the CTA leaked into the CSV export').not.toContain('Request');
+  });
+});
+
+/**
+ * productName is an OPTIONAL prop, so the build cannot be the thing that stops a new
+ * product page shipping without a route to a sample request. These two tests are what
+ * replaces that forcing function, and they are strictly better than it: they assert the
+ * built output rather than a call signature, so they also catch a page that passes the
+ * prop and fails to render it.
+ *
+ * Optional rather than required because SpecTable has four call sites and only one is a
+ * product. The other three render compliance claims, patents and a heating-technology
+ * comparison — none of which is a grade anyone can request a sample of, and none of
+ * which has a product name to pass. A required prop would have forced an invented value
+ * onto all three and put "Request this grade" under the patents table.
+ */
+describe('every product spec table routes to a sample request — and only those', () => {
+  const norm = (f: string) => f.replace(/\\/g, '/');
+  const hasSpecTable = (f: string) => readFileSync(f, 'utf8').includes('data-copy-csv');
+  const isProductPage = (f: string) => /\/products\/[^/]+\/index\.html$/.test(norm(f));
+
+  it('offers the CTA on every product page carrying a spec table', () => {
+    const pages = allHtmlFiles().filter((f) => isProductPage(f) && hasSpecTable(f));
+    expect(
+      pages.length,
+      'no product page has a spec table — this test is vacuous',
+    ).toBeGreaterThan(0);
+
+    const missing = pages.filter((f) => !readFileSync(f, 'utf8').includes('data-request-grade'));
+    expect(
+      missing.map(norm),
+      'a product page ships a spec table with no route to a sample request. Pass\n' +
+        'productName to <SpecTable> on that page:',
+    ).toEqual([]);
+  });
+
+  it('offers it on no other spec table, because those are not products', () => {
+    const others = allHtmlFiles().filter((f) => !isProductPage(f) && hasSpecTable(f));
+    expect(others.length, 'the non-product spec tables have vanished').toBeGreaterThan(0);
+
+    const wrong = others.filter((f) => readFileSync(f, 'utf8').includes('data-request-grade'));
+    expect(
+      wrong.map(norm),
+      'a non-product spec table is inviting a sample request. Compliance claims, patents\n' +
+        'and the heating comparison are not grades anyone can ask for a sample of:',
+    ).toEqual([]);
+  });
+});
