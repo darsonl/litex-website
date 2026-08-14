@@ -7,6 +7,15 @@
   --c-base: #0A0C0D;
   --c-raised: #0F1213;
   --c-line: #1E2325;
+  /* The line colour for a surface that is floating over content rather than sitting in
+     it — currently only the stuck masthead.
+
+     It exists because on a near-black page a shadow cannot signal elevation: black over
+     #0A0C0D lands on #050607, a contrast ratio of 1.035, which is nothing. Lifting the
+     fill to --c-raised is barely better at 1.042. What actually separates surfaces on
+     this palette is the line, and --c-line is only 1.18 against --c-raised. This is 1.81,
+     inside the 1.8-2.4 band dark interfaces conventionally use for an elevated edge. */
+  --c-line-lift: #3A4145;
 
   /* Text and accent */
   --c-text-1: #F2F1EF;
