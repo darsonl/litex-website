@@ -16,7 +16,7 @@ Every task's requirements implicitly include this section.
 
 - **The breakpoint is `56.25rem` (900px), and it is a measurement, not a preference.** The seven-link row wraps to two rows from 40rem to 55rem: the masthead is **111.59px** there and **64.00px** at 900px and above. Measured in Chromium against the built site, 2026-08-14.
 - **No JavaScript.** This site ships JS only for the two enquiry forms and the sample-form prefill. Nothing in this plan adds a script, and the Firefox shadow gap is not to be closed with one.
-- **Never add an `overflow` rule to `html`, `body` or any wrapper around the masthead.** `position: sticky` stops working silently if any ancestor has one. None does today — verified across `global.css` and `BaseLayout.astro`.
+- **Never make `html` or `body` a genuine scroll container.** `position: sticky` stops working silently if an ancestor becomes one. Measured: `overflow-x: hidden`/`clip` on `html` or `body` does NOT do this — overflow on those two elements propagates to the viewport instead of creating a scroll container, and the masthead stays stuck through it. Only something like `html { overflow: auto } body { overflow: hidden }` (body absorbing the propagation) actually un-sticks it. Verified across `global.css` and `BaseLayout.astro`; neither does this today.
 - **Nothing below 56.25rem may change.** The phone masthead's 96px guard in `tests/responsive.test.ts` must keep passing untouched; it protects session 11's reduction from 153.59px to 77.00px.
 - **`npm run build` is `node scripts/sync-catalogs.mjs && node scripts/sync-cms.mjs && astro build`.** Never `npx astro build`.
 - **Run `npx playwright install chromium` once** on a fresh checkout or the suite fails with a missing-executable error rather than a test failure.
@@ -158,10 +158,16 @@ In `src/components/SiteNav.astro`, at the **end** of the `<style>` block, after 
      and its control `display: none`. Nothing above this breakpoint is absolutely
      positioned against the masthead.
 
-     ⚠ position:sticky is defeated by an `overflow` value on ANY ancestor. There is none
-     today on html, body or any wrapper — adding one would un-stick this silently, which
-     is why tests/responsive.test.ts scrolls the page rather than reading the computed
-     position. */
+     ⚠ position:sticky is defeated by an ancestor that is itself a scroll container — NOT
+     by an `overflow` value on any ancestor per se. Measured at 900px, scrolled to 600px:
+     `overflow-x: hidden` on html, `overflow-x: clip` on body, and `overflow: clip` on
+     html all leave the masthead stuck, because overflow on html/body propagates to the
+     viewport instead of creating a scroll container there. What actually un-sticks it is
+     making body a genuine non-propagating scroll container, e.g. `html { overflow: auto }
+     body { overflow: hidden }`. That distinction can't be read off a stylesheet by eye,
+     which is why tests/responsive.test.ts scrolls the page rather than reading the
+     computed position — computed style alone cannot tell a stuck masthead from an
+     un-stuck one. */
   @media (min-width: 56.25rem) {
     .masthead { position: sticky; top: 0; z-index: 10; }
   }

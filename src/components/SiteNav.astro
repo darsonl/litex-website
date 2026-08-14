@@ -208,10 +208,16 @@ const isCurrent = (href: string) => here === href || here.startsWith(href);
      and its control `display: none`. Nothing above this breakpoint is absolutely
      positioned against the masthead.
 
-     ⚠ position:sticky is defeated by an `overflow` value on ANY ancestor. There is none
-     today on html, body or any wrapper — adding one would un-stick this silently, which
-     is why tests/responsive.test.ts scrolls the page rather than reading the computed
-     position. */
+     ⚠ position:sticky is defeated by an ancestor that is itself a scroll container — NOT
+     by an `overflow` value on any ancestor per se. Measured at 900px, scrolled to 600px:
+     `overflow-x: hidden` on html, `overflow-x: clip` on body, and `overflow: clip` on
+     html all leave the masthead stuck, because overflow on html/body propagates to the
+     viewport instead of creating a scroll container there. What actually un-sticks it is
+     making body a genuine non-propagating scroll container, e.g. `html { overflow: auto }
+     body { overflow: hidden }`. That distinction can't be read off a stylesheet by eye,
+     which is why tests/responsive.test.ts scrolls the page rather than reading the
+     computed position — computed style alone cannot tell a stuck masthead from an
+     un-stuck one. */
   @media (min-width: 56.25rem) {
     .masthead { position: sticky; top: 0; z-index: 10; }
   }

@@ -1,7 +1,7 @@
 # Sticky masthead — design
 
 **Written:** 2026-08-14
-**Status:** approved, not yet implemented
+**Status:** implemented, merged into `feat/sticky-masthead`
 **Scope:** `src/components/SiteNav.astro`, `src/styles/global.css`, `tests/responsive.test.ts`
 
 The masthead stays at the top of the viewport while the page scrolls — but only at widths
@@ -67,12 +67,19 @@ positioned descendant left for the masthead to anchor.
 above non-positioned in-flow content, and nothing in `main` is positioned — but it states
 the intent instead of depending on that.
 
-**`position: sticky` requires no ancestor to have an `overflow` value.** Verified: neither
-`global.css` nor `BaseLayout.astro` sets `overflow` on `html`, `body` or any wrapper. The
-one `overflow-x: auto` in the codebase is `SpecTable`'s `.scroll`, a descendant of `main`
-and therefore not an ancestor of the masthead. **Do not add an `overflow` rule to a
-wrapper without re-checking this** — it would silently un-stick the header with no test
-failure in any assertion that only reads the DOM.
+**`position: sticky` requires no ancestor to be a genuine scroll container** — which is a
+narrower condition than "no ancestor has an `overflow` value." Measured in Chromium at
+900px, scrolled to 600px: `overflow-x: hidden` on `html`, `overflow-x: clip` on `body`,
+and `overflow: clip` on `html` all leave the masthead stuck, because overflow on `html`
+and `body` propagates to the viewport rather than creating a scroll container there.
+What actually un-sticks it is making `body` a genuine non-propagating scroll container —
+e.g. `html { overflow: auto } body { overflow: hidden }` — which produces `top: -600`.
+Verified: neither `global.css` nor `BaseLayout.astro` does this today. The one
+`overflow-x: auto` in the codebase is `SpecTable`'s `.scroll`, a descendant of `main` and
+therefore not an ancestor of the masthead. **Do not add a rule that makes `html` or
+`body` a scroll container without re-checking this** — it would silently un-stick the
+header with no test failure in any assertion that only reads computed style, which is why
+`tests/responsive.test.ts` scrolls the page for real rather than reading `position` alone.
 
 ### 2. The shadow
 
@@ -80,14 +87,44 @@ failure in any assertion that only reads the DOM.
 @supports (animation-timeline: scroll()) {
   @media (min-width: 56.25rem) {
     .masthead {
-      animation: masthead-lift linear both;
+      animation-name: masthead-lift;
+      animation-timing-function: linear;
+      animation-fill-mode: forwards;
       animation-timeline: scroll();
-      animation-range: 0 4rem;
+      animation-range: 1px 4rem;
     }
   }
 }
-@keyframes masthead-lift { to { box-shadow: 0 1px 12px rgb(0 0 0 / 0.45); } }
+@keyframes masthead-lift {
+  from { box-shadow: none; }
+  to { box-shadow: 0 1px 12px rgb(0 0 0 / 0.45); }
+}
 ```
+
+**⚠ This is the corrected CSS. The original version of this spec specified the `animation`
+shorthand with `animation-range: 0 4rem` and `fill-mode: both`, and it was wrong on both
+counts — neither failure is loud:**
+
+1. **The `animation` shorthand.** This build's minifier (lightningcss, via Vite) folds a
+   standalone `animation-timeline: scroll()` back INTO the `animation` shorthand whenever
+   one is present, and Chromium's parser does not accept `scroll()` inside that shorthand
+   — so it discards the whole merged declaration and the masthead never animates at all,
+   with nothing in the build complaining. Longhand-only (`animation-name`,
+   `-timing-function`, `-fill-mode`, `-timeline`, `-range`, all separate) gives the
+   minifier nothing to fold, so it survives the build unmerged. Verified in
+   `dist/_astro/*.css` after each build.
+2. **`animation-range: 0 4rem` with `fill-mode: both`.** At scroll 0 with a range starting
+   at 0, the animation is already inside its active phase, and Chromium reports the
+   interpolated progress-0 box-shadow as an explicit transparent shadow
+   (`rgba(0, 0, 0, 0) 0px 0px 0px 0px`) rather than the literal `none` this feature's own
+   tests assert on. `animation-range: 1px 4rem` with `fill-mode: forwards` (not `both`)
+   puts scroll 0 in the animation's *before* phase, where `forwards` fill applies no
+   effect, so `box-shadow` falls through to its true un-animated value, `none`. The
+   one-pixel shift is invisible and the fade still spans essentially the first 64px of
+   scroll.
+
+A future reader must not reintroduce the `animation` shorthand here — it looks like a
+harmless simplification and silently kills the whole effect.
 
 The shadow is the only part of this feature that needs to know the page has scrolled, and
 CSS scroll-driven animations are how it finds out **without shipping JavaScript**.
@@ -107,7 +144,7 @@ gets a sticky masthead with no shadow. Nothing is missing that they could notice
 the first JavaScript this site ships for chrome rather than for the two enquiry forms, it
 would need its own browser test, and it would buy a decoration.
 
-`animation-range: 0 4rem` fades the shadow in over the first 64px of scroll rather than
+`animation-range: 1px 4rem` fades the shadow in over the first 64px of scroll rather than
 snapping it on at 1px, which is why this reads as a lift rather than a flicker.
 
 ### 3. The skip link — `src/styles/global.css`
@@ -135,15 +172,21 @@ All of this is behaviour under a real viewport, so it belongs in `tests/responsi
 which already drives Chromium via Playwright. Chromium supports scroll-driven animations,
 so the shadow is directly observable.
 
+10 assertions shipped in `tests/responsive.test.ts`, across three `describe` blocks:
+
 | Assertion | Guards |
 |---|---|
-| Below 56.25rem the masthead's computed `position` is not `sticky` | The fold decision — that phones and the wrapping band are untouched |
-| The existing 96px phone-height guard still passes | That this change did not disturb session 11's work |
-| At 900px the computed `position` is `sticky` | The feature exists |
-| At 900px, after scrolling 600px, the masthead's bounding box top is still 0 | That it actually stays — computed style alone would pass even if an ancestor's `overflow` had un-stuck it |
 | **At 900px the masthead is a single row (height ≤ 72px)** | **The breakpoint's premise.** See below |
-| At 900px: no `box-shadow` at rest, a `box-shadow` after scrolling | The shadow, in the one engine that can show it |
+| At 900px the computed `position` is `sticky` | The feature exists |
+| At 900px, after scrolling 600px, the masthead's bounding box top is still 0 | That it actually stays — computed style alone would pass even if an ancestor became a scroll container |
+| Below 56.25rem (at 880px) the computed `position` is not `sticky` | The fold decision — the wrapping band is untouched |
+| On a phone the computed `position` is not `sticky` | The fold decision — phones are untouched |
+| At 900px: no `box-shadow` at rest | The resting state — no shadow before anything has scrolled under it |
+| At 900px: a `box-shadow` after scrolling 600px | The shadow, in the one engine that can show it |
+| The skip link lands `#main` at or below the masthead's bottom edge, not underneath it | The one accessibility consequence of a sticky header |
 | `scroll-padding-top` is at least the masthead's measured height | That the skip link cannot land under the header |
+| On a phone, `scroll-padding-top` is `auto` (no offset) | That nothing pushes content down where nothing sticks |
+| The existing 96px phone-height guard still passes | That this change did not disturb session 11's work |
 
 **The single-row assertion is the load-bearing one.** `56.25rem` is not a round number
 chosen for taste; it is the measured width at which seven links stop wrapping. Add an
@@ -160,7 +203,15 @@ and watching it fail before the change is considered done.
 - **No shrinking or condensing on scroll.** The stuck masthead is identical to the resting
   one. Session 11 already settled what the masthead contains.
 - **No `prefers-reduced-motion` branch.** Nothing moves — a shadow fades. There is no
-  vestibular surface here.
+  vestibular surface here. Note there is a collision worth recording rather than a gap:
+  `global.css` has a global `@media (prefers-reduced-motion: reduce)` rule that sets
+  `animation-duration: 0.01ms !important` on `*`, and it does apply to `.masthead`. It is
+  currently harmless — verified — because Chromium ignores `animation-duration` on
+  progress-based (scroll) timelines, so the shadow ramp is byte-identical with and without
+  the preference. An engine that someday honours duration on scroll timelines would make
+  that rule collapse the shadow's 64px ramp to effectively nothing, snapping it fully on
+  at 1px of scroll for reduced-motion users — the opposite of "reduced." Not a code change
+  today; just a trap for whoever revisits this once browsers catch up.
 - **No print change.** `global.css` already sets `display: none` on `header[data-masthead]`
   in print media, so the masthead never reaches paper and its positioning is irrelevant
   there.
