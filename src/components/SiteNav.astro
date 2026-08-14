@@ -195,4 +195,24 @@ const isCurrent = (href: string) => here === href || here.startsWith(href);
     }
     .menu > nav a[aria-current='page'] { border-bottom-color: var(--c-copper); }
   }
+
+  /* ---- 56.25rem and up: the row stays with the reader ---- */
+
+  /* The breakpoint is measured, not chosen. The seven-link row wraps to two rows from
+     40rem to 55rem — 111.59px, a seventh of an 800px window — and only fits on one line
+     at 900px, where the masthead is 64.00px. So the masthead sticks only where sticking
+     is cheap; below this it scrolls away exactly as it always has.
+
+     Overriding position here is safe: the `relative` above exists to be the containing
+     block for the phone menu panel, and at 40rem and up that panel is already `static`
+     and its control `display: none`. Nothing above this breakpoint is absolutely
+     positioned against the masthead.
+
+     ⚠ position:sticky is defeated by an `overflow` value on ANY ancestor. There is none
+     today on html, body or any wrapper — adding one would un-stick this silently, which
+     is why tests/responsive.test.ts scrolls the page rather than reading the computed
+     position. */
+  @media (min-width: 56.25rem) {
+    .masthead { position: sticky; top: 0; z-index: 10; }
+  }
 </style>

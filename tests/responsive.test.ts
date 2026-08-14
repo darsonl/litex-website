@@ -26,6 +26,14 @@ import { serveDist, type StaticServer } from './helpers/serve';
 const PHONE = { width: 390, height: 844 };
 /** Comfortably past the collapse breakpoint, where all seven links must be on show. */
 const DESKTOP = { width: 1280, height: 900 };
+/**
+ * 900px is the measured width at which the seven-link row stops wrapping — the masthead
+ * is 64.00px here and 111.59px at 880px. The sticky breakpoint is set to exactly this,
+ * so this viewport is the boundary case and not a comfortable margin.
+ */
+const STICKY = { width: 900, height: 900 };
+/** The widest width where the nav still wraps to two rows, so must NOT stick. */
+const WRAPPED = { width: 880, height: 900 };
 
 let server: StaticServer;
 let browser: Browser;
@@ -197,5 +205,69 @@ describe('the footer credibility strip on a phone', () => {
     );
     expect(hanging, `lines starting with a separator:\n${JSON.stringify(hanging, null, 2)}`)
       .toEqual([]);
+  });
+});
+
+describe('the masthead sticks, but only once it is a single row', () => {
+  const positionAt = async (viewport: { width: number; height: number }) => {
+    const { context, page } = await open(viewport);
+    const position = await page.evaluate(
+      () => getComputedStyle(document.querySelector('header[data-masthead]')!).position,
+    );
+    await context.close();
+    return position;
+  };
+
+  /**
+   * The load-bearing assertion of this whole feature.
+   *
+   * 56.25rem is not a round number chosen for taste. It is the measured width at which
+   * seven links stop wrapping: 111.59px at 880px, 64.00px at 900px. Add an eighth nav
+   * item or lengthen a label and the wrap point moves past the breakpoint — at which
+   * point the site would stick a 111.59px header, a seventh of an 800px window, on every
+   * laptop, and every other test here would still be green.
+   *
+   * ⚠ If this fails, re-measure the width at which the row stops wrapping and move the
+   * breakpoint in SiteNav.astro to match. Do NOT raise this number.
+   */
+  it('is a single row at the breakpoint where it starts sticking', async () => {
+    const { context, page } = await open(STICKY);
+    const height = await page.evaluate(
+      () => document.querySelector('header[data-masthead]')!.getBoundingClientRect().height,
+    );
+    await context.close();
+    expect(height, 'the nav is wrapping at the sticky breakpoint').toBeLessThanOrEqual(72);
+  });
+
+  it('sticks at the breakpoint', async () => {
+    expect(await positionAt(STICKY)).toBe('sticky');
+  });
+
+  // Computed style alone is not proof: an overflow rule on any ancestor leaves
+  // position:sticky computing as 'sticky' while the element scrolls away regardless.
+  // Only a real scroll can tell the difference.
+  it('actually stays at the top when the page scrolls', async () => {
+    const { context, page } = await open(STICKY);
+    await page.evaluate(() => window.scrollTo({ top: 600, behavior: 'instant' }));
+    await page.waitForFunction(() => window.scrollY === 600);
+    const { top, scrollY } = await page.evaluate(() => ({
+      top: document.querySelector('header[data-masthead]')!.getBoundingClientRect().top,
+      scrollY: window.scrollY,
+    }));
+    await context.close();
+
+    expect(scrollY, 'the page did not scroll, so this proves nothing').toBe(600);
+    expect(top, 'the masthead scrolled away with the page').toBeCloseTo(0, 0);
+  });
+
+  it('does not stick where the nav still wraps to two rows', async () => {
+    expect(await positionAt(WRAPPED), 'a 111.59px header is being pinned to the viewport')
+      .not.toBe('sticky');
+  });
+
+  // Phones keep every pixel of session 11's reduction from 153.59px to 77.00px.
+  it('does not stick on a phone', async () => {
+    expect(await positionAt(PHONE), 'the phone fold is being spent on a stuck masthead')
+      .not.toBe('sticky');
   });
 });
