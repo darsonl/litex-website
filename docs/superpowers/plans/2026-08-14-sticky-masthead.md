@@ -319,18 +319,40 @@ In `src/components/SiteNav.astro`, at the **end** of the `<style>` block, after 
   @supports (animation-timeline: scroll()) {
     @media (min-width: 56.25rem) {
       .masthead {
-        animation: masthead-lift linear both;
+        /* ⚠ Longhands, not the `animation` shorthand. This build's minifier
+           (lightningcss, via Vite) folds a standalone `animation-timeline: scroll()`
+           back INTO the shorthand whenever one is present, and Chromium does not accept
+           scroll() there — so it discards the whole merged declaration and the masthead
+           never animates at all. Longhand-only gives the minifier nothing to fold.
+           Read dist/_astro/*.css after building if this ever stops working. */
+        animation-name: masthead-lift;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
         animation-timeline: scroll();
-        /* Fades in over the first 64px of scroll rather than snapping on at 1px, which
-           is what makes this read as a lift instead of a flicker. */
-        animation-range: 0 4rem;
+        /* Fades in over the first 64px of scroll rather than snapping on, which is what
+           makes this read as a lift instead of a flicker.
+
+           ⚠ Starts at 1px, not 0, and pairs with fill-mode: forwards rather than both.
+           At 0/both the resting box-shadow serializes as an interpolated
+           `rgba(0, 0, 0, 0) 0px 0px 0px 0px` rather than the literal `none` this task's
+           own test asserts. */
+        animation-range: 1px 4rem;
       }
     }
   }
   @keyframes masthead-lift {
+    from { box-shadow: none; }
     to { box-shadow: 0 1px 12px rgb(0 0 0 / 0.45); }
   }
 ```
+
+⚠ **This is the corrected CSS.** The plan originally specified the `animation` shorthand
+with `animation-range: 0 4rem` and `fill-mode: both`. Both were wrong, and neither would
+have failed loudly: the first ships a masthead that silently never animates, and the
+second fails this task's own resting-state assertion. Found during implementation and
+confirmed independently by the reviewer, who rebuilt it both ways and read
+`dist/_astro/*.css`. The explicit `from` keyframe is defensive rather than load-bearing —
+`forwards` alone produces the same resting value, measured.
 
 - [ ] **Step 4: Run the test and watch it pass**
 
