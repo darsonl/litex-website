@@ -107,10 +107,27 @@ describe('the CMS config', () => {
   // times in Plan 8 (the _redirects header comment, the 404 title, the favicon note).
   // Guard what the machine reads. Walking the field tree also catches an upload widget
   // nested inside specTable, which a flat text scan would only catch by luck.
+  // ⚠ This deliberately does NOT assert that media_folder is absent, and the reason is a
+  // shipped defect. It used to. Sveltia treats media_folder as required and replaces the
+  // whole application with "The media folder is not defined." when it is missing, so that
+  // assertion enforced a config the CMS refuses to run — and every test here passed while
+  // /admin was unusable, because they all read the config as data and none of them ever
+  // loaded the page. tests/cms-boot.test.ts now does.
+  //
+  // The policy is unchanged; what changed is where it is enforced. A media folder must
+  // exist, so the guard is on the WIDGETS: with no image or file field anywhere, nothing
+  // an editor uploads can be attached to an entry.
   it('offers no way to upload an image', () => {
     const config = cmsConfig();
-    expect(config.media_folder, 'a site-wide media folder would offer uploads').toBeUndefined();
-    expect(config.public_folder).toBeUndefined();
+
+    // Pointed away from src/assets/, where every raster is tracked in a provenance.json
+    // and checked by tests/imagery.test.ts, and away from public/, so a stray upload
+    // cannot reach the built site.
+    expect(config.media_folder, 'Sveltia will not start without a media folder').toBeTruthy();
+    expect(
+      config.media_folder,
+      'the media folder points into the provenance-tracked asset tree or into public/',
+    ).not.toMatch(/^(src\/assets|public)\b/);
 
     const widgets: string[] = [];
     const collect = (fields: any[] | undefined) => {

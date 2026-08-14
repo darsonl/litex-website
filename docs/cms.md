@@ -46,8 +46,22 @@ live in the zod schemas and only run at build time.
 
 ### Images
 
-There is no image widget, no file widget and no media folder, anywhere in `config.yml`.
-`tests/cms.test.ts` fails if one appears.
+There is **no image widget and no file widget** anywhere in `config.yml`, so nothing an
+editor uploads can be attached to an entry. `tests/cms.test.ts` walks the whole field tree
+and fails if one appears, including nested inside `specTable`.
+
+⚠ **There IS a `media_folder`, and it is required.** The first version of this config
+omitted it, reasoning that a site allowing no uploads needs no media folder. **Sveltia
+treats it as required and refuses to start without it** — the entire application is
+replaced by *"The media folder is not defined."* The CMS was unusable, and no test caught
+it, because every CMS test read `config.yml` as data and none of them ever loaded the
+page. `tests/cms-boot.test.ts` now boots the real bundle in a real browser and requires it
+to reach its sign-in screen.
+
+It points at `uploads/` at the repository root: outside `src/assets/`, where every raster
+is tracked in a `provenance.json`, and outside `public/`, so a stray upload cannot reach
+the built site. It is deliberately **not** gitignored — anything landing there should be
+visible in the pull request.
 
 Every raster on this site needs an entry in the relevant `src/assets/*/provenance.json`,
 traced to a source in `archive/`, declared `aiGenerated: false` — and `tests/imagery.test.ts`

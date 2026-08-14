@@ -24,6 +24,22 @@ backend:
   repo: darsonl/litex-website
   branch: main
 
+# ⚠ Required by Sveltia, and it must stay pointed at a folder nothing uses.
+#
+# The first version of this config omitted it, on the reasoning that a site which allows
+# no uploads needs no media folder. Sveltia refuses to start without it: the whole app is
+# replaced by "The media folder is not defined." (config.error.missing_media_folder). The
+# CMS was completely unusable and no test noticed, because every test here reads the
+# config as data and none of them ever loaded the page. tests/cms-boot.test.ts does now.
+#
+# The imagery policy is unchanged and is enforced where it can actually be enforced: there
+# is NO image or file widget in any collection below, so nothing an editor uploads can be
+# attached to any entry. This path is deliberately outside src/assets/ — where every
+# raster is tracked in a provenance.json and checked by tests/imagery.test.ts — and
+# outside public/, so a stray upload cannot reach the built site. It is not in .gitignore
+# on purpose: anything landing here shows up in the pull request, which is the point.
+media_folder: uploads
+
 # Every save becomes a pull request instead of a commit to main.
 #
 # This is the safety net for everything the config below cannot express. The zod schemas
