@@ -185,7 +185,7 @@ so the shadow is directly observable.
 | At 900px: a `box-shadow` after scrolling 600px | The shadow, in the one engine that can show it |
 | The skip link lands `#main` at or below the masthead's bottom edge, not underneath it | The one accessibility consequence of a sticky header |
 | `scroll-padding-top` is at least the masthead's measured height | That the skip link cannot land under the header |
-| On a phone, `scroll-padding-top` is `auto` (no offset) | That nothing pushes content down where nothing sticks |
+| At 390px **and 880px**, `scroll-padding-top` is `auto` (no offset) | That nothing pushes content down where nothing sticks. 880px is the one that matters: `56.25rem` lives in both `SiteNav.astro` and `global.css` with nothing binding them, so a breakpoint moved in one file and not the other would give the in-between band an anchor offset for a masthead that does not stick — and only this assertion would notice |
 | The existing 96px phone-height guard still passes | That this change did not disturb session 11's work |
 
 **The single-row assertion is the load-bearing one.** `56.25rem` is not a round number
