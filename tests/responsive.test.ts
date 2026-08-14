@@ -321,3 +321,59 @@ describe('the stuck masthead acknowledges content passing under it', () => {
       .not.toBe('none');
   });
 });
+
+describe('anchors clear the stuck masthead', () => {
+  // #main is the skip link's target and the only in-page anchor on the whole site.
+  // Without an offset it scrolls to y=0, which is exactly where the stuck masthead now
+  // is — so the visitor who most needs the skip link lands on content hidden behind it.
+  it('lands #main below the masthead, not underneath it', async () => {
+    const { context, page } = await open(STICKY);
+
+    // ⚠ Scroll away FIRST. At the top of the page #main already sits just below the
+    // masthead, so activating the anchor there scrolls to a negative offset, clamps to
+    // 0, and moves nothing — and the assertion below would hold with or without the fix.
+    // Jumping back from 1200px is what makes this discriminating: with the offset the
+    // page lands at 0 and #main clears the header; without it the page lands with #main
+    // at y=0, behind the header.
+    await page.evaluate(() => window.scrollTo({ top: 1200, behavior: 'instant' }));
+    await page.waitForFunction(() => window.scrollY === 1200);
+
+    await page.evaluate(() => { window.location.hash = 'main'; });
+    await page.waitForFunction(() => window.scrollY !== 1200);
+
+    const { mainTop, mastheadBottom } = await page.evaluate(() => ({
+      mainTop: document.querySelector('#main')!.getBoundingClientRect().top,
+      mastheadBottom: document
+        .querySelector('header[data-masthead]')!
+        .getBoundingClientRect().bottom,
+    }));
+    await context.close();
+
+    expect(mainTop, 'the skip link lands the reader behind the masthead')
+      .toBeGreaterThanOrEqual(mastheadBottom);
+  });
+
+  it('reserves at least the masthead height', async () => {
+    const { context, page } = await open(STICKY);
+    const { pad, height } = await page.evaluate(() => ({
+      pad: parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop),
+      height: document.querySelector('header[data-masthead]')!.getBoundingClientRect().height,
+    }));
+    await context.close();
+
+    expect(pad, `scroll-padding-top is ${pad}px against a ${height}px masthead`)
+      .toBeGreaterThanOrEqual(height);
+  });
+
+  // Phones have no stuck masthead, so an offset there would push content down for no
+  // reason. The rule must be inside the same media query as the sticking.
+  it('adds no offset where nothing sticks', async () => {
+    const { context, page } = await open(PHONE);
+    const pad = await page.evaluate(
+      () => getComputedStyle(document.documentElement).scrollPaddingTop,
+    );
+    await context.close();
+
+    expect(pad, 'anchors are being offset on a phone, where nothing sticks').toBe('auto');
+  });
+});
