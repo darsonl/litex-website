@@ -236,6 +236,11 @@ describe('the masthead sticks, but only once it is a single row', () => {
       () => document.querySelector('header[data-masthead]')!.getBoundingClientRect().height,
     );
     await context.close();
+    // 72 sits clear of the measured single-row height (64.00px) and far below the
+    // measured wrapped height (111.59px) — generous enough not to be fragile, tight
+    // enough to fail the old layout, same standard as the 96px phone guard above.
+    // (Coincidentally equal to the 72px scroll-padding-top below; the two are unrelated —
+    // one measures a box, the other reserves clearance for an anchor.)
     expect(height, 'the nav is wrapping at the sticky breakpoint').toBeLessThanOrEqual(72);
   });
 
@@ -248,6 +253,10 @@ describe('the masthead sticks, but only once it is a single row', () => {
   // Only a real scroll can tell the difference.
   it('actually stays at the top when the page scrolls', async () => {
     const { context, page } = await open(STICKY);
+    // 600px: the homepage is 3059px tall at this viewport, so this is comfortably
+    // mid-page — nowhere near the top (where nothing has scrolled yet) or the bottom
+    // (where overscroll behaviour could confuse the reading). The shadow test below
+    // scrolls this same distance for the same reason.
     await page.evaluate(() => window.scrollTo({ top: 600, behavior: 'instant' }));
     await page.waitForFunction(() => window.scrollY === 600);
     const { top, scrollY } = await page.evaluate(() => ({
@@ -319,6 +328,16 @@ describe('the stuck masthead acknowledges content passing under it', () => {
     expect(supported, 'this engine cannot run scroll-driven animations').toBe(true);
     expect(shadow, 'the masthead never lifts, so scrolled content runs into it')
       .not.toBe('none');
+
+    // `not.toBe('none')` alone does not constrain how much the shadow has lifted.
+    // Widening animation-range to 1px 400rem leaves box-shadow reading
+    // `rgba(0, 0, 0, 0.043) 0px 0.0936px 1.12px 0px` at 600px of scroll — a shadow
+    // nobody can see — and the loose assertion above still passes. The shipped range
+    // (1px 4rem) is fully elapsed by 600px, so alpha should have reached its end value,
+    // 0.45; require that instead of merely "not none".
+    const alpha = parseFloat(shadow.match(/rgba\([\d.]+, [\d.]+, [\d.]+, ([\d.]+)\)/)?.[1] ?? 'NaN');
+    expect(alpha, `box-shadow alpha is ${alpha}, expected ~0.45: ${shadow}`)
+      .toBeCloseTo(0.45, 2);
   });
 });
 
@@ -365,15 +384,24 @@ describe('anchors clear the stuck masthead', () => {
       .toBeGreaterThanOrEqual(height);
   });
 
-  // Phones have no stuck masthead, so an offset there would push content down for no
-  // reason. The rule must be inside the same media query as the sticking.
+  // Neither PHONE nor WRAPPED has a stuck masthead, so an offset at either would push
+  // content down for no reason. WRAPPED (880px) is the near-boundary case: 56.25rem
+  // appears in both SiteNav.astro's sticky rule and global.css's scroll-padding-top rule
+  // with nothing binding the two together, so moving the sticky breakpoint in one file
+  // and forgetting the other would leave a band of widths with a 72px anchor offset for
+  // a masthead that does not stick — and PHONE alone would never catch it.
   it('adds no offset where nothing sticks', async () => {
-    const { context, page } = await open(PHONE);
-    const pad = await page.evaluate(
-      () => getComputedStyle(document.documentElement).scrollPaddingTop,
-    );
-    await context.close();
+    for (const [label, viewport] of [
+      ['a phone', PHONE],
+      ['the wrapped band just below the breakpoint', WRAPPED],
+    ] as const) {
+      const { context, page } = await open(viewport);
+      const pad = await page.evaluate(
+        () => getComputedStyle(document.documentElement).scrollPaddingTop,
+      );
+      await context.close();
 
-    expect(pad, 'anchors are being offset on a phone, where nothing sticks').toBe('auto');
+      expect(pad, `anchors are being offset at ${label}, where nothing sticks`).toBe('auto');
+    }
   });
 });
