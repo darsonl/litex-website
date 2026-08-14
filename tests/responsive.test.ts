@@ -309,35 +309,67 @@ describe('the stuck masthead acknowledges content passing under it', () => {
       await page.evaluate(() => new Promise((r) =>
         requestAnimationFrame(() => requestAnimationFrame(r))));
     }
-    const shadow = await page.evaluate(
-      () => getComputedStyle(document.querySelector('header[data-masthead]')!).boxShadow,
-    );
+    const measured = await page.evaluate(() => {
+      const bar = getComputedStyle(document.querySelector('header[data-masthead]')!);
+      return {
+        background: bar.backgroundColor,
+        border: bar.borderBottomColor,
+        page: getComputedStyle(document.body).backgroundColor,
+      };
+    });
     await context.close();
-    return { shadow, supported };
+    return { ...measured, supported };
   };
 
-  it('casts no shadow at the top of the page, where nothing is beneath it', async () => {
-    const { shadow, supported } = await shadowAfterScrolling(0);
+  /**
+   * WCAG relative luminance, so these assertions are about what an eye can separate
+   * rather than about whether two strings differ.
+   *
+   * This is the whole lesson of the defect these tests were rewritten for. The first
+   * version of this feature signalled elevation with `box-shadow: 0 1px 12px
+   * rgb(0 0 0 / 0.45)`, and the test asserted the shadow's ALPHA reached 0.45. It did,
+   * so the test passed — on a page whose background is #0A0C0D, where a black shadow
+   * composites to #050607, a contrast ratio of 1.035. The shadow was invisible in
+   * production and every assertion was green. A number being correct is not the same as
+   * a person being able to see it.
+   */
+  const relativeLuminance = (rgb: string) => {
+    const [r, g, b] = (rgb.match(/\d+/g) ?? []).slice(0, 3).map(Number);
+    const ch = (c: number) => {
+      const s = c / 255;
+      return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+    };
+    return 0.2126 * ch(r) + 0.7152 * ch(g) + 0.0722 * ch(b);
+  };
+  const contrast = (a: string, b: string) => {
+    const [x, y] = [relativeLuminance(a), relativeLuminance(b)].sort((m, n) => n - m);
+    return (x + 0.05) / (y + 0.05);
+  };
+
+  it('is flush with the page at the top, where nothing is beneath it', async () => {
+    const { background, page, supported } = await shadowAfterScrolling(0);
     expect(supported, 'this engine cannot run scroll-driven animations').toBe(true);
-    expect(shadow, 'the masthead is shadowed before anything has scrolled under it')
-      .toBe('none');
+    expect(background, 'the masthead is already lifted before anything has scrolled under it')
+      .toBe(page);
   });
 
-  it('lifts once the page has scrolled', async () => {
-    const { shadow, supported } = await shadowAfterScrolling(600);
+  it('lifts to a surface the eye can actually separate from the page', async () => {
+    const { background, border, page, supported } = await shadowAfterScrolling(600);
     expect(supported, 'this engine cannot run scroll-driven animations').toBe(true);
-    expect(shadow, 'the masthead never lifts, so scrolled content runs into it')
-      .not.toBe('none');
 
-    // `not.toBe('none')` alone does not constrain how much the shadow has lifted.
-    // Widening animation-range to 1px 400rem leaves box-shadow reading
-    // `rgba(0, 0, 0, 0.043) 0px 0.0936px 1.12px 0px` at 600px of scroll — a shadow
-    // nobody can see — and the loose assertion above still passes. The shipped range
-    // (1px 4rem) is fully elapsed by 600px, so alpha should have reached its end value,
-    // 0.45; require that instead of merely "not none".
-    const alpha = parseFloat(shadow.match(/rgba\([\d.]+, [\d.]+, [\d.]+, ([\d.]+)\)/)?.[1] ?? 'NaN');
-    expect(alpha, `box-shadow alpha is ${alpha}, expected ~0.45: ${shadow}`)
-      .toBeCloseTo(0.45, 2);
+    // The fill alone is deliberately NOT the whole cue and must not be asserted as if it
+    // were: --c-raised over --c-base is only 1.042, which is the same order as the
+    // invisible black shadow this replaced. It is the line that does the separating on
+    // this palette, which is why the threshold below is on the border.
+    expect(background, 'the masthead did not lift at all').not.toBe(page);
+
+    const edge = contrast(border, background);
+    expect(
+      edge,
+      `the stuck masthead's bottom edge is only ${edge.toFixed(2)} against its own ` +
+        `surface (border ${border} on ${background}) — that is the invisible-shadow bug ` +
+        `again in a different property. Dark interfaces need roughly 1.8-2.4 here.`,
+    ).toBeGreaterThanOrEqual(1.7);
   });
 });
 

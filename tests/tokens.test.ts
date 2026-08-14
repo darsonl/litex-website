@@ -24,7 +24,11 @@ describe('colour tokens', () => {
   const tokens = parseTokens(css);
 
   it('defines every token the design system names', () => {
-    for (const name of [...TEXT_TOKENS, ...SURFACE_TOKENS, 'line', 'paper']) {
+    // line-lift is not a TEXT_TOKEN on purpose: it is a 1px rule, not type, so WCAG AA
+    // for text does not apply to it. What it must clear is its own job — separating the
+    // stuck masthead from the page — and tests/responsive.test.ts measures that where it
+    // is actually used, against the surface it actually sits on.
+    for (const name of [...TEXT_TOKENS, ...SURFACE_TOKENS, 'line', 'line-lift', 'paper']) {
       expect(tokens[name], `--c-${name} is missing from tokens.css`).toBeDefined();
     }
   });

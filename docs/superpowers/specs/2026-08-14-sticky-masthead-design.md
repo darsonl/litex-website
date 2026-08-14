@@ -96,10 +96,48 @@ header with no test failure in any assertion that only reads computed style, whi
   }
 }
 @keyframes masthead-lift {
-  from { box-shadow: none; }
-  to { box-shadow: 0 1px 12px rgb(0 0 0 / 0.45); }
+  from {
+    background-color: var(--c-base);
+    border-bottom-color: var(--c-line);
+  }
+  to {
+    background-color: var(--c-raised);
+    border-bottom-color: var(--c-line-lift);
+  }
 }
 ```
+
+### ⚠ It is not a drop shadow, and the first version's was invisible
+
+This shipped as `box-shadow: 0 1px 12px rgb(0 0 0 / 0.45)` and **the shadow could not be
+seen on the live site.** The page background is `--c-base: #0A0C0D`. Black at 45% over
+that composites to `#050607` — a contrast ratio of **1.035**. On a near-black surface a
+drop shadow cannot express elevation at all, because there is no room left to darken.
+
+**The test did not catch it, and the reason is worth keeping.** It asserted the shadow's
+*alpha* reached its end value of 0.45. It did. The number was correct and the effect was
+invisible, because nothing asserted the shadow's colour had any relationship to the
+background it was cast on. The replacement measures WCAG relative luminance between the
+bar, its border and the page, so it fails on *imperceptibility* rather than on a value.
+
+What replaces it is how dark interfaces actually signal elevation — a lighter surface and
+a brighter edge:
+
+| | at rest | scrolled | contrast |
+|---|---|---|---|
+| Bar fill | `#0A0C0D` (= the page) | `#0F1213` (`--c-raised`) | 1.042 vs page |
+| Bottom edge | `#1E2325` (`--c-line`) | `#3A4145` (`--c-line-lift`) | **1.81** vs the bar |
+
+**The border is doing the work.** A fill lift to `--c-raised` is only 1.042 — the same
+order as the shadow it replaced — which is why changing the fill alone would have
+reproduced the bug in a different property. `--c-line-lift` sits in the 1.8–2.4 band dark
+interfaces conventionally use for a raised edge. It is elsewhere on this site that
+`--c-raised` reads as raised at all, and it does so there for the same reason: it is
+bounded by a `--c-line` border.
+
+**Do not restore the shadow, and do not substitute a white glow.** A light halo is
+visible, but it reads as emitted light rather than as a raised plane, which is at odds
+with the restraint the rest of this site holds to.
 
 **⚠ This is the corrected CSS. The original version of this spec specified the `animation`
 shorthand with `animation-range: 0 4rem` and `fill-mode: both`, and it was wrong on both

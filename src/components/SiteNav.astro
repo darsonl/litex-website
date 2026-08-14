@@ -247,15 +247,26 @@ const isCurrent = (href: string) => here === href || here.startsWith(href);
         the build unmerged. Verified in dist/_astro/*.css after each build.
 
      2. `animation-range: 1px 4rem` (not `0 4rem`) with `fill-mode: forwards` (not
-        `both`). At scroll 0 with a range starting at 0, the animation is already inside
-        its active phase, and Chromium reports the interpolated progress-0 box-shadow as
-        an explicit transparent shadow (`rgba(0 0 0 / 0) 0 0 0 0`) rather than the
-        keyword `none` — cosmetically identical but a different computed-style string,
-        which is what tests/responsive.test.ts asserts on. Starting the range 1px later
-        puts scroll 0 in the animation's *before* phase; `forwards` fill (unlike `both`)
-        applies no effect there, so box-shadow falls through to its true un-animated
-        value, `none`. The one-pixel shift is invisible and the fade still spans
-        essentially the first 64px of scroll. */
+        `both`). Starting the range 1px late puts scroll 0 in the animation's *before*
+        phase, where `forwards` fill (unlike `both`) applies no effect — so at rest the
+        animated properties fall through to their true un-animated values rather than to
+        interpolated progress-0 ones. That is what lets the resting assertion in
+        tests/responsive.test.ts compare the bar to the page for exact equality. The
+        one-pixel shift is invisible and the fade still spans essentially the first 64px
+        of scroll.
+
+     ⚠ THIS DOES NOT USE A DROP SHADOW, and that is the point. The first version did —
+     `box-shadow: 0 1px 12px rgb(0 0 0 / 0.45)` — and it was invisible in production,
+     because the page background is #0A0C0D and black over that composites to #050607: a
+     contrast ratio of 1.035. Nothing. On a near-black surface a shadow cannot express
+     elevation at all; a lighter surface and a brighter edge are how dark interfaces do
+     it. Do not "restore" the shadow, and do not reach for a white glow either — that
+     reads as emitted light rather than as a raised plane.
+
+     The lift is carried by BOTH properties, and the border is the one doing the work:
+     --c-raised over --c-base is only 1.042, barely better than the shadow it replaced,
+     while --c-line-lift against --c-raised is 1.81. Changing the fill alone would
+     reproduce the original bug in a different property. */
   @supports (animation-timeline: scroll()) {
     @media (min-width: 56.25rem) {
       .masthead {
@@ -268,7 +279,13 @@ const isCurrent = (href: string) => here === href || here.startsWith(href);
     }
   }
   @keyframes masthead-lift {
-    from { box-shadow: none; }
-    to { box-shadow: 0 1px 12px rgb(0 0 0 / 0.45); }
+    from {
+      background-color: var(--c-base);
+      border-bottom-color: var(--c-line);
+    }
+    to {
+      background-color: var(--c-raised);
+      border-bottom-color: var(--c-line-lift);
+    }
   }
 </style>
