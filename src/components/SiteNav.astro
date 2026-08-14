@@ -215,4 +215,54 @@ const isCurrent = (href: string) => here === href || here.startsWith(href);
   @media (min-width: 56.25rem) {
     .masthead { position: sticky; top: 0; z-index: 10; }
   }
+
+  /* The shadow is the only part of this that needs to know the page has scrolled, and a
+     scroll-driven animation is how it finds out without shipping JavaScript.
+
+     Guarded because support is not universal: Chrome/Edge 115+ and Safari 26+ have it,
+     but Firefox stable still keeps it behind layout.css.scroll-driven-animations.enabled
+     as of Firefox 152 (June 2026) — roughly 83% of visitors. Where it is absent the
+     animation simply never runs and the masthead keeps the opaque background and 1px
+     rule it already has, which separates it from content perfectly well. That degraded
+     state is a good design, not a broken one.
+
+     ⚠ Do not "fix" Firefox with a script. It would be the first JavaScript this site
+     ships for chrome rather than for the enquiry forms, and it would buy a decoration.
+
+     Two things below depart from the shorthand a first draft would reach for, and both
+     are load-bearing rather than stylistic:
+
+     1. Longhand animation-name/-timing-function/-fill-mode instead of the `animation`
+        shorthand. This build's CSS minifier (lightningcss, via Vite) folds a longhand
+        `animation-timeline: scroll()` back into the `animation` shorthand whenever one
+        is present — but Chromium's parser does not yet accept `scroll()` inside that
+        shorthand, so it discards the whole merged declaration and the masthead never
+        animates at all. Longhand-only gives the minifier nothing to fold, so it survives
+        the build unmerged. Verified in dist/_astro/*.css after each build.
+
+     2. `animation-range: 1px 4rem` (not `0 4rem`) with `fill-mode: forwards` (not
+        `both`). At scroll 0 with a range starting at 0, the animation is already inside
+        its active phase, and Chromium reports the interpolated progress-0 box-shadow as
+        an explicit transparent shadow (`rgba(0 0 0 / 0) 0 0 0 0`) rather than the
+        keyword `none` — cosmetically identical but a different computed-style string,
+        which is what tests/responsive.test.ts asserts on. Starting the range 1px later
+        puts scroll 0 in the animation's *before* phase; `forwards` fill (unlike `both`)
+        applies no effect there, so box-shadow falls through to its true un-animated
+        value, `none`. The one-pixel shift is invisible and the fade still spans
+        essentially the first 64px of scroll. */
+  @supports (animation-timeline: scroll()) {
+    @media (min-width: 56.25rem) {
+      .masthead {
+        animation-name: masthead-lift;
+        animation-timing-function: linear;
+        animation-fill-mode: forwards;
+        animation-timeline: scroll();
+        animation-range: 1px 4rem;
+      }
+    }
+  }
+  @keyframes masthead-lift {
+    from { box-shadow: none; }
+    to { box-shadow: 0 1px 12px rgb(0 0 0 / 0.45); }
+  }
 </style>

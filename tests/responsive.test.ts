@@ -271,3 +271,41 @@ describe('the masthead sticks, but only once it is a single row', () => {
       .not.toBe('sticky');
   });
 });
+
+describe('the stuck masthead acknowledges content passing under it', () => {
+  const shadowAfterScrolling = async (px: number) => {
+    const { context, page } = await open(STICKY);
+
+    // Without this the two assertions below are vacuous in any engine that cannot run
+    // scroll-driven animations: box-shadow would read 'none' at rest AND after
+    // scrolling, and only the resting assertion would pass — quietly, for the wrong
+    // reason. Playwright drives Chromium, which supports them.
+    const supported = await page.evaluate(() =>
+      CSS.supports('animation-timeline', 'scroll()'),
+    );
+
+    if (px > 0) {
+      await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), px);
+      await page.waitForFunction((y) => window.scrollY === y, px);
+    }
+    const shadow = await page.evaluate(
+      () => getComputedStyle(document.querySelector('header[data-masthead]')!).boxShadow,
+    );
+    await context.close();
+    return { shadow, supported };
+  };
+
+  it('casts no shadow at the top of the page, where nothing is beneath it', async () => {
+    const { shadow, supported } = await shadowAfterScrolling(0);
+    expect(supported, 'this engine cannot run scroll-driven animations').toBe(true);
+    expect(shadow, 'the masthead is shadowed before anything has scrolled under it')
+      .toBe('none');
+  });
+
+  it('lifts once the page has scrolled', async () => {
+    const { shadow, supported } = await shadowAfterScrolling(600);
+    expect(supported, 'this engine cannot run scroll-driven animations').toBe(true);
+    expect(shadow, 'the masthead never lifts, so scrolled content runs into it')
+      .not.toBe('none');
+  });
+});
