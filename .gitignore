@@ -20,6 +20,11 @@ dist/
 # The archive copy is the versioned one; see scripts/sync-catalogs.mjs.
 public/catalogs/
 
+# The Sveltia CMS bundle, copied out of node_modules by scripts/sync-cms.mjs at build
+# time. package-lock.json is the versioned record of which version that is; a committed
+# copy would drift from it silently.
+public/admin/sveltia-cms.js
+
 # Env
 .env
 .env.*
