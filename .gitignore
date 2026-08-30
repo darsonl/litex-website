@@ -41,3 +41,14 @@ Thumbs.db
 # reads them to pick up priority issues without a copy-paste; they record one
 # machine's run at one moment and would otherwise churn on every critique.
 .impeccable/critique/
+
+# Per-harness copies of the impeccable skill, written by its installer. .agents/skills/
+# is a duplicate of the versioned .claude/skills/impeccable/ tree — 147 identical files
+# apart from a rewritten path prefix in SKILL.md — and .codex/hooks.json is a generated
+# manifest that points back into .claude/. Versioning them would mean maintaining the
+# same skill twice and letting the copies drift apart on every upgrade.
+#
+# Scoped to the generated paths, not their parents: .agents/context/ is a place the skill
+# looks for PRODUCT.md / DESIGN.md, and that content belongs in the repo.
+.agents/skills/
+.codex/hooks.json
