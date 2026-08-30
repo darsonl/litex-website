@@ -1,15 +1,27 @@
 # Session handoff — LiTex website redesign
 
-**Written:** 2026-08-11, last updated 2026-08-14 (session 15 — **sticky masthead shipped; the CMS round-trip was RUN and found three real defects, all fixed**)
+**Written:** 2026-08-11, last updated 2026-08-31 (session 16 — housekeeping only; session 15 — **sticky masthead shipped; the CMS round-trip was RUN and found three real defects, all fixed**)
 **Reason:** This file is the resume point between sessions.
 
 ---
 
-## ▶▶ SESSION 16 RESUME POINT
+## ▶▶ NEXT SESSION RESUME POINT
 
-**`main` is at `bdc858c`, clean, no open PRs, all work merged.**
+**Last code change on `main`: `24fdc1b`. Clean, no open PRs, all work merged.**
+(Commits after it are docs-only, so this stays true as the handoff itself is updated.)
 `npm run build` → **36 pages** · `npm test` → **445 across 27 files** · `test:a11y` → **11** ·
 detector clean. The `cms` branch exists and is reset to `main`.
+
+### What session 16 did — housekeeping only, none of “Do this next” was touched
+
+Merged the two PRs that were left open: **#31** (this handoff) and **#32** (stop versioning
+`.agents/skills/` and `.codex/hooks.json` — a byte-identical duplicate of the versioned
+`.claude/skills/impeccable/` tree). No code changed; the 445/36/11 numbers below are unre-run,
+carried forward from session 15.
+
+⚠ **This heading no longer carries a session number.** It read “SESSION 16” while sitting
+unmerged in #31, so `main` told every reader to start a session that was already underway — the
+same stale-signpost failure the CMS block below describes. An unnumbered heading cannot rot.
 
 ### What session 15 did
 
